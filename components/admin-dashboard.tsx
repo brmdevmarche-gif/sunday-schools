@@ -4,14 +4,25 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, Church, Calendar, UserCheck, BookOpen, BarChart3, Settings, ChevronRight } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {
+  Users,
+  Church,
+  Calendar,
+  UserCheck,
+  BookOpen,
+  BarChart3,
+  Settings,
+  ChevronRight,
+  AlertCircle,
+} from "lucide-react"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminHeader } from "@/components/admin-header"
 import { ChurchManagement } from "@/components/church-management"
 import { StudentManagement } from "@/components/student-management"
 import { ServantManagement } from "@/components/servant-management"
 import { ActivityManagement } from "@/components/activity-management"
-import { createClient } from "@/lib/supabase"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase"
 
 export function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard")
@@ -23,16 +34,25 @@ export function AdminDashboard() {
   })
   const [recentActivities, setRecentActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
-  const supabase = createClient()
+  const [supabaseConfigured, setSupabaseConfigured] = useState(false)
+  const [supabaseError, setSupabaseError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchDashboardData()
+    const configured = isSupabaseConfigured()
+    setSupabaseConfigured(configured)
+
+    if (configured) {
+      fetchDashboardData()
+    } else {
+      setLoading(false)
+      setSupabaseError("Supabase is not configured. Please add the Supabase integration to continue.")
+    }
   }, [])
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
+      const supabase = createClient()
 
       // Fetch stats
       const [studentsResult, churchesResult, servantsResult, activitiesResult] = await Promise.all([
@@ -60,8 +80,10 @@ export function AdminDashboard() {
         .limit(3)
 
       setRecentActivities(activities || [])
+      setSupabaseError(null)
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
+      setSupabaseError(error instanceof Error ? error.message : "Failed to fetch dashboard data")
     } finally {
       setLoading(false)
     }
@@ -106,6 +128,20 @@ export function AdminDashboard() {
         <AdminHeader />
 
         <main className="flex-1 overflow-y-auto p-6">
+          {supabaseError && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Database Connection Error</AlertTitle>
+              <AlertDescription>
+                {supabaseError}
+                <br />
+                <span className="text-sm mt-2 block">
+                  Please add the Supabase integration from the sidebar to enable database functionality.
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {activeSection === "dashboard" && (
             <div className="space-y-6">
               {/* Welcome Section */}
@@ -149,6 +185,10 @@ export function AdminDashboard() {
                   <CardContent className="space-y-4">
                     {loading ? (
                       <div className="text-center py-4">Loading activities...</div>
+                    ) : !supabaseConfigured ? (
+                      <div className="text-center py-4 text-muted-foreground">
+                        Database not configured. Please add Supabase integration.
+                      </div>
                     ) : recentActivities.length > 0 ? (
                       recentActivities.map((activity) => (
                         <div key={activity.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -172,7 +212,7 @@ export function AdminDashboard() {
                     ) : (
                       <div className="text-center py-4 text-muted-foreground">No activities found</div>
                     )}
-                    <Button variant="outline" className="w-full bg-transparent">
+                    <Button variant="outline" className="w-full bg-transparent" disabled={!supabaseConfigured}>
                       View All Activities
                       <ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -190,6 +230,7 @@ export function AdminDashboard() {
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("students")}
+                      disabled={!supabaseConfigured}
                     >
                       <Users className="w-4 h-4 mr-2" />
                       Add New Student
@@ -198,6 +239,7 @@ export function AdminDashboard() {
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("servants")}
+                      disabled={!supabaseConfigured}
                     >
                       <UserCheck className="w-4 h-4 mr-2" />
                       Register Servant
@@ -206,6 +248,7 @@ export function AdminDashboard() {
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("activities")}
+                      disabled={!supabaseConfigured}
                     >
                       <Calendar className="w-4 h-4 mr-2" />
                       Create Activity
@@ -214,15 +257,24 @@ export function AdminDashboard() {
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("churches")}
+                      disabled={!supabaseConfigured}
                     >
                       <Church className="w-4 h-4 mr-2" />
                       Manage Churches
                     </Button>
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start bg-transparent"
+                      disabled={!supabaseConfigured}
+                    >
                       <BookOpen className="w-4 h-4 mr-2" />
                       Plan Lessons
                     </Button>
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start bg-transparent"
+                      disabled={!supabaseConfigured}
+                    >
                       <BarChart3 className="w-4 h-4 mr-2" />
                       View Reports
                     </Button>

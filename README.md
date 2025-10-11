@@ -1,9 +1,9 @@
-# Login page with shadcn
+# Sunday School Admin Panel
 
 *Automatically synced with your [v0.app](https://v0.app) deployments*
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/beshoyrmansours-projects/v0-login-page-with-shadcn)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/AWpKuXmbQkr)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/maxmosabdelsayed-9134s-projects/v0-sunday-school-admin-panel)
+[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/oI3GIjM89uR)
 
 ## Overview
 
@@ -14,13 +14,13 @@ Any changes you make to your deployed app will be automatically pushed to this r
 
 Your project is live at:
 
-**[https://vercel.com/beshoyrmansours-projects/v0-login-page-with-shadcn](https://vercel.com/beshoyrmansours-projects/v0-login-page-with-shadcn)**
+**[https://vercel.com/maxmosabdelsayed-9134s-projects/v0-sunday-school-admin-panel](https://vercel.com/maxmosabdelsayed-9134s-projects/v0-sunday-school-admin-panel)**
 
 ## Build your app
 
 Continue building your app on:
 
-**[https://v0.app/chat/projects/AWpKuXmbQkr](https://v0.app/chat/projects/AWpKuXmbQkr)**
+**[https://v0.app/chat/projects/oI3GIjM89uR](https://v0.app/chat/projects/oI3GIjM89uR)**
 
 ## How It Works
 

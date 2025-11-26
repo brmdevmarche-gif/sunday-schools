@@ -2,7 +2,7 @@
 
 Knesty Portal is a comprehensive, modern web application designed to manage Sunday School operations, including servants, students, classes, attendance, and a points-based store system. Built with performance and user experience in mind, it leverages Server-Side Rendering (SSR) and a robust component architecture.
 
-## 🚀 Features
+## 🚀 Features of the app
 
 - **Servant Management**: Complete profile management for church staff and teachers with role-based access control.
 - **Church Administration**: Manage multiple church locations, areas, and dioceses.

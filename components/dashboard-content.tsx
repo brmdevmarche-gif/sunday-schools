@@ -1,0 +1,341 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { SimpleButton } from "@/components/ui/simple-button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Users,
+  Church,
+  Calendar,
+  UserCheck,
+  BookOpen,
+  BarChart3,
+  Settings,
+  ChevronRight,
+  AlertCircle,
+} from "lucide-react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase";
+
+interface DashboardStats {
+  totalStudents: number;
+  activeChurches: number;
+  servants: number;
+  upcomingActivities: number;
+}
+
+interface RecentActivity {
+  id: string;
+  title: string;
+  start_date: string;
+  max_participants?: number;
+  churches?: { name: string };
+}
+
+export function DashboardContent() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalStudents: 0,
+    activeChurches: 0,
+    servants: 0,
+    upcomingActivities: 0,
+  });
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
+    []
+  );
+  const [loading, setLoading] = useState(true);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      fetchDashboardData();
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch stats
+      const [studentsResult, churchesResult, servantsResult, activitiesResult] =
+        await Promise.all([
+          supabase
+            .from("students")
+            .select("id", { count: "exact", head: true }),
+          supabase
+            .from("churches")
+            .select("id", { count: "exact", head: true }),
+          supabase.from("servants").select("id").eq("is_active", true),
+          supabase
+            .from("church_activities")
+            .select("*")
+            .gte("start_date", new Date().toISOString())
+            .limit(5),
+        ]);
+
+      setStats({
+        totalStudents: studentsResult.count || 0,
+        activeChurches: churchesResult.count || 0,
+        servants: servantsResult.data?.length || 0,
+        upcomingActivities: activitiesResult.data?.length || 0,
+      });
+
+      // Fetch recent activities with church names
+      const { data: activities } = await supabase
+        .from("church_activities")
+        .select(
+          `
+          *,
+          churches (name)
+        `
+        )
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      setRecentActivities(activities || []);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const statsCards = [
+    {
+      title: "Total Students",
+      value: loading ? "..." : stats.totalStudents.toString(),
+      change: "+12 this month",
+      icon: Users,
+      color: "text-blue-600",
+      href: "/students",
+    },
+    {
+      title: "Active Churches",
+      value: loading ? "..." : stats.activeChurches.toString(),
+      change: "+2 this year",
+      icon: Church,
+      color: "text-green-600",
+      href: "/churches",
+    },
+    {
+      title: "Servants",
+      value: loading ? "..." : stats.servants.toString(),
+      change: "+5 this month",
+      icon: UserCheck,
+      color: "text-purple-600",
+      href: "/servants",
+    },
+    {
+      title: "Upcoming Activities",
+      value: loading ? "..." : stats.upcomingActivities.toString(),
+      change: "This week",
+      icon: Calendar,
+      color: "text-orange-600",
+      href: "/activities",
+    },
+  ];
+
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Knesty Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Welcome to your Knesty management system.
+          </p>
+        </div>
+
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Setup Required</AlertTitle>
+          <AlertDescription>
+            Please configure your Supabase connection in the environment
+            variables to get started. Check your .env.local file for
+            NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Knesty Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Welcome back! Here's what's happening in your Sunday Schools.
+          </p>
+        </div>
+        <SimpleButton className="bg-accent hover:bg-accent/90">
+          <Settings className="w-4 h-4 mr-2" />
+          Settings
+        </SimpleButton>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statsCards.map((stat, index) => (
+          <Card
+            key={index}
+            className="border-border hover:bg-muted/50 transition-colors cursor-pointer"
+            onClick={() => (window.location.href = stat.href)}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">
+                {stat.value}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stat.change}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Recent Activities and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activities */}
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground">Recent Activities</CardTitle>
+            <CardDescription>
+              Latest church activities and events
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loading ? (
+              <div className="text-center py-4">Loading activities...</div>
+            ) : recentActivities.length > 0 ? (
+              recentActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                >
+                  <div className="flex-1">
+                    <h4 className="font-medium text-foreground">
+                      {activity.title}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {activity.churches?.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {activity.start_date
+                        ? new Date(activity.start_date).toLocaleDateString()
+                        : "No date"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        new Date(activity.start_date) > new Date()
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {new Date(activity.start_date) > new Date()
+                        ? "upcoming"
+                        : "completed"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {activity.max_participants || 0} max
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                No activities found
+              </div>
+            )}
+            <SimpleButton
+              variant="outline"
+              className="w-full bg-transparent"
+              onClick={() => (window.location.href = "/activities")}
+            >
+              View All Activities
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </SimpleButton>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground">Quick Actions</CardTitle>
+            <CardDescription>Common administrative tasks</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <SimpleButton
+              variant="outline"
+              className="w-full justify-start bg-transparent"
+              onClick={() => (window.location.href = "/students/new")}
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Add New Student
+            </SimpleButton>
+            <SimpleButton
+              variant="outline"
+              className="w-full justify-start bg-transparent"
+              onClick={() => (window.location.href = "/servants/new")}
+            >
+              <UserCheck className="w-4 h-4 mr-2" />
+              Register Servant
+            </SimpleButton>
+            <SimpleButton
+              variant="outline"
+              className="w-full justify-start bg-transparent"
+              onClick={() => (window.location.href = "/activities/new")}
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Create Activity
+            </SimpleButton>
+            <SimpleButton
+              variant="outline"
+              className="w-full justify-start bg-transparent"
+              onClick={() => (window.location.href = "/churches")}
+            >
+              <Church className="w-4 h-4 mr-2" />
+              Manage Churches
+            </SimpleButton>
+            <SimpleButton
+              variant="outline"
+              className="w-full justify-start bg-transparent"
+              onClick={() => (window.location.href = "/lessons/new")}
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              Plan Lessons
+            </SimpleButton>
+            <SimpleButton
+              variant="outline"
+              className="w-full justify-start bg-transparent"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              View Reports
+            </SimpleButton>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

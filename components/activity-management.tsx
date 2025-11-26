@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { SimpleButton } from "@/components/ui/simple-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,7 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -428,12 +428,12 @@ export function ActivityManagement() {
           <p className="text-muted-foreground mt-1">Manage church activities, events, and student participation.</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent hover:bg-accent/90">
+          <SimpleDialogTrigger>
+            <SimpleButton className="bg-accent hover:bg-accent/90">
               <Plus className="w-4 h-4 mr-2" />
               Add Activity
-            </Button>
-          </DialogTrigger>
+            </SimpleButton>
+          </SimpleDialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Activity</DialogTitle>
@@ -599,12 +599,12 @@ export function ActivityManagement() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <SimpleButton variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
-              </Button>
-              <Button onClick={handleAdd} disabled={!formData.name || !formData.church_id}>
+              </SimpleButton>
+              <SimpleButton onClick={handleAdd} disabled={!formData.name || !formData.church_id}>
                 Add Activity
-              </Button>
+              </SimpleButton>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -767,11 +767,11 @@ export function ActivityManagement() {
                         open={editingActivity?.id === activity.id}
                         onOpenChange={(open) => !open && setEditingActivity(null)}
                       >
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(activity)}>
+                        <SimpleDialogTrigger>
+                          <SimpleButton variant="ghost" size="icon" onClick={() => handleEdit(activity)}>
                             <Edit className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
+                          </SimpleButton>
+                        </SimpleDialogTrigger>
                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Edit Activity</DialogTitle>
@@ -941,23 +941,23 @@ export function ActivityManagement() {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setEditingActivity(null)}>
+                            <SimpleButton variant="outline" onClick={() => setEditingActivity(null)}>
                               Cancel
-                            </Button>
-                            <Button onClick={handleUpdate} disabled={!formData.name || !formData.church_id}>
+                            </SimpleButton>
+                            <SimpleButton onClick={handleUpdate} disabled={!formData.name || !formData.church_id}>
                               Update Activity
-                            </Button>
+                            </SimpleButton>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                      <Button
+                      <SimpleButton
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(activity.id)}
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </SimpleButton>
                     </div>
                   </TableCell>
                 </TableRow>

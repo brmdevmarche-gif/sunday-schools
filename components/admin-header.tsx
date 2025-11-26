@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { SimpleButton } from "@/components/ui/simple-button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,10 +9,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, Search, User, Settings, LogOut } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bell, Search, User, Settings, LogOut } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function AdminHeader() {
   return (
@@ -22,14 +23,17 @@ export function AdminHeader() {
         <div className="flex items-center gap-4 flex-1 max-w-md">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input placeholder="Search students, servants, activities..." className="pl-10 bg-muted/50 border-border" />
+            <Input
+              placeholder="Search students, servants, activities..."
+              className="pl-10 bg-muted/50 border-border"
+            />
           </div>
         </div>
 
         {/* Right side actions */}
         <div className="flex items-center gap-4">
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
+          <SimpleButton variant="ghost" size="icon" className="relative">
             <Bell className="w-4 h-4" />
             <Badge
               variant="destructive"
@@ -37,21 +41,28 @@ export function AdminHeader() {
             >
               3
             </Badge>
-          </Button>
+          </SimpleButton>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2">
+              <SimpleButton variant="ghost" className="flex items-center gap-2 px-2">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src="/admin-avatar.png" />
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden md:block">
-                  <p className="text-sm font-medium text-foreground">Admin User</p>
-                  <p className="text-xs text-muted-foreground">Diocese Administrator</p>
+                  <p className="text-sm font-medium text-foreground">
+                    Admin User
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Diocese Administrator
+                  </p>
                 </div>
-              </Button>
+              </SimpleButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -74,5 +85,5 @@ export function AdminHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

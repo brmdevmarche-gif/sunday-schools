@@ -1,12 +1,18 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { SimpleButton } from "@/components/ui/simple-button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -14,27 +20,51 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, Plus, Edit, Trash2, Phone, Mail, User, Calendar, AlertTriangle, GraduationCap } from "lucide-react"
-import { createClient } from "@/lib/supabase"
-import type { Student, Church, ClassGroup } from "@/lib/types"
+} from "@/components/ui/dialog";
+import { SimpleDialogTrigger } from "@/components/ui/simple-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Users,
+  Plus,
+  Edit,
+  Trash2,
+  Phone,
+  Mail,
+  User,
+  Calendar,
+  AlertTriangle,
+  GraduationCap,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase";
+import type { Student, Church, ClassGroup } from "@/lib/types";
 
 export function StudentManagement() {
-  const [students, setStudents] = useState<Student[]>([])
-  const [churches, setChurches] = useState<Church[]>([])
-  const [classGroups, setClassGroups] = useState<ClassGroup[]>([])
-  const [loading, setLoading] = useState(true)
+  const [students, setStudents] = useState<Student[]>([]);
+  const [churches, setChurches] = useState<Church[]>([]);
+  const [classGroups, setClassGroups] = useState<ClassGroup[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const supabase = createClient()
+  const supabase = createClient();
 
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedChurch, setSelectedChurch] = useState<string>("all")
-  const [selectedClass, setSelectedClass] = useState<string>("all")
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedChurch, setSelectedChurch] = useState<string>("all");
+  const [selectedClass, setSelectedClass] = useState<string>("all");
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -44,58 +74,63 @@ export function StudentManagement() {
     date_of_birth: "",
     gender: "",
     address: "",
-    parent_guardian_name: "",
-    parent_guardian_phone: "",
-    parent_guardian_email: "",
+    parent_name: "",
+    parent_phone: "",
+    parent_email: "",
     emergency_contact_name: "",
     emergency_contact_phone: "",
     medical_conditions: "",
     allergies: "",
     notes: "",
-  })
+  });
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       // Fetch students with church and class group information
       const { data: studentsData, error: studentsError } = await supabase
         .from("students")
-        .select(`
+        .select(
+          `
           *,
           church:churches (id, name, diocese_id),
           class_group:class_groups (*)
-        `)
-        .order("first_name")
+        `
+        )
+        .order("first_name");
 
-      if (studentsError) throw studentsError
+      if (studentsError) throw studentsError;
 
       // Fetch churches
-      const { data: churchesData, error: churchesError } = await supabase.from("churches").select("*").order("name")
+      const { data: churchesData, error: churchesError } = await supabase
+        .from("churches")
+        .select("*")
+        .order("name");
 
-      if (churchesError) throw churchesError
+      if (churchesError) throw churchesError;
 
       // Fetch class groups
       const { data: classGroupsData, error: classGroupsError } = await supabase
         .from("class_groups")
         .select("*")
-        .order("name")
+        .order("name");
 
-      if (classGroupsError) throw classGroupsError
+      if (classGroupsError) throw classGroupsError;
 
-      setStudents(studentsData || [])
-      setChurches(churchesData || [])
-      setClassGroups(classGroupsData || [])
+      setStudents(studentsData || []);
+      setChurches(churchesData || []);
+      setClassGroups(classGroupsData || []);
     } catch (error) {
-      console.error("Error fetching data:", error)
+      console.error("Error fetching data:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -106,62 +141,61 @@ export function StudentManagement() {
       date_of_birth: "",
       gender: "",
       address: "",
-      parent_guardian_name: "",
-      parent_guardian_phone: "",
-      parent_guardian_email: "",
+      parent_name: "",
+      parent_phone: "",
+      parent_email: "",
       emergency_contact_name: "",
       emergency_contact_phone: "",
       medical_conditions: "",
       allergies: "",
       notes: "",
-    })
-  }
+    });
+  };
 
   const handleAdd = async () => {
     try {
-      const { data, error } = await supabase
-        .from("students")
-        .insert([
-          {
-            church_id: Number.parseInt(formData.church_id),
-            class_group_id: formData.class_group_id ? Number.parseInt(formData.class_group_id) : null,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            date_of_birth: formData.date_of_birth,
-            gender: formData.gender,
-            address: formData.address,
-            parent_guardian_name: formData.parent_guardian_name,
-            parent_guardian_phone: formData.parent_guardian_phone,
-            parent_guardian_email: formData.parent_guardian_email,
-            emergency_contact_name: formData.emergency_contact_name,
-            emergency_contact_phone: formData.emergency_contact_phone,
-            medical_conditions: formData.medical_conditions,
-            allergies: formData.allergies,
-            enrollment_date: new Date().toISOString().split("T")[0],
-            is_active: true,
-            notes: formData.notes,
-          },
-        ])
-        .select(`
+      const { data, error } = await supabase.from("students").insert([
+        {
+          church_id: Number.parseInt(formData.church_id),
+          class_group_id: formData.class_group_id
+            ? Number.parseInt(formData.class_group_id)
+            : null,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          date_of_birth: formData.date_of_birth,
+          gender: formData.gender,
+          address: formData.address,
+          parent_name: formData.parent_name,
+          parent_phone: formData.parent_phone,
+          parent_email: formData.parent_email,
+          emergency_contact_name: formData.emergency_contact_name,
+          emergency_contact_phone: formData.emergency_contact_phone,
+          medical_conditions: formData.medical_conditions,
+          allergies: formData.allergies,
+          enrollment_date: new Date().toISOString().split("T")[0],
+          is_active: true,
+          notes: formData.notes,
+        },
+      ]).select(`
           *,
           church:churches (id, name, diocese_id),
           class_group:class_groups (*)
-        `)
+        `);
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data) {
-        setStudents([...students, ...data])
+        setStudents([...students, ...data]);
       }
-      setIsAddDialogOpen(false)
-      resetForm()
+      setIsAddDialogOpen(false);
+      resetForm();
     } catch (error) {
-      console.error("Error adding student:", error)
+      console.error("Error adding student:", error);
     }
-  }
+  };
 
   const handleEdit = (student: Student) => {
-    setEditingStudent(student)
+    setEditingStudent(student);
     setFormData({
       first_name: student.first_name,
       last_name: student.last_name,
@@ -170,109 +204,125 @@ export function StudentManagement() {
       date_of_birth: student.date_of_birth || "",
       gender: student.gender || "",
       address: student.address || "",
-      parent_guardian_name: student.parent_guardian_name || "",
-      parent_guardian_phone: student.parent_guardian_phone || "",
-      parent_guardian_email: student.parent_guardian_email || "",
+      parent_name: student.parent_name || "",
+      parent_phone: student.parent_phone || "",
+      parent_email: student.parent_email || "",
       emergency_contact_name: student.emergency_contact_name || "",
       emergency_contact_phone: student.emergency_contact_phone || "",
       medical_conditions: student.medical_conditions || "",
       allergies: student.allergies || "",
       notes: student.notes || "",
-    })
-  }
+    });
+  };
 
   const handleUpdate = async () => {
-    if (!editingStudent) return
+    if (!editingStudent) return;
 
     try {
       const { data, error } = await supabase
         .from("students")
         .update({
           church_id: Number.parseInt(formData.church_id),
-          class_group_id: formData.class_group_id ? Number.parseInt(formData.class_group_id) : null,
+          class_group_id: formData.class_group_id
+            ? Number.parseInt(formData.class_group_id)
+            : null,
           first_name: formData.first_name,
           last_name: formData.last_name,
           date_of_birth: formData.date_of_birth,
           gender: formData.gender,
           address: formData.address,
-          parent_guardian_name: formData.parent_guardian_name,
-          parent_guardian_phone: formData.parent_guardian_phone,
-          parent_guardian_email: formData.parent_guardian_email,
+          parent_name: formData.parent_name,
+          parent_phone: formData.parent_phone,
+          parent_email: formData.parent_email,
           emergency_contact_name: formData.emergency_contact_name,
           emergency_contact_phone: formData.emergency_contact_phone,
           medical_conditions: formData.medical_conditions,
           allergies: formData.allergies,
           notes: formData.notes,
         })
-        .eq("id", editingStudent.id)
-        .select(`
+        .eq("id", editingStudent.id).select(`
           *,
           church:churches (id, name, diocese_id),
           class_group:class_groups (*)
-        `)
+        `);
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data) {
-        setStudents(students.map((s) => (s.id === editingStudent.id ? data[0] : s)))
+        setStudents(
+          students.map((s) => (s.id === editingStudent.id ? data[0] : s))
+        );
       }
-      setEditingStudent(null)
-      resetForm()
+      setEditingStudent(null);
+      resetForm();
     } catch (error) {
-      console.error("Error updating student:", error)
+      console.error("Error updating student:", error);
     }
-  }
+  };
 
   const handleDelete = async (id: number) => {
     try {
-      const { error } = await supabase.from("students").delete().eq("id", id)
+      const { error } = await supabase.from("students").delete().eq("id", id);
 
-      if (error) throw error
+      if (error) throw error;
 
-      setStudents(students.filter((s) => s.id !== id))
+      setStudents(students.filter((s) => s.id !== id));
     } catch (error) {
-      console.error("Error deleting student:", error)
+      console.error("Error deleting student:", error);
     }
-  }
+  };
 
   const calculateAge = (birthDate: string) => {
-    const today = new Date()
-    const birth = new Date(birthDate)
-    let age = today.getFullYear() - birth.getFullYear()
-    const monthDiff = today.getMonth() - birth.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
     }
-    return age
-  }
+    return age;
+  };
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
       student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.parent_guardian_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.church?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      student.parent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.church?.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesChurch = selectedChurch === "all" || student.church_id.toString() === selectedChurch
+    const matchesChurch =
+      selectedChurch === "all" ||
+      student.church_id.toString() === selectedChurch;
 
-    const matchesClass = selectedClass === "all" || student.class_group_id?.toString() === selectedClass
+    const matchesClass =
+      selectedClass === "all" ||
+      student.class_group_id?.toString() === selectedClass;
 
-    return matchesSearch && matchesChurch && matchesClass
-  })
+    return matchesSearch && matchesChurch && matchesClass;
+  });
 
   const availableClassGroups = classGroups.filter(
-    (cg) => formData.church_id === "" || cg.church_id.toString() === formData.church_id,
-  )
+    (cg) =>
+      formData.church_id === "" ||
+      cg.church_id.toString() === formData.church_id
+  );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Loading Students...</h2>
-          <p className="text-muted-foreground">Please wait while we fetch the data.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Loading Students...
+          </h2>
+          <p className="text-muted-foreground">
+            Please wait while we fetch the data.
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -280,20 +330,26 @@ export function StudentManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Student Management</h1>
-          <p className="text-muted-foreground mt-1">Manage student enrollment, information, and class assignments.</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            Student Management
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage student enrollment, information, and class assignments.
+          </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent hover:bg-accent/90">
+          <SimpleDialogTrigger>
+            <SimpleButton className="bg-accent hover:bg-accent/90">
               <Plus className="w-4 h-4 mr-2" />
               Add Student
-            </Button>
-          </DialogTrigger>
+            </SimpleButton>
+          </SimpleDialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Student</DialogTitle>
-              <DialogDescription>Enter the student information below.</DialogDescription>
+              <DialogDescription>
+                Enter the student information below.
+              </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
@@ -301,7 +357,9 @@ export function StudentManagement() {
                 <Input
                   id="first_name"
                   value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, first_name: e.target.value })
+                  }
                   placeholder="Enter first name"
                 />
               </div>
@@ -310,7 +368,9 @@ export function StudentManagement() {
                 <Input
                   id="last_name"
                   value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, last_name: e.target.value })
+                  }
                   placeholder="Enter last name"
                 />
               </div>
@@ -318,7 +378,13 @@ export function StudentManagement() {
                 <Label htmlFor="church">Church</Label>
                 <Select
                   value={formData.church_id}
-                  onValueChange={(value) => setFormData({ ...formData, church_id: value, class_group_id: "" })}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      church_id: value,
+                      class_group_id: "",
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select church" />
@@ -336,7 +402,9 @@ export function StudentManagement() {
                 <Label htmlFor="class_group">Class Group</Label>
                 <Select
                   value={formData.class_group_id}
-                  onValueChange={(value) => setFormData({ ...formData, class_group_id: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, class_group_id: value })
+                  }
                   disabled={!formData.church_id}
                 >
                   <SelectTrigger>
@@ -344,7 +412,10 @@ export function StudentManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     {availableClassGroups.map((classGroup) => (
-                      <SelectItem key={classGroup.id} value={classGroup.id.toString()}>
+                      <SelectItem
+                        key={classGroup.id}
+                        value={classGroup.id.toString()}
+                      >
                         {classGroup.name} ({classGroup.age_range})
                       </SelectItem>
                     ))}
@@ -357,12 +428,19 @@ export function StudentManagement() {
                   id="date_of_birth"
                   type="date"
                   value={formData.date_of_birth}
-                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date_of_birth: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
-                <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, gender: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -377,7 +455,9 @@ export function StudentManagement() {
                 <Textarea
                   id="address"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
                   placeholder="Enter student address"
                 />
               </div>
@@ -385,8 +465,10 @@ export function StudentManagement() {
                 <Label htmlFor="parent_name">Parent/Guardian Name</Label>
                 <Input
                   id="parent_name"
-                  value={formData.parent_guardian_name}
-                  onChange={(e) => setFormData({ ...formData, parent_guardian_name: e.target.value })}
+                  value={formData.parent_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parent_name: e.target.value })
+                  }
                   placeholder="Enter parent/guardian name"
                 />
               </div>
@@ -394,8 +476,10 @@ export function StudentManagement() {
                 <Label htmlFor="parent_phone">Parent/Guardian Phone</Label>
                 <Input
                   id="parent_phone"
-                  value={formData.parent_guardian_phone}
-                  onChange={(e) => setFormData({ ...formData, parent_guardian_phone: e.target.value })}
+                  value={formData.parent_phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parent_phone: e.target.value })
+                  }
                   placeholder="+20-xxx-xxx-xxxx"
                 />
               </div>
@@ -404,8 +488,10 @@ export function StudentManagement() {
                 <Input
                   id="parent_email"
                   type="email"
-                  value={formData.parent_guardian_email}
-                  onChange={(e) => setFormData({ ...formData, parent_guardian_email: e.target.value })}
+                  value={formData.parent_email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parent_email: e.target.value })
+                  }
                   placeholder="parent@example.com"
                 />
               </div>
@@ -414,7 +500,12 @@ export function StudentManagement() {
                 <Input
                   id="emergency_name"
                   value={formData.emergency_contact_name}
-                  onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      emergency_contact_name: e.target.value,
+                    })
+                  }
                   placeholder="Enter emergency contact name"
                 />
               </div>
@@ -423,7 +514,12 @@ export function StudentManagement() {
                 <Input
                   id="emergency_phone"
                   value={formData.emergency_contact_phone}
-                  onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      emergency_contact_phone: e.target.value,
+                    })
+                  }
                   placeholder="+20-xxx-xxx-xxxx"
                 />
               </div>
@@ -432,7 +528,12 @@ export function StudentManagement() {
                 <Input
                   id="medical_conditions"
                   value={formData.medical_conditions}
-                  onChange={(e) => setFormData({ ...formData, medical_conditions: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      medical_conditions: e.target.value,
+                    })
+                  }
                   placeholder="Enter any medical conditions"
                 />
               </div>
@@ -441,7 +542,9 @@ export function StudentManagement() {
                 <Input
                   id="allergies"
                   value={formData.allergies}
-                  onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, allergies: e.target.value })
+                  }
                   placeholder="Enter any allergies"
                 />
               </div>
@@ -450,18 +553,30 @@ export function StudentManagement() {
                 <Textarea
                   id="notes"
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
                   placeholder="Additional notes about the student"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <SimpleButton
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}
+              >
                 Cancel
-              </Button>
-              <Button onClick={handleAdd} disabled={!formData.first_name || !formData.last_name || !formData.church_id}>
+              </SimpleButton>
+              <SimpleButton
+                onClick={handleAdd}
+                disabled={
+                  !formData.first_name ||
+                  !formData.last_name ||
+                  !formData.church_id
+                }
+              >
                 Add Student
-              </Button>
+              </SimpleButton>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -507,13 +622,17 @@ export function StudentManagement() {
           <Card className="px-4 py-2">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium">{filteredStudents.length} Students</span>
+              <span className="text-sm font-medium">
+                {filteredStudents.length} Students
+              </span>
             </div>
           </Card>
           <Card className="px-4 py-2">
             <div className="flex items-center gap-2">
               <GraduationCap className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium">{filteredStudents.filter((s) => s.is_active).length} Active</span>
+              <span className="text-sm font-medium">
+                {filteredStudents.filter((s) => s.is_active).length} Active
+              </span>
             </div>
           </Card>
         </div>
@@ -523,7 +642,9 @@ export function StudentManagement() {
       <Card>
         <CardHeader>
           <CardTitle>Students</CardTitle>
-          <CardDescription>All registered students in the system</CardDescription>
+          <CardDescription>
+            All registered students in the system
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -551,7 +672,8 @@ export function StudentManagement() {
                           {student.date_of_birth && (
                             <>
                               <Calendar className="w-3 h-3" />
-                              Age {calculateAge(student.date_of_birth)} • {student.gender}
+                              Age {calculateAge(student.date_of_birth)} •{" "}
+                              {student.gender}
                             </>
                           )}
                         </div>
@@ -562,42 +684,46 @@ export function StudentManagement() {
                     <div className="space-y-1">
                       <Badge variant="outline">{student.church?.name}</Badge>
                       {student.class_group && (
-                        <div className="text-sm text-muted-foreground">{student.class_group.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {student.class_group.name}
+                        </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <User className="w-3 h-3" />
-                      {student.parent_guardian_name}
+                      {student.parent_name}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {student.parent_guardian_email && (
+                      {student.parent_email && (
                         <div className="flex items-center gap-1 text-sm">
                           <Mail className="w-3 h-3" />
-                          {student.parent_guardian_email}
+                          {student.parent_email}
                         </div>
                       )}
-                      {student.parent_guardian_phone && (
+                      {student.parent_phone && (
                         <div className="flex items-center gap-1 text-sm">
                           <Phone className="w-3 h-3" />
-                          {student.parent_guardian_phone}
+                          {student.parent_phone}
                         </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {(student.medical_conditions && student.medical_conditions !== "None") ||
-                      (student.allergies && student.allergies !== "None") ? (
+                      {student.medical_notes &&
+                      student.medical_notes !== "None" ? (
                         <div className="flex items-center gap-1 text-sm text-orange-600">
                           <AlertTriangle className="w-3 h-3" />
                           <span>Has conditions</span>
                         </div>
                       ) : (
-                        <div className="text-sm text-muted-foreground">No conditions</div>
+                        <div className="text-sm text-muted-foreground">
+                          No conditions
+                        </div>
                       )}
                     </div>
                   </TableCell>
@@ -605,25 +731,40 @@ export function StudentManagement() {
                     <div className="flex items-center justify-end gap-2">
                       <Dialog
                         open={editingStudent?.id === student.id}
-                        onOpenChange={(open) => !open && setEditingStudent(null)}
+                        onOpenChange={(open) =>
+                          !open && setEditingStudent(null)
+                        }
                       >
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(student)}>
+                        <SimpleDialogTrigger>
+                          <SimpleButton
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(student)}
+                          >
                             <Edit className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
+                          </SimpleButton>
+                        </SimpleDialogTrigger>
                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Edit Student</DialogTitle>
-                            <DialogDescription>Update the student information below.</DialogDescription>
+                            <DialogDescription>
+                              Update the student information below.
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="grid grid-cols-2 gap-4 py-4">
                             <div className="space-y-2">
-                              <Label htmlFor="edit-first_name">First Name</Label>
+                              <Label htmlFor="edit-first_name">
+                                First Name
+                              </Label>
                               <Input
                                 id="edit-first_name"
                                 value={formData.first_name}
-                                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    first_name: e.target.value,
+                                  })
+                                }
                                 placeholder="Enter first name"
                               />
                             </div>
@@ -632,7 +773,12 @@ export function StudentManagement() {
                               <Input
                                 id="edit-last_name"
                                 value={formData.last_name}
-                                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    last_name: e.target.value,
+                                  })
+                                }
                                 placeholder="Enter last name"
                               />
                             </div>
@@ -641,7 +787,11 @@ export function StudentManagement() {
                               <Select
                                 value={formData.church_id}
                                 onValueChange={(value) =>
-                                  setFormData({ ...formData, church_id: value, class_group_id: "" })
+                                  setFormData({
+                                    ...formData,
+                                    church_id: value,
+                                    class_group_id: "",
+                                  })
                                 }
                               >
                                 <SelectTrigger>
@@ -649,7 +799,10 @@ export function StudentManagement() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   {churches.map((church) => (
-                                    <SelectItem key={church.id} value={church.id.toString()}>
+                                    <SelectItem
+                                      key={church.id}
+                                      value={church.id.toString()}
+                                    >
                                       {church.name}
                                     </SelectItem>
                                   ))}
@@ -657,10 +810,17 @@ export function StudentManagement() {
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-class_group">Class Group</Label>
+                              <Label htmlFor="edit-class_group">
+                                Class Group
+                              </Label>
                               <Select
                                 value={formData.class_group_id}
-                                onValueChange={(value) => setFormData({ ...formData, class_group_id: value })}
+                                onValueChange={(value) =>
+                                  setFormData({
+                                    ...formData,
+                                    class_group_id: value,
+                                  })
+                                }
                                 disabled={!formData.church_id}
                               >
                                 <SelectTrigger>
@@ -668,7 +828,10 @@ export function StudentManagement() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   {availableClassGroups.map((classGroup) => (
-                                    <SelectItem key={classGroup.id} value={classGroup.id.toString()}>
+                                    <SelectItem
+                                      key={classGroup.id}
+                                      value={classGroup.id.toString()}
+                                    >
                                       {classGroup.name} ({classGroup.age_range})
                                     </SelectItem>
                                   ))}
@@ -676,19 +839,28 @@ export function StudentManagement() {
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-date_of_birth">Date of Birth</Label>
+                              <Label htmlFor="edit-date_of_birth">
+                                Date of Birth
+                              </Label>
                               <Input
                                 id="edit-date_of_birth"
                                 type="date"
                                 value={formData.date_of_birth}
-                                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    date_of_birth: e.target.value,
+                                  })
+                                }
                               />
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="edit-gender">Gender</Label>
                               <Select
                                 value={formData.gender}
-                                onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                                onValueChange={(value) =>
+                                  setFormData({ ...formData, gender: value })
+                                }
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select gender" />
@@ -704,62 +876,109 @@ export function StudentManagement() {
                               <Textarea
                                 id="edit-address"
                                 value={formData.address}
-                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    address: e.target.value,
+                                  })
+                                }
                                 placeholder="Enter student address"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-parent_name">Parent/Guardian Name</Label>
+                              <Label htmlFor="edit-parent_name">
+                                Parent/Guardian Name
+                              </Label>
                               <Input
                                 id="edit-parent_name"
-                                value={formData.parent_guardian_name}
-                                onChange={(e) => setFormData({ ...formData, parent_guardian_name: e.target.value })}
+                                value={formData.parent_name}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    parent_name: e.target.value,
+                                  })
+                                }
                                 placeholder="Enter parent/guardian name"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-parent_phone">Parent/Guardian Phone</Label>
+                              <Label htmlFor="edit-parent_phone">
+                                Parent/Guardian Phone
+                              </Label>
                               <Input
                                 id="edit-parent_phone"
-                                value={formData.parent_guardian_phone}
-                                onChange={(e) => setFormData({ ...formData, parent_guardian_phone: e.target.value })}
+                                value={formData.parent_phone}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    parent_phone: e.target.value,
+                                  })
+                                }
                                 placeholder="+20-xxx-xxx-xxxx"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-parent_email">Parent/Guardian Email</Label>
+                              <Label htmlFor="edit-parent_email">
+                                Parent/Guardian Email
+                              </Label>
                               <Input
                                 id="edit-parent_email"
                                 type="email"
-                                value={formData.parent_guardian_email}
-                                onChange={(e) => setFormData({ ...formData, parent_guardian_email: e.target.value })}
+                                value={formData.parent_email}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    parent_email: e.target.value,
+                                  })
+                                }
                                 placeholder="parent@example.com"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-emergency_name">Emergency Contact Name</Label>
+                              <Label htmlFor="edit-emergency_name">
+                                Emergency Contact Name
+                              </Label>
                               <Input
                                 id="edit-emergency_name"
                                 value={formData.emergency_contact_name}
-                                onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    emergency_contact_name: e.target.value,
+                                  })
+                                }
                                 placeholder="Enter emergency contact name"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-emergency_phone">Emergency Contact Phone</Label>
+                              <Label htmlFor="edit-emergency_phone">
+                                Emergency Contact Phone
+                              </Label>
                               <Input
                                 id="edit-emergency_phone"
                                 value={formData.emergency_contact_phone}
-                                onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    emergency_contact_phone: e.target.value,
+                                  })
+                                }
                                 placeholder="+20-xxx-xxx-xxxx"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="edit-medical_conditions">Medical Conditions</Label>
+                              <Label htmlFor="edit-medical_conditions">
+                                Medical Conditions
+                              </Label>
                               <Input
                                 id="edit-medical_conditions"
                                 value={formData.medical_conditions}
-                                onChange={(e) => setFormData({ ...formData, medical_conditions: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    medical_conditions: e.target.value,
+                                  })
+                                }
                                 placeholder="Enter any medical conditions"
                               />
                             </div>
@@ -768,7 +987,12 @@ export function StudentManagement() {
                               <Input
                                 id="edit-allergies"
                                 value={formData.allergies}
-                                onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    allergies: e.target.value,
+                                  })
+                                }
                                 placeholder="Enter any allergies"
                               />
                             </div>
@@ -777,32 +1001,44 @@ export function StudentManagement() {
                               <Textarea
                                 id="edit-notes"
                                 value={formData.notes}
-                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    notes: e.target.value,
+                                  })
+                                }
                                 placeholder="Additional notes about the student"
                               />
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setEditingStudent(null)}>
+                            <SimpleButton
+                              variant="outline"
+                              onClick={() => setEditingStudent(null)}
+                            >
                               Cancel
-                            </Button>
-                            <Button
+                            </SimpleButton>
+                            <SimpleButton
                               onClick={handleUpdate}
-                              disabled={!formData.first_name || !formData.last_name || !formData.church_id}
+                              disabled={
+                                !formData.first_name ||
+                                !formData.last_name ||
+                                !formData.church_id
+                              }
                             >
                               Update Student
-                            </Button>
+                            </SimpleButton>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                      <Button
+                      <SimpleButton
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(student.id)}
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </SimpleButton>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -812,5 +1048,5 @@ export function StudentManagement() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

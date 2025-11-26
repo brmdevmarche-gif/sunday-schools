@@ -1,4 +1,4 @@
-# Sunday School Admin Panel
+# Knesty Admin Panel
 
 *Automatically synced with your [v0.app](https://v0.app) deployments*
 

@@ -1,5 +1,7 @@
-import { AdminDashboard } from "@/components/admin-dashboard"
+"use client";
+
+import { ComingSoonPage } from "@/components/coming-soon-page";
 
 export default function HomePage() {
-  return <AdminDashboard />
+  return <ComingSoonPage />;
 }

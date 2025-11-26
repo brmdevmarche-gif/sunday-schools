@@ -1,10 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { SimpleButton } from "@/components/ui/simple-button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Users,
   Church,
@@ -15,79 +21,96 @@ import {
   Settings,
   ChevronRight,
   AlertCircle,
-} from "lucide-react"
-import { AdminSidebar } from "@/components/admin-sidebar"
-import { AdminHeader } from "@/components/admin-header"
-import { ChurchManagement } from "@/components/church-management"
-import { StudentManagement } from "@/components/student-management"
-import { ServantManagement } from "@/components/servant-management"
-import { ActivityManagement } from "@/components/activity-management"
-import { createClient, isSupabaseConfigured } from "@/lib/supabase"
+} from "lucide-react";
+import { AdminSidebar } from "@/components/admin-sidebar";
+import { AdminHeader } from "@/components/admin-header";
+import { ChurchManagement } from "@/components/church-management";
+import { StudentManagement } from "@/components/student-management";
+import { ServantManagement } from "@/components/servant-management";
+import { ActivityManagement } from "@/components/activity-management";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState("dashboard")
+  const [activeSection, setActiveSection] = useState("dashboard");
   const [stats, setStats] = useState({
     totalStudents: 0,
     activeChurches: 0,
     servants: 0,
     upcomingActivities: 0,
-  })
-  const [recentActivities, setRecentActivities] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [supabaseConfigured, setSupabaseConfigured] = useState(false)
-  const [supabaseError, setSupabaseError] = useState<string | null>(null)
+  });
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(false);
+  const [supabaseError, setSupabaseError] = useState<string | null>(null);
 
   useEffect(() => {
-    const configured = isSupabaseConfigured()
-    setSupabaseConfigured(configured)
+    const configured = isSupabaseConfigured();
+    setSupabaseConfigured(configured);
 
     if (configured) {
-      fetchDashboardData()
+      fetchDashboardData();
     } else {
-      setLoading(false)
-      setSupabaseError("Supabase is not configured. Please add the Supabase integration to continue.")
+      setLoading(false);
+      setSupabaseError(
+        "Supabase is not configured. Please add the Supabase integration to continue."
+      );
     }
-  }, [])
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true)
-      const supabase = createClient()
+      setLoading(true);
+      const supabase = createClient();
 
       // Fetch stats
-      const [studentsResult, churchesResult, servantsResult, activitiesResult] = await Promise.all([
-        supabase.from("students").select("id", { count: "exact", head: true }),
-        supabase.from("churches").select("id", { count: "exact", head: true }),
-        supabase.from("servants").select("id").eq("is_active", true),
-        supabase.from("church_activities").select("*").gte("activity_date", new Date().toISOString()).limit(5),
-      ])
+      const [studentsResult, churchesResult, servantsResult, activitiesResult] =
+        await Promise.all([
+          supabase
+            .from("students")
+            .select("id", { count: "exact", head: true }),
+          supabase
+            .from("churches")
+            .select("id", { count: "exact", head: true }),
+          supabase.from("servants").select("id").eq("is_active", true),
+          supabase
+            .from("church_activities")
+            .select("*")
+            .gte("activity_date", new Date().toISOString())
+            .limit(5),
+        ]);
 
       setStats({
         totalStudents: studentsResult.count || 0,
         activeChurches: churchesResult.count || 0,
         servants: servantsResult.data?.length || 0,
         upcomingActivities: activitiesResult.data?.length || 0,
-      })
+      });
 
       // Fetch recent activities with church names
       const { data: activities } = await supabase
         .from("church_activities")
-        .select(`
+        .select(
+          `
           *,
           churches (name)
-        `)
+        `
+        )
         .order("created_at", { ascending: false })
-        .limit(3)
+        .limit(3);
 
-      setRecentActivities(activities || [])
-      setSupabaseError(null)
+      setRecentActivities(activities || []);
+      setSupabaseError(null);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error)
-      setSupabaseError(error instanceof Error ? error.message : "Failed to fetch dashboard data")
+      console.error("Error fetching dashboard data:", error);
+      setSupabaseError(
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch dashboard data"
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const statsCards = [
     {
@@ -118,11 +141,14 @@ export function AdminDashboard() {
       icon: Calendar,
       color: "text-orange-600",
     },
-  ]
+  ];
 
   return (
     <div className="flex h-screen bg-background">
-      <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+      <AdminSidebar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader />
@@ -136,7 +162,8 @@ export function AdminDashboard() {
                 {supabaseError}
                 <br />
                 <span className="text-sm mt-2 block">
-                  Please add the Supabase integration from the sidebar to enable database functionality.
+                  Please add the Supabase integration from the sidebar to enable
+                  database functionality.
                 </span>
               </AlertDescription>
             </Alert>
@@ -147,15 +174,18 @@ export function AdminDashboard() {
               {/* Welcome Section */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">Sunday School Dashboard</h1>
+                  <h1 className="text-3xl font-bold text-foreground">
+                    Knesty Dashboard
+                  </h1>
                   <p className="text-muted-foreground mt-1">
-                    Welcome back! Here's what's happening in your Sunday Schools.
+                    Welcome back! Here's what's happening in your Sunday
+                    Schools.
                   </p>
                 </div>
-                <Button className="bg-accent hover:bg-accent/90">
+                <SimpleButton className="bg-accent hover:bg-accent/90">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
-                </Button>
+                </SimpleButton>
               </div>
 
               {/* Stats Grid */}
@@ -163,12 +193,18 @@ export function AdminDashboard() {
                 {statsCards.map((stat, index) => (
                   <Card key={index} className="border-border">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.title}
+                      </CardTitle>
                       <stat.icon className={`h-4 w-4 ${stat.color}`} />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                      <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
+                      <div className="text-2xl font-bold text-foreground">
+                        {stat.value}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {stat.change}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
@@ -179,54 +215,90 @@ export function AdminDashboard() {
                 {/* Recent Activities */}
                 <Card className="border-border">
                   <CardHeader>
-                    <CardTitle className="text-foreground">Recent Activities</CardTitle>
-                    <CardDescription>Latest church activities and events</CardDescription>
+                    <CardTitle className="text-foreground">
+                      Recent Activities
+                    </CardTitle>
+                    <CardDescription>
+                      Latest church activities and events
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {loading ? (
-                      <div className="text-center py-4">Loading activities...</div>
+                      <div className="text-center py-4">
+                        Loading activities...
+                      </div>
                     ) : !supabaseConfigured ? (
                       <div className="text-center py-4 text-muted-foreground">
-                        Database not configured. Please add Supabase integration.
+                        Database not configured. Please add Supabase
+                        integration.
                       </div>
                     ) : recentActivities.length > 0 ? (
                       recentActivities.map((activity) => (
-                        <div key={activity.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div
+                          key={activity.id}
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                        >
                           <div className="flex-1">
-                            <h4 className="font-medium text-foreground">{activity.activity_name}</h4>
-                            <p className="text-sm text-muted-foreground">{activity.churches?.name}</p>
+                            <h4 className="font-medium text-foreground">
+                              {activity.activity_name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              {activity.churches?.name}
+                            </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {activity.activity_date
-                                ? new Date(activity.activity_date).toLocaleDateString()
+                                ? new Date(
+                                    activity.activity_date
+                                  ).toLocaleDateString()
                                 : "No date"}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant={new Date(activity.activity_date) > new Date() ? "default" : "secondary"}>
-                              {new Date(activity.activity_date) > new Date() ? "upcoming" : "completed"}
+                            <Badge
+                              variant={
+                                new Date(activity.activity_date) > new Date()
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {new Date(activity.activity_date) > new Date()
+                                ? "upcoming"
+                                : "completed"}
                             </Badge>
-                            <span className="text-sm text-muted-foreground">{activity.max_participants || 0} max</span>
+                            <span className="text-sm text-muted-foreground">
+                              {activity.max_participants || 0} max
+                            </span>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-4 text-muted-foreground">No activities found</div>
+                      <div className="text-center py-4 text-muted-foreground">
+                        No activities found
+                      </div>
                     )}
-                    <Button variant="outline" className="w-full bg-transparent" disabled={!supabaseConfigured}>
+                    <SimpleButton
+                      variant="outline"
+                      className="w-full bg-transparent"
+                      disabled={!supabaseConfigured}
+                    >
                       View All Activities
                       <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
+                    </SimpleButton>
                   </CardContent>
                 </Card>
 
                 {/* Quick Actions */}
                 <Card className="border-border">
                   <CardHeader>
-                    <CardTitle className="text-foreground">Quick Actions</CardTitle>
-                    <CardDescription>Common administrative tasks</CardDescription>
+                    <CardTitle className="text-foreground">
+                      Quick Actions
+                    </CardTitle>
+                    <CardDescription>
+                      Common administrative tasks
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Button
+                    <SimpleButton
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("students")}
@@ -234,8 +306,8 @@ export function AdminDashboard() {
                     >
                       <Users className="w-4 h-4 mr-2" />
                       Add New Student
-                    </Button>
-                    <Button
+                    </SimpleButton>
+                    <SimpleButton
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("servants")}
@@ -243,8 +315,8 @@ export function AdminDashboard() {
                     >
                       <UserCheck className="w-4 h-4 mr-2" />
                       Register Servant
-                    </Button>
-                    <Button
+                    </SimpleButton>
+                    <SimpleButton
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("activities")}
@@ -252,8 +324,8 @@ export function AdminDashboard() {
                     >
                       <Calendar className="w-4 h-4 mr-2" />
                       Create Activity
-                    </Button>
-                    <Button
+                    </SimpleButton>
+                    <SimpleButton
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       onClick={() => setActiveSection("churches")}
@@ -261,23 +333,23 @@ export function AdminDashboard() {
                     >
                       <Church className="w-4 h-4 mr-2" />
                       Manage Churches
-                    </Button>
-                    <Button
+                    </SimpleButton>
+                    <SimpleButton
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       disabled={!supabaseConfigured}
                     >
                       <BookOpen className="w-4 h-4 mr-2" />
                       Plan Lessons
-                    </Button>
-                    <Button
+                    </SimpleButton>
+                    <SimpleButton
                       variant="outline"
                       className="w-full justify-start bg-transparent"
                       disabled={!supabaseConfigured}
                     >
                       <BarChart3 className="w-4 h-4 mr-2" />
                       View Reports
-                    </Button>
+                    </SimpleButton>
                   </CardContent>
                 </Card>
               </div>
@@ -293,18 +365,28 @@ export function AdminDashboard() {
           {activeSection === "activities" && <ActivityManagement />}
 
           {/* Placeholder content for other sections */}
-          {!["dashboard", "churches", "students", "servants", "activities"].includes(activeSection) && (
+          {![
+            "dashboard",
+            "churches",
+            "students",
+            "servants",
+            "activities",
+          ].includes(activeSection) && (
             <div className="flex items-center justify-center h-96">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-foreground mb-2">
-                  {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Management
+                  {activeSection.charAt(0).toUpperCase() +
+                    activeSection.slice(1)}{" "}
+                  Management
                 </h2>
-                <p className="text-muted-foreground">This section will be implemented in the next steps.</p>
+                <p className="text-muted-foreground">
+                  This section will be implemented in the next steps.
+                </p>
               </div>
             </div>
           )}
         </main>
       </div>
     </div>
-  )
+  );
 }

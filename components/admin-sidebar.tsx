@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils";
+import { SimpleButton } from "@/components/ui/simple-button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Home,
   Church,
@@ -15,20 +15,29 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-} from "lucide-react"
-import { useState } from "react"
+} from "lucide-react";
+import { useState } from "react";
 
 interface AdminSidebarProps {
-  activeSection: string
-  onSectionChange: (section: string) => void
+  activeSection: string;
+  onSectionChange: (section: string) => void;
 }
 
-export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarProps) {
-  const [expandedSections, setExpandedSections] = useState<string[]>(["management"])
+export function AdminSidebar({
+  activeSection,
+  onSectionChange,
+}: AdminSidebarProps) {
+  const [expandedSections, setExpandedSections] = useState<string[]>([
+    "management",
+  ]);
 
   const toggleSection = (section: string) => {
-    setExpandedSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
-  }
+    setExpandedSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((s) => s !== section)
+        : [...prev, section]
+    );
+  };
 
   const menuItems = [
     {
@@ -57,7 +66,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       icon: BarChart3,
       type: "single",
     },
-  ]
+  ];
 
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border">
@@ -67,7 +76,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
             <Church className="w-4 h-4 text-accent-foreground" />
           </div>
           <div>
-            <h2 className="font-bold text-sidebar-foreground">Sunday School</h2>
+            <h2 className="font-bold text-sidebar-foreground">Knesty</h2>
             <p className="text-xs text-sidebar-foreground/70">Admin Panel</p>
           </div>
         </div>
@@ -78,22 +87,22 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
           {menuItems.map((item) => (
             <div key={item.id}>
               {item.type === "single" ? (
-                <Button
+                <SimpleButton
                   variant={activeSection === item.id ? "secondary" : "ghost"}
                   className={cn(
                     "w-full justify-start",
                     activeSection === item.id
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   )}
                   onClick={() => onSectionChange(item.id)}
                 >
                   <item.icon className="w-4 h-4 mr-2" />
                   {item.label}
-                </Button>
+                </SimpleButton>
               ) : (
                 <div>
-                  <Button
+                  <SimpleButton
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
                     onClick={() => toggleSection(item.id)}
@@ -105,25 +114,27 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                     ) : (
                       <ChevronRight className="w-4 h-4 ml-auto" />
                     )}
-                  </Button>
+                  </SimpleButton>
                   {expandedSections.includes(item.id) && item.children && (
                     <div className="ml-4 mt-1 space-y-1">
                       {item.children.map((child) => (
-                        <Button
+                        <SimpleButton
                           key={child.id}
-                          variant={activeSection === child.id ? "secondary" : "ghost"}
+                          variant={
+                            activeSection === child.id ? "secondary" : "ghost"
+                          }
                           size="sm"
                           className={cn(
                             "w-full justify-start",
                             activeSection === child.id
                               ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                              : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                              : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                           )}
                           onClick={() => onSectionChange(child.id)}
                         >
                           <child.icon className="w-4 h-4 mr-2" />
                           {child.label}
-                        </Button>
+                        </SimpleButton>
                       ))}
                     </div>
                   )}
@@ -134,5 +145,5 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
         </div>
       </ScrollArea>
     </div>
-  )
+  );
 }

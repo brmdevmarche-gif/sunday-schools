@@ -1,30 +1,88 @@
-# Knesty Admin Panel
+# Knesty Portal - Sunday School Management System
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+Knesty Portal is a comprehensive, modern web application designed to manage Sunday School operations, including servants, students, classes, attendance, and a points-based store system. Built with performance and user experience in mind, it leverages Server-Side Rendering (SSR) and a robust component architecture.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/maxmosabdelsayed-9134s-projects/v0-sunday-school-admin-panel)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/oI3GIjM89uR)
+## 🚀 Features
 
-## Overview
+- **Servant Management**: Complete profile management for church staff and teachers with role-based access control.
+- **Church Administration**: Manage multiple church locations, areas, and dioceses.
+- **Student Management**: (In Progress) Registration, class assignment, and attendance tracking.
+- **Store System**: (Planned) Points-based marketplace for students to redeem rewards.
+- **Modern UI/UX**: Responsive design with dark/light mode support, built using `shadcn/ui`.
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## 🛠️ Tech Stack
 
-## Deployment
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Database & Auth**: [Supabase](https://supabase.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Forms**: React Hook Form + Zod
 
-Your project is live at:
+## 📂 Project Structure
 
-**[https://vercel.com/maxmosabdelsayed-9134s-projects/v0-sunday-school-admin-panel](https://vercel.com/maxmosabdelsayed-9134s-projects/v0-sunday-school-admin-panel)**
+```
+├── app/                  # Next.js App Router pages and layouts
+│   ├── (admin)/          # Admin dashboard routes (protected)
+│   └── layout.tsx        # Root layout
+├── components/           # React components
+│   ├── ui/               # Reusable UI components (buttons, inputs, etc.)
+│   └── ...               # Feature-specific components (e.g., servant-management.tsx)
+├── hooks/                # Custom React hooks (e.g., useServantManagement)
+├── lib/                  # Utility functions and Supabase client setup
+├── public/               # Static assets
+└── utils/                # Helper functions
+```
 
-## Build your app
+## 🏁 Getting Started
 
-Continue building your app on:
+### Prerequisites
 
-**[https://v0.app/chat/projects/oI3GIjM89uR](https://v0.app/chat/projects/oI3GIjM89uR)**
+- Node.js 18+ installed
+- npm or pnpm
 
-## How It Works
+### Installation
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd knesty-portal
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    # or
+    pnpm install
+    ```
+
+3.  **Environment Setup:**
+    Create a `.env.local` file in the root directory and add your Supabase credentials:
+    ```env
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    ```
+
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3070](http://localhost:3070) with your browser to see the result.
+
+## 🏗️ Architecture Highlights
+
+- **Server-Side Rendering (SSR)**: The application prioritizes SSR for better performance and SEO. Server Components handle data fetching and layout structure, while Client Components manage interactivity.
+- **Supabase Integration**: Direct integration with Supabase for authentication and database operations, utilizing Row Level Security (RLS) for data protection.
+
+## 🤝 Contributing
+
+1.  Fork the repository.
+2.  Create a new branch (`git checkout -b feature/amazing-feature`).
+3.  Commit your changes (`git commit -m 'Add some amazing feature'`).
+4.  Push to the branch (`git push origin feature/amazing-feature`).
+5.  Open a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License.

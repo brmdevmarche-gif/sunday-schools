@@ -609,17 +609,17 @@ export default function UsersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Diocese</Label>
+                  <Label>Diocese (optional)</Label>
                   <Select
-                    value={createFormData.diocese_id}
-                    onValueChange={(value) => setCreateFormData({ ...createFormData, diocese_id: value })}
+                    value={createFormData.diocese_id || 'none'}
+                    onValueChange={(value) => setCreateFormData({ ...createFormData, diocese_id: value === 'none' ? '' : value })}
                     disabled={isSubmitting}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select diocese (optional)" />
+                      <SelectValue placeholder="Select diocese" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {dioceses.map((diocese) => (
                         <SelectItem key={diocese.id} value={diocese.id}>
                           {diocese.name}
@@ -630,17 +630,17 @@ export default function UsersPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Church</Label>
+                  <Label>Church (optional)</Label>
                   <Select
-                    value={createFormData.church_id}
-                    onValueChange={(value) => setCreateFormData({ ...createFormData, church_id: value })}
+                    value={createFormData.church_id || 'none'}
+                    onValueChange={(value) => setCreateFormData({ ...createFormData, church_id: value === 'none' ? '' : value })}
                     disabled={isSubmitting}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select church (optional)" />
+                      <SelectValue placeholder="Select church" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {churches
                         .filter(c => !createFormData.diocese_id || c.diocese_id === createFormData.diocese_id)
                         .map((church) => (

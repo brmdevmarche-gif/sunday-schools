@@ -1,101 +1,115 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { getCurrentUser } from '@/lib/auth'
-import { getUserProfile, updateUserProfile, isUsernameAvailable, type UserProfile } from '@/lib/profile'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from 'sonner'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
+import {
+  getUserProfile,
+  updateUserProfile,
+  isUsernameAvailable,
+  type UserProfile,
+} from "@/lib/profile";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function ProfileEditPage() {
-  const router = useRouter()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form state
-  const [username, setUsername] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
-  const [bio, setBio] = useState('')
+  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [bio, setBio] = useState("");
 
   useEffect(() => {
     async function loadProfile() {
       try {
-        const currentUser = await getCurrentUser()
+        const currentUser = await getCurrentUser();
         if (!currentUser) {
-          router.push('/login')
-          return
+          router.push("/login");
+          return;
         }
 
-        const userProfile = await getUserProfile()
+        const userProfile = await getUserProfile();
         if (userProfile) {
-          setProfile(userProfile)
-          setUsername(userProfile.username || '')
-          setFullName(userProfile.full_name || '')
-          setAvatarUrl(userProfile.avatar_url || '')
-          setBio(userProfile.bio || '')
+          setProfile(userProfile);
+          setUsername(userProfile.username || "");
+          setFullName(userProfile.full_name || "");
+          setAvatarUrl(userProfile.avatar_url || "");
+          setBio(userProfile.bio || "");
         }
       } catch (error) {
-        console.error('Error loading profile:', error)
-        toast.error('Failed to load profile')
+        console.error("Error loading profile:", error);
+        toast.error("Failed to load profile");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    loadProfile()
-  }, [router])
+    loadProfile();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSaving(true)
+    e.preventDefault();
+    setIsSaving(true);
 
     try {
       // Validate username if changed
       if (username && username !== profile?.username) {
-        const available = await isUsernameAvailable(username)
+        const available = await isUsernameAvailable(username);
         if (!available) {
-          toast.error('Username is already taken')
-          setIsSaving(false)
-          return
+          toast.error("Username is already taken");
+          setIsSaving(false);
+          return;
         }
       }
 
       // Update profile
       const updates = {
-        username: username || null,
-        full_name: fullName || null,
-        avatar_url: avatarUrl || null,
-        bio: bio || null,
-      }
+        username: username || undefined,
+        full_name: fullName || undefined,
+        avatar_url: avatarUrl || undefined,
+        bio: bio || undefined,
+      };
 
-      const updatedProfile = await updateUserProfile(updates)
-      setProfile(updatedProfile)
-      toast.success('Profile updated successfully!')
+      const updatedProfile = await updateUserProfile(updates);
+      setProfile(updatedProfile);
+      toast.success("Profile updated successfully!");
 
       // Navigate back to dashboard after a short delay
       setTimeout(() => {
-        router.push('/dashboard')
-      }, 1000)
+        router.push("/dashboard");
+      }, 1000);
     } catch (error) {
-      console.error('Error updating profile:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to update profile')
+      console.error("Error updating profile:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile"
+      );
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p>Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -119,7 +133,7 @@ export default function ProfileEditPage() {
                 <Input
                   id="email"
                   type="email"
-                  value={profile?.email || ''}
+                  value={profile?.email || ""}
                   disabled
                   className="bg-muted"
                 />
@@ -137,13 +151,18 @@ export default function ProfileEditPage() {
                     type="text"
                     placeholder="johndoe"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    onChange={(e) =>
+                      setUsername(
+                        e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "")
+                      )
+                    }
                     disabled={isSaving}
                     maxLength={30}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Your unique username (lowercase, numbers, and underscores only)
+                  Your unique username (lowercase, numbers, and underscores
+                  only)
                 </p>
               </div>
 
@@ -180,7 +199,7 @@ export default function ProfileEditPage() {
                       alt="Avatar preview"
                       className="w-20 h-20 rounded-full object-cover border-2 border-border"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none'
+                        e.currentTarget.style.display = "none";
                       }}
                     />
                   </div>
@@ -208,18 +227,18 @@ export default function ProfileEditPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push("/dashboard")}
                 disabled={isSaving}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                {isSaving ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
           </form>
         </Card>
       </div>
     </div>
-  )
+  );
 }

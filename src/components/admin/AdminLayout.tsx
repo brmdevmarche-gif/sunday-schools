@@ -1,0 +1,114 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import AdminSidebar from './AdminSidebar'
+import { getCurrentUserProfile } from '@/lib/sunday-school/users'
+import { getNavigationItems, canAccessAdminPanel } from '@/lib/sunday-school/permissions'
+import { signOut } from '@/lib/auth'
+import { toast } from 'sonner'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Menu } from 'lucide-react'
+
+interface AdminLayoutProps {
+  children: React.ReactNode
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  const router = useRouter()
+  const [navItems, setNavItems] = useState<any[]>([])
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+
+  useEffect(() => {
+    async function checkAccess() {
+      try {
+        // Check if user can access admin panel
+        const hasAccess = await canAccessAdminPanel()
+        if (!hasAccess) {
+          toast.error('Access denied. You do not have permission to access the admin panel.')
+          router.push('/dashboard')
+          return
+        }
+
+        // Load user profile and navigation items
+        const [profile, items] = await Promise.all([
+          getCurrentUserProfile(),
+          getNavigationItems()
+        ])
+
+        setUserProfile(profile)
+        setNavItems(items)
+      } catch (error) {
+        console.error('Error loading admin layout:', error)
+        toast.error('Failed to load admin panel')
+        router.push('/dashboard')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      toast.success('Logged out successfully')
+      router.push('/login')
+    } catch (error) {
+      toast.error('Failed to log out')
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Loading admin panel...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block">
+        <AdminSidebar
+          items={navItems}
+          userRole={userProfile?.role}
+          userName={userProfile?.full_name || userProfile?.email}
+          onLogout={handleLogout}
+        />
+      </aside>
+
+      {/* Mobile Sidebar */}
+      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+        <SheetTrigger asChild className="lg:hidden fixed top-4 left-4 z-50">
+          <Button variant="outline" size="icon">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0 w-64">
+          <AdminSidebar
+            items={navItems}
+            userRole={userProfile?.role}
+            userName={userProfile?.full_name || userProfile?.email}
+            onLogout={handleLogout}
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto bg-background">
+        <div className="container mx-auto p-6 lg:p-8">
+          {children}
+        </div>
+      </main>
+    </div>
+  )
+}

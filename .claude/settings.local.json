@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx shadcn@latest init:*)",
+      "Bash(npx shadcn@latest add button card input label form sonner)",
+      "Bash(cat:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(node /Users/mahinourmagdi/projects/knasty/debug-user.js:*)",
+      "Bash(node:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

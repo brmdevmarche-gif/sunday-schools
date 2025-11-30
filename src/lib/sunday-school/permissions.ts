@@ -277,5 +277,14 @@ export async function getNavigationItems() {
     )
   }
 
+  // Settings - available to all admin users
+  if (await canAccessAdminPanel()) {
+    items.push({
+      name: 'Settings',
+      href: '/admin/settings',
+      icon: 'settings',
+    })
+  }
+
   return items
 }

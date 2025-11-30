@@ -1,62 +1,39 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getCurrentUser, signOut } from '@/lib/auth'
-import { getUserProfile, type UserProfile } from '@/lib/profile'
+import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from 'sonner'
 import LoginHistory from '@/components/LoginHistory'
 import SecurityAlerts from '@/components/SecurityAlerts'
+import DashboardActions from './DashboardActions'
 
-export default function DashboardPage() {
-  const router = useRouter()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export const dynamic = 'force-dynamic'
 
-  useEffect(() => {
-    async function loadUserProfile() {
-      try {
-        // First verify user is authenticated
-        const currentUser = await getCurrentUser()
-        if (!currentUser) {
-          router.push('/login')
-          return
-        }
+async function getUserProfile() {
+  const supabase = await createClient()
 
-        // Then load full profile from users table
-        const userProfile = await getUserProfile()
-        setProfile(userProfile)
-      } catch (error) {
-        console.error('Error loading profile:', error)
-        toast.error('Failed to load profile')
-        router.push('/login')
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-    loadUserProfile()
-  }, [router])
-
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-      toast.success('Logged out successfully')
-      router.push('/login')
-    } catch (error) {
-      toast.error('Failed to log out')
-    }
+  if (!user) {
+    return null
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    )
+  const { data: profile } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  return profile
+}
+
+export default async function DashboardPage() {
+  const profile = await getUserProfile()
+
+  if (!profile) {
+    redirect('/login')
   }
 
   return (
@@ -64,9 +41,7 @@ export default function DashboardPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <Button onClick={handleSignOut} variant="outline">
-            Log out
-          </Button>
+          <DashboardActions />
         </div>
 
         <SecurityAlerts />
@@ -74,9 +49,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>
-                {profile?.full_name || profile?.username || 'Welcome back!'}
-              </CardTitle>
+              <CardTitle>{profile?.full_name || profile?.username || 'Welcome back!'}</CardTitle>
               <CardDescription>Your profile information</CardDescription>
             </div>
             <Button asChild variant="outline" size="sm">

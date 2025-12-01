@@ -6,7 +6,9 @@
       "Bash(cat:*)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(node /Users/mahinourmagdi/projects/knasty/debug-user.js:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

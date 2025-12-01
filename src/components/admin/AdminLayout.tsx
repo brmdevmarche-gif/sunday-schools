@@ -7,18 +7,31 @@ import { getCurrentUserProfile } from '@/lib/sunday-school/users'
 import { getNavigationItems, canAccessAdminPanel } from '@/lib/sunday-school/permissions'
 import { signOut } from '@/lib/auth'
 import { toast } from 'sonner'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Menu } from 'lucide-react'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
+interface NavItem {
+  name: string
+  href: string
+  icon: string
+}
+
+interface UserProfile {
+  role: string
+  full_name?: string | null
+  email: string
+}
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
-  const [navItems, setNavItems] = useState<any[]>([])
-  const [userProfile, setUserProfile] = useState<any>(null)
+  const [navItems, setNavItems] = useState<NavItem[]>([])
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -58,7 +71,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       await signOut()
       toast.success('Logged out successfully')
       router.push('/login')
-    } catch (error) {
+    } catch {
       toast.error('Failed to log out')
     }
   }
@@ -94,6 +107,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
+          <VisuallyHidden>
+            <SheetTitle>Navigation Menu</SheetTitle>
+          </VisuallyHidden>
           <AdminSidebar
             items={navItems}
             userRole={userProfile?.role}

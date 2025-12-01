@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,6 +32,7 @@ async function getUserProfile() {
 
 export default async function DashboardPage() {
   const profile = await getUserProfile()
+  const t = await getTranslations()
 
   if (!profile) {
     redirect('/login')
@@ -40,7 +42,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
           <DashboardActions />
         </div>
 
@@ -49,11 +51,11 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>{profile?.full_name || profile?.username || 'Welcome back!'}</CardTitle>
-              <CardDescription>Your profile information</CardDescription>
+              <CardTitle>{profile?.full_name || profile?.username || t('dashboard.welcomeBack')}</CardTitle>
+              <CardDescription>{t('dashboard.profileInfo')}</CardDescription>
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link href="/dashboard/profile">Edit Profile</Link>
+              <Link href="/dashboard/profile">{t('dashboard.editProfile')}</Link>
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -61,7 +63,7 @@ export default async function DashboardPage() {
               <div className="flex items-center space-x-4">
                 <img
                   src={profile.avatar_url}
-                  alt="Profile"
+                  alt={t('dashboard.profile')}
                   className="w-20 h-20 rounded-full object-cover border-2 border-border"
                 />
               </div>
@@ -69,38 +71,38 @@ export default async function DashboardPage() {
 
             <div className="grid gap-3">
               <div>
-                <span className="font-semibold text-sm text-muted-foreground">Email</span>
+                <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.email')}</span>
                 <p>{profile?.email}</p>
               </div>
 
               {profile?.username && (
                 <div>
-                  <span className="font-semibold text-sm text-muted-foreground">Username</span>
+                  <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.username')}</span>
                   <p>@{profile.username}</p>
                 </div>
               )}
 
               {profile?.full_name && (
                 <div>
-                  <span className="font-semibold text-sm text-muted-foreground">Full Name</span>
+                  <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.fullName')}</span>
                   <p>{profile.full_name}</p>
                 </div>
               )}
 
               {profile?.bio && (
                 <div>
-                  <span className="font-semibold text-sm text-muted-foreground">Bio</span>
+                  <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.bio')}</span>
                   <p className="text-sm">{profile.bio}</p>
                 </div>
               )}
 
               <div>
-                <span className="font-semibold text-sm text-muted-foreground">Account Created</span>
+                <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.accountCreated')}</span>
                 <p>{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}</p>
               </div>
 
               <div>
-                <span className="font-semibold text-sm text-muted-foreground">User ID</span>
+                <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.userId')}</span>
                 <p className="font-mono text-xs">{profile?.id}</p>
               </div>
             </div>
@@ -109,21 +111,21 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Getting Started</CardTitle>
-            <CardDescription>Your app features</CardDescription>
+            <CardTitle>{t('dashboard.gettingStarted')}</CardTitle>
+            <CardDescription>{t('dashboard.appFeatures')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p>This dashboard demonstrates:</p>
+            <p>{t('dashboard.demonstratesIntro')}</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Supabase authentication with custom profiles</li>
-              <li>Row Level Security (RLS) policies</li>
-              <li>Protected routes with middleware</li>
-              <li>Profile management with custom fields</li>
-              <li>Login history tracking and monitoring</li>
-              <li>UI components from shadcn/ui</li>
+              <li>{t('dashboard.feature1')}</li>
+              <li>{t('dashboard.feature2')}</li>
+              <li>{t('dashboard.feature3')}</li>
+              <li>{t('dashboard.feature4')}</li>
+              <li>{t('dashboard.feature5')}</li>
+              <li>{t('dashboard.feature6')}</li>
             </ul>
             <p className="mt-4 text-sm text-muted-foreground">
-              Click &quot;Edit Profile&quot; to update your username, full name, bio, or avatar.
+              {t('dashboard.editProfileHelp')}
             </p>
           </CardContent>
         </Card>

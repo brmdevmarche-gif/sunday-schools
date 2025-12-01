@@ -104,3 +104,6 @@ export async function deleteDioceseAction(id: string) {
   revalidatePath('/admin/dioceses')
   return { success: true }
 }
+
+// Alias for updateDioceseAction to match client usage
+export const updateDiocese = updateDioceseAction

@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useTheme } from 'next-themes'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import {
   Select,
   SelectContent,
@@ -56,8 +59,10 @@ export default function SettingsClient({
   isSuperAdmin,
 }: SettingsClientProps) {
   const router = useRouter()
+  const t = useTranslations()
   const [, startTransition] = useTransition()
   const [isCreatingBackup, setIsCreatingBackup] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   const [settings, setSettings] = useState<Partial<UserSettings>>(
     initialSettings || {
@@ -71,16 +76,53 @@ export default function SettingsClient({
     }
   )
 
+  // Sync theme from database settings to next-themes on mount
+  useEffect(() => {
+    if (initialSettings?.theme && theme !== initialSettings.theme) {
+      setTheme(initialSettings.theme)
+    }
+  }, [initialSettings?.theme, theme, setTheme])
+
   async function handleSaveSettings() {
     try {
       await updateUserSettings(settings)
-      toast.success('Settings saved successfully')
+      toast.success(t('settings.settingsSaved'))
       startTransition(() => {
         router.refresh()
       })
     } catch (error) {
       console.error('Error saving settings:', error)
-      toast.error('Failed to save settings')
+      toast.error(t('settings.saveFailed'))
+    }
+  }
+
+  async function handleLanguageChange(newLocale: string) {
+    // Update settings state
+    const updatedSettings = { ...settings, language: newLocale as UserSettings['language'] }
+    setSettings(updatedSettings)
+
+    // Save to database immediately
+    try {
+      await updateUserSettings({ language: newLocale as UserSettings['language'] })
+    } catch (error) {
+      console.error('Error saving language setting:', error)
+    }
+  }
+
+  async function handleThemeChange(newTheme: UserSettings['theme']) {
+    // Update settings state
+    setSettings({ ...settings, theme: newTheme })
+
+    // Apply theme immediately
+    setTheme(newTheme)
+
+    // Save to database immediately
+    try {
+      await updateUserSettings({ theme: newTheme })
+      toast.success(t('settings.settingsSaved'))
+    } catch (error) {
+      console.error('Error saving theme setting:', error)
+      toast.error(t('settings.saveFailed'))
     }
   }
 
@@ -88,13 +130,13 @@ export default function SettingsClient({
     setIsCreatingBackup(true)
     try {
       await createBackupLog('manual')
-      toast.success('Backup created successfully')
+      toast.success(t('settings.backupCreated'))
       startTransition(() => {
         router.refresh()
       })
     } catch (error) {
       console.error('Error creating backup:', error)
-      toast.error('Failed to create backup')
+      toast.error(t('settings.backupFailed'))
     } finally {
       setIsCreatingBackup(false)
     }
@@ -114,9 +156,9 @@ export default function SettingsClient({
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your preferences and system settings
+          {t('settings.subtitle')}
         </p>
       </div>
 
@@ -125,36 +167,21 @@ export default function SettingsClient({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            <CardTitle>Language & Localization</CardTitle>
+            <CardTitle>{t('settings.preferences')}</CardTitle>
           </div>
           <CardDescription>
-            Choose your preferred language and regional settings
+            {t('settings.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="language">Language</Label>
-              <Select
-                value={settings.language}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, language: value as UserSettings['language'] })
-                }
-              >
-                <SelectTrigger id="language">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="ar">العربية (Arabic)</SelectItem>
-                  <SelectItem value="fr">Français (French)</SelectItem>
-                  <SelectItem value="es">Español (Spanish)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>{t('settings.language')}</Label>
+              <LanguageSwitcher showLabel={false} onLanguageChange={handleLanguageChange} />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="timezone">Timezone</Label>
+              <Label htmlFor="timezone">{t('settings.timezone')}</Label>
               <Select
                 value={settings.timezone}
                 onValueChange={(value) => setSettings({ ...settings, timezone: value })}
@@ -184,26 +211,24 @@ export default function SettingsClient({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
-            <CardTitle>Appearance</CardTitle>
+            <CardTitle>{t('settings.theme')}</CardTitle>
           </div>
-          <CardDescription>Customize how the application looks</CardDescription>
+          <CardDescription>{t('settings.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="theme">Theme</Label>
+            <Label htmlFor="theme">{t('settings.theme')}</Label>
             <Select
               value={settings.theme}
-              onValueChange={(value) =>
-                setSettings({ ...settings, theme: value as UserSettings['theme'] })
-              }
+              onValueChange={(value) => handleThemeChange(value as UserSettings['theme'])}
             >
               <SelectTrigger id="theme">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                <SelectItem value="light">{t('settings.light')}</SelectItem>
+                <SelectItem value="dark">{t('settings.dark')}</SelectItem>
+                <SelectItem value="system">{t('settings.system')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -215,14 +240,14 @@ export default function SettingsClient({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            <CardTitle>Date & Time Format</CardTitle>
+            <CardTitle>{t('settings.dateFormat')}</CardTitle>
           </div>
-          <CardDescription>Choose how dates and times are displayed</CardDescription>
+          <CardDescription>{t('settings.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="date_format">Date Format</Label>
+              <Label htmlFor="date_format">{t('settings.dateFormat')}</Label>
               <Select
                 value={settings.date_format}
                 onValueChange={(value) =>
@@ -241,7 +266,7 @@ export default function SettingsClient({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="time_format">Time Format</Label>
+              <Label htmlFor="time_format">{t('settings.timeFormat')}</Label>
               <Select
                 value={settings.time_format}
                 onValueChange={(value) =>
@@ -252,8 +277,8 @@ export default function SettingsClient({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="12h">12-hour (AM/PM)</SelectItem>
-                  <SelectItem value="24h">24-hour</SelectItem>
+                  <SelectItem value="12h">{t('settings.12hour')}</SelectItem>
+                  <SelectItem value="24h">{t('settings.24hour')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -266,16 +291,16 @@ export default function SettingsClient({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            <CardTitle>Notifications</CardTitle>
+            <CardTitle>{t('settings.notifications')}</CardTitle>
           </div>
-          <CardDescription>Manage your notification preferences</CardDescription>
+          <CardDescription>{t('settings.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Push Notifications</Label>
+              <Label>{t('settings.enableNotifications')}</Label>
               <p className="text-sm text-muted-foreground">
-                Receive notifications in the app
+                {t('settings.enableNotifications')}
               </p>
             </div>
             <Switch
@@ -288,9 +313,9 @@ export default function SettingsClient({
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Email Notifications</Label>
+              <Label>{t('settings.emailNotifications')}</Label>
               <p className="text-sm text-muted-foreground">
-                Receive notifications via email
+                {t('settings.enableEmailNotifications')}
               </p>
             </div>
             <Switch
@@ -306,7 +331,7 @@ export default function SettingsClient({
       {/* Save Button */}
       <div className="flex justify-end">
         <Button onClick={handleSaveSettings} size="lg">
-          Save Settings
+          {t('common.save')}
         </Button>
       </div>
 
@@ -317,27 +342,27 @@ export default function SettingsClient({
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                <CardTitle>Database Backup</CardTitle>
+                <CardTitle>{t('settings.databaseBackup')}</CardTitle>
               </div>
-              <CardDescription>Manage database backups and restoration</CardDescription>
+              <CardDescription>{t('settings.backupSubtitle')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {databaseStats && (
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Users</p>
+                    <p className="text-sm text-muted-foreground">{t('settings.totalUsers')}</p>
                     <p className="text-2xl font-bold">{databaseStats.users}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Dioceses</p>
+                    <p className="text-sm text-muted-foreground">{t('settings.totalDioceses')}</p>
                     <p className="text-2xl font-bold">{databaseStats.dioceses}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Churches</p>
+                    <p className="text-sm text-muted-foreground">{t('settings.totalChurches')}</p>
                     <p className="text-2xl font-bold">{databaseStats.churches}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Classes</p>
+                    <p className="text-sm text-muted-foreground">{t('settings.totalClasses')}</p>
                     <p className="text-2xl font-bold">{databaseStats.classes}</p>
                   </div>
                 </div>
@@ -346,10 +371,10 @@ export default function SettingsClient({
               <div className="flex items-center gap-2">
                 <Button onClick={handleCreateBackup} disabled={isCreatingBackup}>
                   <Download className="mr-2 h-4 w-4" />
-                  {isCreatingBackup ? 'Creating Backup...' : 'Create Manual Backup'}
+                  {isCreatingBackup ? t('common.loading') : t('settings.createBackup')}
                 </Button>
                 <p className="text-sm text-muted-foreground">
-                  Create a backup of all database tables
+                  {t('settings.backupSubtitle')}
                 </p>
               </div>
             </CardContent>
@@ -357,23 +382,23 @@ export default function SettingsClient({
 
           <Card>
             <CardHeader>
-              <CardTitle>Backup History</CardTitle>
-              <CardDescription>Recent database backups</CardDescription>
+              <CardTitle>{t('settings.backupHistory')}</CardTitle>
+              <CardDescription>{t('settings.backupSubtitle')}</CardDescription>
             </CardHeader>
             <CardContent>
               {backupLogs.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No backups found</p>
+                  <p className="text-muted-foreground">{t('settings.noBackups')}</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>File Path</TableHead>
+                      <TableHead>{t('settings.backupType')}</TableHead>
+                      <TableHead>{t('settings.backupStatus')}</TableHead>
+                      <TableHead>{t('settings.createdAt')}</TableHead>
+                      <TableHead>{t('settings.fileSize')}</TableHead>
+                      <TableHead>{t('settings.createdBy')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -386,15 +411,15 @@ export default function SettingsClient({
                           {log.backup_status === 'completed' ? (
                             <Badge variant="default" className="gap-1">
                               <CheckCircle2 className="h-3 w-3" />
-                              Completed
+                              {t('settings.completed')}
                             </Badge>
                           ) : log.backup_status === 'failed' ? (
                             <Badge variant="destructive" className="gap-1">
                               <AlertCircle className="h-3 w-3" />
-                              Failed
+                              {t('settings.failed')}
                             </Badge>
                           ) : (
-                            <Badge variant="secondary">Started</Badge>
+                            <Badge variant="secondary">{t('settings.processing')}</Badge>
                           )}
                         </TableCell>
                         <TableCell>{formatDate(log.created_at)}</TableCell>

@@ -11,6 +11,7 @@ export type UserRole =
   | "diocese_admin"
   | "church_admin"
   | "class_admin"
+  | "teacher_admin"
   | "teacher"
   | "parent"
   | "student"
@@ -39,7 +40,25 @@ export interface Diocese {
   location: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  cover_image_url: string | null;
+  logo_image_url: string | null;
+  theme_primary_color: string | null;
+  theme_secondary_color: string | null;
+  theme_accent_color: string | null;
+  theme_settings: Record<string, any> | null;
   created_by: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface DioceseAdmin {
+  id: string;
+  diocese_id: string;
+  user_id: string;
+  assigned_at: string;
+  assigned_by: string | null;
+  is_active: boolean | null;
+  notes: string | null;
   created_at: string;
   updated_at: string | null;
 }
@@ -53,6 +72,8 @@ export interface Church {
   city: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  cover_image_url: string | null;
+  logo_image_url: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string | null;
@@ -339,6 +360,18 @@ export interface CreateDioceseInput {
   location?: string;
   contact_email?: string;
   contact_phone?: string;
+  cover_image_url?: string;
+  logo_image_url?: string;
+  theme_primary_color?: string;
+  theme_secondary_color?: string;
+  theme_accent_color?: string;
+  theme_settings?: Record<string, any>;
+}
+
+export interface CreateDioceseAdminInput {
+  diocese_id: string;
+  user_id: string;
+  notes?: string;
 }
 
 export interface CreateChurchInput {
@@ -349,6 +382,8 @@ export interface CreateChurchInput {
   city?: string;
   contact_email?: string;
   contact_phone?: string;
+  cover_image_url?: string;
+  logo_image_url?: string;
 }
 
 export interface CreateClassInput {

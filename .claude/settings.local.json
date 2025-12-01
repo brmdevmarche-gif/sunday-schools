@@ -8,7 +8,11 @@
       "Bash(node /Users/mahinourmagdi/projects/knasty/debug-user.js:*)",
       "Bash(node:*)",
       "Bash(curl:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(pkill:*)",
+      "Bash(supabase --version:*)",
+      "Bash(supabase db:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import AdminSidebar from './AdminSidebar'
 import { getCurrentUserProfile } from '@/lib/sunday-school/users'
 import { getNavigationItems, canAccessAdminPanel } from '@/lib/sunday-school/permissions'
@@ -30,6 +31,7 @@ interface UserProfile {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
+  const t = useTranslations()
   const [navItems, setNavItems] = useState<NavItem[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -41,7 +43,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         // Check if user can access admin panel
         const hasAccess = await canAccessAdminPanel()
         if (!hasAccess) {
-          toast.error('Access denied. You do not have permission to access the admin panel.')
+          toast.error(t('errors.notAuthorized'))
           router.push('/dashboard')
           return
         }
@@ -56,7 +58,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         setNavItems(items)
       } catch (error) {
         console.error('Error loading admin layout:', error)
-        toast.error('Failed to load admin panel')
+        toast.error(t('errors.serverError'))
         router.push('/dashboard')
       } finally {
         setIsLoading(false)
@@ -69,10 +71,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const handleLogout = async () => {
     try {
       await signOut()
-      toast.success('Logged out successfully')
+      toast.success(t('nav.logout'))
       router.push('/login')
     } catch {
-      toast.error('Failed to log out')
+      toast.error(t('errors.serverError'))
     }
   }
 
@@ -81,7 +83,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
-          <p className="text-sm text-muted-foreground">Loading admin panel...</p>
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     )
@@ -108,7 +110,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
           <VisuallyHidden>
-            <SheetTitle>Navigation Menu</SheetTitle>
+            <SheetTitle>{t('nav.dashboard')}</SheetTitle>
           </VisuallyHidden>
           <AdminSidebar
             items={navItems}

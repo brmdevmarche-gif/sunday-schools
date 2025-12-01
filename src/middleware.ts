@@ -1,8 +1,38 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "./lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  const { pathname } = request.nextUrl;
+
+  // Handle locale-prefixed URLs (redirect to base URL with cookie)
+  if (pathname.startsWith('/ar') || pathname.startsWith('/en')) {
+    const locale = pathname.startsWith('/ar') ? 'ar' : 'en';
+    const newPathname = pathname.replace(/^\/(ar|en)/, '') || '/';
+
+    const url = request.nextUrl.clone();
+    url.pathname = newPathname;
+
+    const response = NextResponse.redirect(url);
+    response.cookies.set('NEXT_LOCALE', locale, {
+      path: '/',
+      maxAge: 31536000, // 1 year
+      sameSite: 'lax',
+    });
+
+    return response;
+  }
+
+  // Handle Supabase session
+  const response = await updateSession(request);
+
+  // Set locale header from cookie or default to 'en'
+  const locale = request.cookies.get('NEXT_LOCALE')?.value || 'en';
+
+  // Add locale to response headers for next-intl
+  const finalResponse = response || NextResponse.next();
+  finalResponse.headers.set('x-next-intl-locale', locale);
+
+  return finalResponse;
 }
 
 export const config = {

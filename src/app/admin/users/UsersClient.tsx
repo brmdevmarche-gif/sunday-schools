@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -49,7 +50,8 @@ interface UsersClientProps {
 
 export default function UsersClient({ initialUsers, churches, dioceses }: UsersClientProps) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const t = useTranslations()
+  const [, startTransition] = useTransition()
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -112,14 +114,14 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
         roleFormData.diocese_id || null,
         roleFormData.church_id || null
       )
-      toast.success('User role updated successfully')
+      toast.success(t('users.userUpdated'))
       setIsRoleDialogOpen(false)
       startTransition(() => {
         router.refresh()
       })
     } catch (error) {
       console.error('Error updating user role:', error)
-      toast.error('Failed to update user role')
+      toast.error(t('users.updateFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -127,21 +129,21 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
 
   async function handleLinkParentToStudent() {
     if (!selectedParentId || !selectedStudentId) {
-      toast.error('Please select both parent and student')
+      toast.error(t('users.linkFailed'))
       return
     }
 
     setIsSubmitting(true)
     try {
       await linkParentToStudentAction(selectedParentId, selectedStudentId)
-      toast.success('Parent linked to student successfully')
+      toast.success(t('users.parentLinked'))
       setIsLinkDialogOpen(false)
       startTransition(() => {
         router.refresh()
       })
     } catch (error) {
       console.error('Error linking parent to student:', error)
-      toast.error('Failed to link parent to student')
+      toast.error(t('users.linkFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -151,16 +153,16 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
     try {
       if (user.is_active) {
         await deactivateUserAction(user.id)
-        toast.success('User deactivated')
+        toast.success(t('users.userDeactivated'))
       } else {
         await activateUserAction(user.id)
-        toast.success('User activated')
+        toast.success(t('users.userActivated'))
       }
       startTransition(() => {
         router.refresh()
       })
     } catch (error) {
-      toast.error('Failed to update user status')
+      toast.error(t('users.updateFailed'))
     }
   }
 
@@ -179,7 +181,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
 
   async function handleCreateUser() {
     if (!createFormData.email || !createFormData.password || !createFormData.role) {
-      toast.error('Email, password, and role are required')
+      toast.error(t('errors.invalidInput'))
       return
     }
 
@@ -194,14 +196,14 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
         church_id: createFormData.church_id || undefined,
         diocese_id: createFormData.diocese_id || undefined,
       })
-      toast.success('User created successfully')
+      toast.success(t('users.userCreated'))
       setIsCreateDialogOpen(false)
       startTransition(() => {
         router.refresh()
       })
     } catch (error: any) {
       console.error('Error creating user:', error)
-      toast.error(error.message || 'Failed to create user')
+      toast.error(error.message || t('users.createFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -263,19 +265,19 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Users</h1>
+          <h1 className="text-3xl font-bold">{t('users.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            Manage user roles and assignments
+            {t('users.subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleOpenLinkDialog}>
             <LinkIcon className="mr-2 h-4 w-4" />
-            Link Parent to Student
+            {t('users.linkParent')}
           </Button>
           <Button onClick={handleOpenCreateDialog}>
             <UserPlus className="mr-2 h-4 w-4" />
-            Create User
+            {t('users.createUser')}
           </Button>
         </div>
       </div>
@@ -283,45 +285,45 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>{t('common.filter')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
-              <Label>Search</Label>
+              <Label>{t('common.search')}</Label>
               <Input
-                placeholder="Search by name or email..."
+                placeholder={t('users.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t('users.role')}</Label>
               <Select value={roleFilter} onValueChange={(value) => handleFilterChange('role', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="super_admin">Super Admin</SelectItem>
-                  <SelectItem value="diocese_admin">Diocese Admin</SelectItem>
-                  <SelectItem value="church_admin">Church Admin</SelectItem>
-                  <SelectItem value="teacher">Teacher</SelectItem>
-                  <SelectItem value="parent">Parent</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="all">{t('users.filterByRole')}</SelectItem>
+                  <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
+                  <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
+                  <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
+                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
+                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
+                  <SelectItem value="student">{t('roles.student')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Diocese</Label>
+              <Label>{t('users.diocese')}</Label>
               <Select value={dioceseFilter} onValueChange={(value) => handleFilterChange('diocese', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Dioceses</SelectItem>
+                  <SelectItem value="all">{t('users.filterByDiocese')}</SelectItem>
                   {dioceses.map((diocese) => (
                     <SelectItem key={diocese.id} value={diocese.id}>
                       {diocese.name}
@@ -332,13 +334,13 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
             </div>
 
             <div className="space-y-2">
-              <Label>Church</Label>
+              <Label>{t('users.church')}</Label>
               <Select value={churchFilter} onValueChange={(value) => handleFilterChange('church', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Churches</SelectItem>
+                  <SelectItem value="all">{t('users.filterByChurch')}</SelectItem>
                   {churches.map((church) => (
                     <SelectItem key={church.id} value={church.id}>
                       {church.name}
@@ -354,26 +356,26 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Users ({filteredUsers.length})</CardTitle>
-          <CardDescription>A list of all users in the system</CardDescription>
+          <CardTitle>{t('users.title')} ({filteredUsers.length})</CardTitle>
+          <CardDescription>{t('users.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredUsers.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No users found matching the filters.</p>
+              <p className="text-muted-foreground">{t('users.noUsers')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Diocese</TableHead>
-                    <TableHead>Church</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('common.name')}</TableHead>
+                    <TableHead>{t('common.email')}</TableHead>
+                    <TableHead>{t('users.role')}</TableHead>
+                    <TableHead>{t('users.diocese')}</TableHead>
+                    <TableHead>{t('users.church')}</TableHead>
+                    <TableHead className="text-center">{t('common.status')}</TableHead>
+                    <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -385,14 +387,14 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role.replace('_', ' ')}
+                          {t(`roles.${user.role}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>{getDioceseName(user.diocese_id)}</TableCell>
                       <TableCell>{getChurchName(user.church_id)}</TableCell>
                       <TableCell className="text-center">
                         <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                          {user.is_active ? 'Active' : 'Inactive'}
+                          {user.is_active ? t('common.active') : t('common.inactive')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -401,7 +403,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenRoleDialog(user)}
-                            title="Edit Role"
+                            title={t('users.editUser')}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -409,7 +411,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                             variant="ghost"
                             size="sm"
                             onClick={() => handleToggleActive(user)}
-                            title={user.is_active ? 'Deactivate' : 'Activate'}
+                            title={user.is_active ? t('users.deactivateUser') : t('users.activateUser')}
                           >
                             {user.is_active ? (
                               <UserX className="h-4 w-4 text-destructive" />
@@ -432,15 +434,15 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit User Role</DialogTitle>
+            <DialogTitle>{t('users.editUser')}</DialogTitle>
             <DialogDescription>
-              Update role and organizational assignment for {selectedUser?.full_name || selectedUser?.email}
+              {t('users.subtitle')}: {selectedUser?.full_name || selectedUser?.email}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>Role *</Label>
+              <Label>{t('users.role')} *</Label>
               <Select
                 value={roleFormData.role}
                 onValueChange={(value) => setRoleFormData({ ...roleFormData, role: value as UserRole })}
@@ -449,25 +451,25 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="super_admin">Super Admin</SelectItem>
-                  <SelectItem value="diocese_admin">Diocese Admin</SelectItem>
-                  <SelectItem value="church_admin">Church Admin</SelectItem>
-                  <SelectItem value="teacher">Teacher</SelectItem>
-                  <SelectItem value="parent">Parent</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
+                  <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
+                  <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
+                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
+                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
+                  <SelectItem value="student">{t('roles.student')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {(roleFormData.role === 'diocese_admin') && (
               <div className="space-y-2">
-                <Label>Diocese</Label>
+                <Label>{t('users.diocese')}</Label>
                 <Select
                   value={roleFormData.diocese_id}
                   onValueChange={(value) => setRoleFormData({ ...roleFormData, diocese_id: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select diocese" />
+                    <SelectValue placeholder={t('users.selectDiocese')} />
                   </SelectTrigger>
                   <SelectContent>
                     {dioceses.map((diocese) => (
@@ -482,13 +484,13 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
 
             {(['church_admin', 'teacher', 'parent', 'student'].includes(roleFormData.role)) && (
               <div className="space-y-2">
-                <Label>Church</Label>
+                <Label>{t('users.church')}</Label>
                 <Select
                   value={roleFormData.church_id}
                   onValueChange={(value) => setRoleFormData({ ...roleFormData, church_id: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select church" />
+                    <SelectValue placeholder={t('users.selectChurch')} />
                   </SelectTrigger>
                   <SelectContent>
                     {churches.map((church) => (
@@ -508,10 +510,10 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               onClick={() => setIsRoleDialogOpen(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleUpdateRole} disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : 'Update Role'}
+              {isSubmitting ? t('common.loading') : t('common.update')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -521,16 +523,16 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
+            <DialogTitle>{t('users.createUser')}</DialogTitle>
             <DialogDescription>
-              Create a new user account with role and organizational assignment
+              {t('users.subtitle')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Email *</Label>
+                <Label>{t('common.email')} *</Label>
                 <Input
                   type="email"
                   placeholder="user@example.com"
@@ -564,7 +566,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               </div>
 
               <div className="space-y-2">
-                <Label>Full Name</Label>
+                <Label>{t('users.fullName')}</Label>
                 <Input
                   placeholder="John Doe"
                   value={createFormData.full_name}
@@ -575,7 +577,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
             </div>
 
             <div className="space-y-2">
-              <Label>Role *</Label>
+              <Label>{t('users.role')} *</Label>
               <Select
                 value={createFormData.role}
                 onValueChange={(value) => setCreateFormData({ ...createFormData, role: value as UserRole })}
@@ -585,29 +587,29 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="parent">Parent</SelectItem>
-                  <SelectItem value="teacher">Teacher</SelectItem>
-                  <SelectItem value="church_admin">Church Admin</SelectItem>
-                  <SelectItem value="diocese_admin">Diocese Admin</SelectItem>
-                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                  <SelectItem value="student">{t('roles.student')}</SelectItem>
+                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
+                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
+                  <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
+                  <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
+                  <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Diocese (optional)</Label>
+                <Label>{t('users.optionalDiocese')}</Label>
                 <Select
                   value={createFormData.diocese_id || 'none'}
                   onValueChange={(value) => setCreateFormData({ ...createFormData, diocese_id: value === 'none' ? '' : value })}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select diocese" />
+                    <SelectValue placeholder={t('users.selectDiocese')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="none">-</SelectItem>
                     {dioceses.map((diocese) => (
                       <SelectItem key={diocese.id} value={diocese.id}>
                         {diocese.name}
@@ -618,17 +620,17 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               </div>
 
               <div className="space-y-2">
-                <Label>Church (optional)</Label>
+                <Label>{t('users.optionalChurch')}</Label>
                 <Select
                   value={createFormData.church_id || 'none'}
                   onValueChange={(value) => setCreateFormData({ ...createFormData, church_id: value === 'none' ? '' : value })}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select church" />
+                    <SelectValue placeholder={t('users.selectChurch')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="none">-</SelectItem>
                     {churches
                       .filter(c => !createFormData.diocese_id || c.diocese_id === createFormData.diocese_id)
                       .map((church) => (
@@ -648,10 +650,10 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               onClick={() => setIsCreateDialogOpen(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleCreateUser} disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create User'}
+              {isSubmitting ? t('common.loading') : t('users.createUser')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -661,18 +663,18 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Link Parent to Student</DialogTitle>
+            <DialogTitle>{t('users.linkParent')}</DialogTitle>
             <DialogDescription>
-              Create a relationship between a parent and student account
+              {t('users.subtitle')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>Parent *</Label>
+              <Label>{t('roles.parent')} *</Label>
               <Select value={selectedParentId} onValueChange={setSelectedParentId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select parent" />
+                  <SelectValue placeholder={t('users.selectParent')} />
                 </SelectTrigger>
                 <SelectContent>
                   {parents.map((parent) => (
@@ -685,10 +687,10 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
             </div>
 
             <div className="space-y-2">
-              <Label>Student *</Label>
+              <Label>{t('roles.student')} *</Label>
               <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select student" />
+                  <SelectValue placeholder={t('users.selectStudent')} />
                 </SelectTrigger>
                 <SelectContent>
                   {students.map((student) => (
@@ -707,10 +709,10 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               onClick={() => setIsLinkDialogOpen(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleLinkParentToStudent} disabled={isSubmitting}>
-              {isSubmitting ? 'Linking...' : 'Link'}
+              {isSubmitting ? t('common.loading') : t('users.linkParent')}
             </Button>
           </DialogFooter>
         </DialogContent>

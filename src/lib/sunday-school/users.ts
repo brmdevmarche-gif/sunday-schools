@@ -118,26 +118,90 @@ export async function getCurrentUserProfile(): Promise<ExtendedUser | null> {
 
 /**
  * Get teachers available for assignment
+ * Optionally excludes teachers already assigned to a specific class
  */
 export async function getAvailableTeachers(
-  churchId: string
+  churchId: string,
+  excludeClassId?: string
 ): Promise<ExtendedUser[]> {
-  return getUsers({
-    role: "teacher",
-    churchId,
-    isActive: true,
-  });
+  const supabase = createClient();
+  
+  let query = supabase
+    .from("users")
+    .select("*")
+    .eq("role", "teacher")
+    .eq("church_id", churchId)
+    .eq("is_active", true)
+    .order("full_name", { ascending: true });
+
+  // If excludeClassId is provided, exclude users already assigned to that class
+  if (excludeClassId) {
+    const { data: assignments } = await supabase
+      .from("class_assignments")
+      .select("user_id")
+      .eq("class_id", excludeClassId)
+      .eq("assignment_type", "teacher")
+      .eq("is_active", true);
+
+    if (assignments && assignments.length > 0) {
+      const assignedUserIds = assignments.map(a => a.user_id).filter(Boolean) as string[];
+      if (assignedUserIds.length > 0) {
+        // Exclude already assigned users
+        for (const userId of assignedUserIds) {
+          query = query.neq("id", userId);
+        }
+      }
+    }
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data as ExtendedUser[];
 }
 
 /**
  * Get students for a church
+ * Optionally excludes students already assigned to a specific class
  */
-export async function getStudents(churchId: string): Promise<ExtendedUser[]> {
-  return getUsers({
-    role: "student",
-    churchId,
-    isActive: true,
-  });
+export async function getStudents(
+  churchId: string,
+  excludeClassId?: string
+): Promise<ExtendedUser[]> {
+  const supabase = createClient();
+  
+  let query = supabase
+    .from("users")
+    .select("*")
+    .eq("role", "student")
+    .eq("church_id", churchId)
+    .eq("is_active", true)
+    .order("full_name", { ascending: true });
+
+  // If excludeClassId is provided, exclude users already assigned to that class
+  if (excludeClassId) {
+    const { data: assignments } = await supabase
+      .from("class_assignments")
+      .select("user_id")
+      .eq("class_id", excludeClassId)
+      .eq("assignment_type", "student")
+      .eq("is_active", true);
+
+    if (assignments && assignments.length > 0) {
+      const assignedUserIds = assignments.map(a => a.user_id).filter(Boolean) as string[];
+      if (assignedUserIds.length > 0) {
+        // Exclude already assigned users
+        for (const userId of assignedUserIds) {
+          query = query.neq("id", userId);
+        }
+      }
+    }
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data as ExtendedUser[];
 }
 
 /**

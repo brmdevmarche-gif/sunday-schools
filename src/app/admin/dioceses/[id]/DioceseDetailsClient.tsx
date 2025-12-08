@@ -82,16 +82,16 @@ export function DioceseDetailsClient({
     try {
       await updateDiocese(diocese.id, {
         name: diocese.name,
-        description: diocese.description,
-        location: diocese.location,
-        contact_email: diocese.contact_email,
-        contact_phone: diocese.contact_phone,
-        cover_image_url: diocese.cover_image_url,
-        logo_image_url: diocese.logo_image_url,
-        theme_primary_color: diocese.theme_primary_color,
-        theme_secondary_color: diocese.theme_secondary_color,
-        theme_accent_color: diocese.theme_accent_color,
-        theme_settings: diocese.theme_settings,
+        description: diocese.description ?? undefined,
+        location: diocese.location ?? undefined,
+        contact_email: diocese.contact_email ?? undefined,
+        contact_phone: diocese.contact_phone ?? undefined,
+        cover_image_url: diocese.cover_image_url ?? undefined,
+        logo_image_url: diocese.logo_image_url ?? undefined,
+        theme_primary_color: diocese.theme_primary_color ?? undefined,
+        theme_secondary_color: diocese.theme_secondary_color ?? undefined,
+        theme_accent_color: diocese.theme_accent_color ?? undefined,
+        theme_settings: diocese.theme_settings ?? undefined,
       });
       toast.success(t("dioceses.dioceseUpdated"));
       setIsEditing(false);
@@ -544,7 +544,7 @@ export function DioceseDetailsClient({
                 {t("classes.teachers")} ({teachers.length})
               </CardTitle>
               <CardDescription>
-                All teachers in this diocese's churches
+                All teachers in this diocese&apos;s churches
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -580,7 +580,7 @@ export function DioceseDetailsClient({
                 {t("classes.students")} ({students.length})
               </CardTitle>
               <CardDescription>
-                All students in this diocese's churches
+                All students in this diocese&apos;s churches
               </CardDescription>
             </CardHeader>
             <CardContent>

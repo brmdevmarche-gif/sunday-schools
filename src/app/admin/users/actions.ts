@@ -95,17 +95,29 @@ export async function updateUserRoleAction(
   userId: string,
   role: UserRole,
   dioceseId: string | null,
-  churchId: string | null
+  churchId: string | null,
+  fullName?: string,
+  username?: string
 ) {
   const supabase = await createClient()
 
+  const updateData: any = {
+    role,
+    diocese_id: dioceseId,
+    church_id: churchId,
+  }
+
+  if (fullName !== undefined) {
+    updateData.full_name = fullName || null
+  }
+
+  if (username !== undefined) {
+    updateData.username = username || null
+  }
+
   const { error } = await supabase
     .from('users')
-    .update({
-      role,
-      diocese_id: dioceseId,
-      church_id: churchId,
-    })
+    .update(updateData)
     .eq('id', userId)
 
   if (error) {
@@ -114,6 +126,7 @@ export async function updateUserRoleAction(
   }
 
   revalidatePath('/admin/users')
+  revalidatePath(`/admin/users/${userId}`)
   return { success: true }
 }
 

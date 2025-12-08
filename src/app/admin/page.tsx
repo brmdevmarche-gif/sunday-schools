@@ -1,184 +1,116 @@
-'use client'
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
+import DashboardClient from "./dashboard/DashboardClient";
 
-import { useEffect, useState } from 'react'
-import AdminLayout from '@/components/admin/AdminLayout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getCurrentUserProfile } from '@/lib/sunday-school/users'
-import { Building2, Church, School, Users } from 'lucide-react'
+export default async function AdminDashboard() {
+  const supabase = await createClient();
+  const profile = await getCurrentUserProfile();
 
-export default function AdminDashboard() {
-  const [userProfile, setUserProfile] = useState<any>(null)
-  const [stats, setStats] = useState({
+  if (!profile) {
+    redirect("/login");
+  }
+
+  // Fetch stats based on user role
+  let stats = {
     dioceses: 0,
     churches: 0,
     classes: 0,
     users: 0,
-  })
+  };
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const profile = await getCurrentUserProfile()
-        setUserProfile(profile)
+  try {
+    if (profile.role === "super_admin") {
+      // Super admin can see all stats
+      const [diocesesCount, churchesCount, classesCount, usersCount] =
+        await Promise.all([
+          supabase
+            .from("dioceses")
+            .select("id", { count: "exact", head: true }),
+          supabase
+            .from("churches")
+            .select("id", { count: "exact", head: true }),
+          supabase.from("classes").select("id", { count: "exact", head: true }),
+          supabase.from("users").select("id", { count: "exact", head: true }),
+        ]);
 
-        // TODO: Load actual stats from database
-        // For now, using placeholder data
-        setStats({
-          dioceses: 0,
-          churches: 0,
-          classes: 0,
-          users: 0,
-        })
-      } catch (error) {
-        console.error('Error loading dashboard:', error)
-      }
+      stats = {
+        dioceses: diocesesCount.count || 0,
+        churches: churchesCount.count || 0,
+        classes: classesCount.count || 0,
+        users: usersCount.count || 0,
+      };
+    } else if (profile.role === "diocese_admin" && profile.diocese_id) {
+      // Diocese admin sees stats for their diocese
+      // First get church IDs for this diocese
+      const { data: churchIds } = await supabase
+        .from("churches")
+        .select("id")
+        .eq("diocese_id", profile.diocese_id);
+
+      const churchIdList = churchIds?.map((c) => c.id) || [];
+
+      const [churchesCount, classesCount, usersCount] = await Promise.all([
+        supabase
+          .from("churches")
+          .select("id", { count: "exact", head: true })
+          .eq("diocese_id", profile.diocese_id),
+        churchIdList.length > 0
+          ? supabase
+              .from("classes")
+              .select("id", { count: "exact", head: true })
+              .in("church_id", churchIdList)
+          : { count: 0 },
+        supabase
+          .from("users")
+          .select("id", { count: "exact", head: true })
+          .eq("diocese_id", profile.diocese_id),
+      ]);
+
+      stats = {
+        dioceses: 1,
+        churches: churchesCount.count || 0,
+        classes: classesCount.count || 0,
+        users: usersCount.count || 0,
+      };
+    } else if (profile.role === "church_admin" && profile.church_id) {
+      // Church admin sees stats for their church
+      const [classesCount, usersCount] = await Promise.all([
+        supabase
+          .from("classes")
+          .select("id", { count: "exact", head: true })
+          .eq("church_id", profile.church_id),
+        supabase
+          .from("users")
+          .select("id", { count: "exact", head: true })
+          .eq("church_id", profile.church_id),
+      ]);
+
+      stats = {
+        dioceses: 0,
+        churches: 1,
+        classes: classesCount.count || 0,
+        users: usersCount.count || 0,
+      };
+    } else if (profile.role === "teacher") {
+      // Teachers see their class stats
+      const classesCount = await supabase
+        .from("class_assignments")
+        .select("class_id", { count: "exact", head: true })
+        .eq("user_id", profile.id)
+        .eq("assignment_type", "teacher")
+        .eq("is_active", true);
+
+      stats = {
+        dioceses: 0,
+        churches: 0,
+        classes: classesCount.count || 0,
+        users: 0,
+      };
     }
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+  }
 
-    loadData()
-  }, [])
-
-  return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Welcome back, {userProfile?.full_name || 'Admin'}!
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Dioceses</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.dioceses}</div>
-              <p className="text-xs text-muted-foreground">Across the system</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Churches</CardTitle>
-              <Church className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.churches}</div>
-              <p className="text-xs text-muted-foreground">Active churches</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
-              <School className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.classes}</div>
-              <p className="text-xs text-muted-foreground">Sunday school classes</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.users}</div>
-              <p className="text-xs text-muted-foreground">Students, teachers, parents</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks and management options</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {userProfile?.role === 'super_admin' && (
-                <Card className="cursor-pointer hover:bg-muted transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-base">Manage Dioceses</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">Add or edit dioceses</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {(userProfile?.role === 'super_admin' || userProfile?.role === 'diocese_admin') && (
-                <Card className="cursor-pointer hover:bg-muted transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-base">Manage Churches</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">Add or edit churches</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              <Card className="cursor-pointer hover:bg-muted transition-colors">
-                <CardHeader>
-                  <CardTitle className="text-base">Manage Classes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">Create and organize classes</p>
-                </CardContent>
-              </Card>
-
-              <Card className="cursor-pointer hover:bg-muted transition-colors">
-                <CardHeader>
-                  <CardTitle className="text-base">Manage Users</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">Add teachers, students, parents</p>
-                </CardContent>
-              </Card>
-
-              {userProfile?.role === 'teacher' && (
-                <>
-                  <Card className="cursor-pointer hover:bg-muted transition-colors">
-                    <CardHeader>
-                      <CardTitle className="text-base">My Classes</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">View assigned classes</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="cursor-pointer hover:bg-muted transition-colors">
-                    <CardHeader>
-                      <CardTitle className="text-base">Take Attendance</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">Mark student attendance</p>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates and changes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">No recent activity to display.</p>
-          </CardContent>
-        </Card>
-      </div>
-    </AdminLayout>
-  )
+  return <DashboardClient userProfile={profile} stats={stats} />;
 }

@@ -4,9 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 // DELETE /api/admin/dioceses/[id]/admins/[userId] - Revoke diocese admin access
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; userId: string } }
+  { params }: { params: Promise<{ id: string; userId: string }> }
 ) {
   try {
+    const { id, userId } = await params;
     const supabase = await createClient();
 
     // Check authentication
@@ -23,8 +24,8 @@ export async function DELETE(
     const { error } = await supabase
       .from("diocese_admins")
       .update({ is_active: false })
-      .eq("diocese_id", params.id)
-      .eq("user_id", params.userId);
+      .eq("diocese_id", id)
+      .eq("user_id", userId);
 
     if (error) {
       console.error("Error revoking diocese admin:", error);
@@ -50,9 +51,10 @@ export async function DELETE(
 // PATCH /api/admin/dioceses/[id]/admins/[userId] - Reactivate diocese admin
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; userId: string } }
+  { params }: { params: Promise<{ id: string; userId: string }> }
 ) {
   try {
+    const { id, userId } = await params;
     const supabase = await createClient();
 
     // Check authentication
@@ -75,8 +77,8 @@ export async function PATCH(
         is_active: is_active !== undefined ? is_active : true,
         notes: notes !== undefined ? notes : undefined,
       })
-      .eq("diocese_id", params.id)
-      .eq("user_id", params.userId);
+      .eq("diocese_id", id)
+      .eq("user_id", userId);
 
     if (error) {
       console.error("Error updating diocese admin:", error);

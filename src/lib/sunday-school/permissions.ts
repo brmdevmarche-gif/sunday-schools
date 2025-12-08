@@ -1,4 +1,4 @@
-import { getCurrentUserProfile } from './users'
+import { getCurrentUserProfile } from './users.server'
 import type { UserRole } from '../types/sunday-school'
 
 /**
@@ -223,6 +223,15 @@ export async function getNavigationItems() {
       name: 'Classes',
       href: '/admin/classes',
       icon: 'school',
+    })
+  }
+
+  // Student Management - all admins
+  if (await isAdmin()) {
+    items.push({
+      name: 'Students',
+      href: '/admin/students',
+      icon: 'student',
     })
   }
 

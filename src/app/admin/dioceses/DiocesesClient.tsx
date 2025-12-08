@@ -54,7 +54,7 @@ export default function DiocesesClient({
 }: DiocesesClientProps) {
   const router = useRouter();
   const t = useTranslations();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingDiocese, setEditingDiocese] = useState<Diocese | null>(null);

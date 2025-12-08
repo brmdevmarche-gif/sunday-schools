@@ -103,17 +103,25 @@ export async function updateUserRole(
 }
 
 /**
- * Get current user's extended profile
+ * Get current user's extended profile (client-side safe)
+ * This function uses the API route and can be called from client components
+ *
+ * For server components, use getCurrentUserProfile from './users.server.ts'
  */
-export async function getCurrentUserProfile(): Promise<ExtendedUser | null> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  return getUserById(user.id);
+export async function getCurrentUserProfileClient(): Promise<ExtendedUser | null> {
+  try {
+    const response = await fetch('/api/auth/profile');
+    if (!response.ok) {
+      if (response.status === 401) {
+        return null;
+      }
+      throw new Error('Failed to fetch profile');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
+  }
 }
 
 /**

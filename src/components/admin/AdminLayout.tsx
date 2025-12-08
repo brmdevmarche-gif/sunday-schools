@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import AdminSidebar from './AdminSidebar'
-import { getCurrentUserProfile } from '@/lib/sunday-school/users'
-import { getNavigationItems, canAccessAdminPanel } from '@/lib/sunday-school/permissions'
+import { getCurrentUserProfileClient } from '@/lib/sunday-school/users'
 import { signOut } from '@/lib/auth'
 import { toast } from 'sonner'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
@@ -38,23 +37,69 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   useEffect(() => {
-    async function checkAccess() {
+    async function loadProfile() {
       try {
+        // Load user profile
+        const profile = await getCurrentUserProfileClient()
+
+        if (!profile) {
+          toast.error(t('errors.notAuthenticated'))
+          router.push('/login')
+          return
+        }
+
         // Check if user can access admin panel
-        const hasAccess = await canAccessAdminPanel()
-        if (!hasAccess) {
+        const canAccess = ['super_admin', 'diocese_admin', 'church_admin', 'teacher'].includes(profile.role)
+        if (!canAccess) {
           toast.error(t('errors.notAuthorized'))
           router.push('/dashboard')
           return
         }
 
-        // Load user profile and navigation items
-        const [profile, items] = await Promise.all([
-          getCurrentUserProfile(),
-          getNavigationItems()
-        ])
-
         setUserProfile(profile)
+
+        // Build navigation items based on role
+        const items: NavItem[] = []
+
+        // Dashboard - available to all admin users
+        items.push({ name: t('nav.dashboard'), href: '/admin', icon: 'dashboard' })
+
+        // Quick Attendance - for teachers and super admins
+        if (profile.role === 'teacher' || profile.role === 'super_admin') {
+          items.push({ name: t('attendance.quickAttendance'), href: '/attendance', icon: 'check' })
+        }
+
+        // Diocese Management - super admin only
+        if (profile.role === 'super_admin') {
+          items.push({ name: t('nav.dioceses'), href: '/admin/dioceses', icon: 'building' })
+        }
+
+        // Church Management - super admin and diocese admin
+        if (profile.role === 'super_admin' || profile.role === 'diocese_admin') {
+          items.push({ name: t('nav.churches'), href: '/admin/churches', icon: 'church' })
+        }
+
+        // Class Management - all admins and teachers
+        items.push({ name: t('nav.classes'), href: '/admin/classes', icon: 'school' })
+
+        // Attendance - all admins and teachers
+        items.push({ name: t('attendance.title'), href: '/admin/attendance', icon: 'check' })
+
+        // Student Management - all admins
+        if (['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+          items.push({ name: 'Students', href: '/admin/students', icon: 'student' })
+        }
+
+        // User Management - all admins
+        if (['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+          items.push({ name: t('nav.users'), href: '/admin/users', icon: 'users' })
+        }
+
+        // Store Management - super admin and church admin
+        if (['super_admin', 'church_admin'].includes(profile.role)) {
+          items.push({ name: 'Store', href: '/admin/store', icon: 'store' })
+        }
+
         setNavItems(items)
       } catch (error) {
         console.error('Error loading admin layout:', error)
@@ -65,8 +110,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       }
     }
 
-    checkAccess()
-  }, [router])
+    loadProfile()
+  }, [router, t])
 
   const handleLogout = async () => {
     try {

@@ -12,7 +12,15 @@
       "Bash(pkill:*)",
       "Bash(supabase --version:*)",
       "Bash(supabase db:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm run db:seed:clear:*)",
+      "Bash(supabase status:*)",
+      "Bash(PORT=3001 npm run dev:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(tail:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

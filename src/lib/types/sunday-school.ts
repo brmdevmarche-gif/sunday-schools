@@ -45,7 +45,7 @@ export interface Diocese {
   theme_primary_color: string | null;
   theme_secondary_color: string | null;
   theme_accent_color: string | null;
-  theme_settings: Record<string, any> | null;
+  theme_settings: Record<string, unknown> | null;
   created_by: string | null;
   created_at: string;
   updated_at: string | null;
@@ -117,6 +117,14 @@ export interface ExtendedUser {
   updated_at: string | null;
 }
 
+export interface UserWithClassAssignments extends ExtendedUser {
+  classAssignments?: Array<{
+    class_id: string;
+    class_name: string;
+    assignment_type: AssignmentType;
+  }>;
+}
+
 // =====================================================
 // ASSIGNMENTS & RELATIONSHIPS
 // =====================================================
@@ -154,7 +162,7 @@ export interface Lesson {
   materials_needed: string | null;
   objectives: string | null;
   scripture_references: string | null;
-  attachments: any | null; // JSONB
+  attachments: unknown | null; // JSONB
   is_published: boolean | null;
   created_by: string | null;
   created_at: string;
@@ -205,26 +213,78 @@ export interface Trip {
   updated_at: string | null;
 }
 
-export type StoreItemCategory =
-  | "book"
-  | "supply"
-  | "uniform"
-  | "gift"
-  | "other";
+export type StudentCase = "normal" | "mastor" | "botl";
+export type StockType = "on_demand" | "quantity";
 
 export interface StoreItem {
   id: string;
   church_id: string | null;
   name: string;
   description: string | null;
-  category: StoreItemCategory | null;
-  price: number;
-  stock_quantity: number | null;
   image_url: string | null;
-  is_available: boolean | null;
+  stock_type: StockType;
+  stock_quantity: number;
+  price_normal: number;
+  price_mastor: number;
+  price_botl: number;
+  is_active: boolean;
+  is_available_to_all_classes: boolean;
   created_by: string | null;
   created_at: string;
-  updated_at: string | null;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+export interface StoreItemChurch {
+  id: string;
+  store_item_id: string;
+  church_id: string;
+  created_at: string;
+}
+
+export interface StoreItemDiocese {
+  id: string;
+  store_item_id: string;
+  diocese_id: string;
+  created_at: string;
+}
+
+export interface StoreItemClass {
+  id: string;
+  store_item_id: string;
+  class_id: string;
+  created_at: string;
+}
+
+export interface CreateStoreItemInput {
+  name: string;
+  description?: string;
+  image_url?: string;
+  stock_type: StockType;
+  stock_quantity: number;
+  price_normal: number;
+  price_mastor: number;
+  price_botl: number;
+  church_ids?: string[]; // Multiple churches
+  diocese_ids?: string[]; // Multiple dioceses (item available to all churches in these dioceses)
+  class_ids?: string[]; // Specific classes (if not available to all)
+  is_available_to_all_classes?: boolean;
+}
+
+export interface UpdateStoreItemInput {
+  name?: string;
+  description?: string;
+  image_url?: string;
+  stock_type?: StockType;
+  stock_quantity?: number;
+  price_normal?: number;
+  price_mastor?: number;
+  price_botl?: number;
+  is_active?: boolean;
+  church_ids?: string[];
+  diocese_ids?: string[];
+  class_ids?: string[];
+  is_available_to_all_classes?: boolean;
 }
 
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
@@ -365,7 +425,7 @@ export interface CreateDioceseInput {
   theme_primary_color?: string;
   theme_secondary_color?: string;
   theme_accent_color?: string;
-  theme_settings?: Record<string, any>;
+  theme_settings?: Record<string, unknown>;
 }
 
 export interface CreateDioceseAdminInput {
@@ -437,4 +497,36 @@ export interface CreateTripInput {
   max_participants?: number;
   transportation_details?: string;
   what_to_bring?: string;
+}
+
+// Attendance helper types
+export interface AttendanceWithUser extends Attendance {
+  user: {
+    id: string;
+    full_name: string | null;
+    email: string;
+  };
+}
+
+export interface CreateAttendanceInput {
+  class_id: string;
+  user_id: string;
+  attendance_date: string;
+  status: AttendanceStatus;
+  lesson_id?: string;
+  notes?: string;
+}
+
+export interface UpdateAttendanceInput {
+  status?: AttendanceStatus;
+  notes?: string;
+  lesson_id?: string;
+}
+
+export interface AttendanceRecord {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  status: AttendanceStatus;
+  notes?: string;
 }

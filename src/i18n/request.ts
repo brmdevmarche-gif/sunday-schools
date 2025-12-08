@@ -10,8 +10,8 @@ export default getRequestConfig(async () => {
   let locale: Locale = 'en'
 
   try {
-    const headersList = await headers()
-    const headerLocale = headersList.get('x-next-intl-locale')
+    const headersList = headers()
+    const headerLocale = (await headersList).get('x-next-intl-locale')
 
     // Validate that the locale from header is one of our supported locales
     if (headerLocale && locales.includes(headerLocale as Locale)) {
@@ -20,9 +20,10 @@ export default getRequestConfig(async () => {
   } catch (error) {
     // Headers might not be available in all contexts (e.g., during build)
     // Fall back to default locale 'en'
-    console.warn('Could not read headers for locale, using default:', error)
+    // This is expected during build time, so we can safely ignore
   }
 
+  // Always return a valid configuration object
   return {
     locale,
     messages: (await import(`../../messages/${locale}.json`)).default,

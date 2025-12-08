@@ -28,13 +28,12 @@ import {
   Mail,
   Phone,
   Building2,
-  Users,
   GraduationCap,
 } from "lucide-react";
 import type {
   Church,
   Class,
-  ExtendedUser,
+  UserWithClassAssignments,
   Diocese,
 } from "@/lib/types/sunday-school";
 import ImageUpload from "@/components/ImageUpload";
@@ -45,7 +44,7 @@ interface ChurchDetailsClientProps {
   church: Church;
   diocese: Diocese | null;
   classes: Class[];
-  users: ExtendedUser[];
+  users: UserWithClassAssignments[];
   isSuperAdmin: boolean;
   isChurchAdmin: boolean;
 }
@@ -74,13 +73,13 @@ export function ChurchDetailsClient({
     try {
       await updateChurchAction(church.id, {
         name: church.name,
-        description: church.description,
-        address: church.address,
-        city: church.city,
-        contact_email: church.contact_email,
-        contact_phone: church.contact_phone,
-        cover_image_url: church.cover_image_url,
-        logo_image_url: church.logo_image_url,
+        description: church.description ?? undefined,
+        address: church.address ?? undefined,
+        city: church.city ?? undefined,
+        contact_email: church.contact_email ?? undefined,
+        contact_phone: church.contact_phone ?? undefined,
+        cover_image_url: church.cover_image_url ?? undefined,
+        logo_image_url: church.logo_image_url ?? undefined,
         diocese_id: church.diocese_id || "",
       });
       toast.success(t("churches.churchUpdated"));
@@ -422,7 +421,7 @@ export function ChurchDetailsClient({
                 {t("classes.teachers")} ({teachers.length})
               </CardTitle>
               <CardDescription>
-                All teachers in this church's classes
+                {t("churches.allTeachersDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -435,15 +434,41 @@ export function ChurchDetailsClient({
                   {teachers.map((teacher) => (
                     <div
                       key={teacher.id}
-                      className="flex items-center justify-between p-2 rounded-lg border"
+                      className="flex flex-col gap-2 p-3 rounded-lg border"
                     >
-                      <div>
-                        <p className="font-medium">{teacher.full_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {teacher.email}
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{teacher.full_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {teacher.email}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {teacher.classAssignments
+                              ?.map(
+                                (a) => a.assignment_type + " of " + a.class_name
+                              )
+                              .join(", ")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {teacher.role}
+                          </p>
+                        </div>
+                        <Badge variant="outline">{t("roles.teacher")}</Badge>
                       </div>
-                      <Badge variant="outline">{t("roles.teacher")}</Badge>
+                      {teacher.classAssignments &&
+                        teacher.classAssignments.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {teacher.classAssignments.map((assignment) => (
+                              <Badge
+                                key={assignment.class_id}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {assignment.class_name}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>
@@ -458,7 +483,7 @@ export function ChurchDetailsClient({
                 {t("classes.students")} ({students.length})
               </CardTitle>
               <CardDescription>
-                All students in this church's classes
+                All students in this church&apos;s classes
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -471,15 +496,31 @@ export function ChurchDetailsClient({
                   {students.map((student) => (
                     <div
                       key={student.id}
-                      className="flex items-center justify-between p-2 rounded-lg border"
+                      className="flex flex-col gap-2 p-3 rounded-lg border"
                     >
-                      <div>
-                        <p className="font-medium">{student.full_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {student.email}
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{student.full_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {student.email}
+                          </p>
+                        </div>
+                        <Badge variant="outline">{t("roles.student")}</Badge>
                       </div>
-                      <Badge variant="outline">{t("roles.student")}</Badge>
+                      {student.classAssignments &&
+                        student.classAssignments.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {student.classAssignments.map((assignment) => (
+                              <Badge
+                                key={assignment.class_id}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {assignment.class_name}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>

@@ -218,7 +218,12 @@ export async function getDioceseAdminsWithUsers(dioceseId: string): Promise<{
 
     if (error) throw error;
 
-    return { data: data as any, error: null };
+    return {
+      data: data as (DioceseAdmin & {
+        user: { id: string; email: string; full_name: string | null };
+      })[],
+      error: null
+    };
   } catch (error) {
     console.error("Error fetching diocese admins with users:", error);
     return { data: null, error: error as Error };

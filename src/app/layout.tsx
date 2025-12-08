@@ -4,6 +4,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { NavigationProvider } from "@/components/NavigationProvider";
+import NavigationLoader from "@/components/NavigationLoader";
+import { Suspense } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,10 +49,15 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NextIntlClientProvider messages={messages}>
-            {children}
-            <Toaster />
-          </NextIntlClientProvider>
+          <Suspense fallback={null}>
+            <NavigationProvider>
+              <NavigationLoader />
+              <NextIntlClientProvider messages={messages}>
+                {children}
+                <Toaster />
+              </NextIntlClientProvider>
+            </NavigationProvider>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

@@ -28,6 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -243,6 +249,19 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
     return true
   })
 
+  // Group users by role
+  const usersByRole = filteredUsers.reduce((acc, user) => {
+    if (!acc[user.role]) {
+      acc[user.role] = []
+    }
+    acc[user.role].push(user)
+    return acc
+  }, {} as Record<UserRole, ExtendedUser[]>)
+
+  // Define role order for display
+  const roleOrder: UserRole[] = ['super_admin', 'diocese_admin', 'church_admin', 'teacher', 'parent', 'student']
+  const sortedRoles = roleOrder.filter(role => usersByRole[role]?.length > 0)
+
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
       case 'super_admin': return 'destructive'
@@ -353,82 +372,101 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
         </CardContent>
       </Card>
 
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('users.title')} ({filteredUsers.length})</CardTitle>
-          <CardDescription>{t('users.subtitle')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-8">
+      {/* Users by Role */}
+      {filteredUsers.length === 0 ? (
+        <Card>
+          <CardContent className="py-8">
+            <div className="text-center">
               <p className="text-muted-foreground">{t('users.noUsers')}</p>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('common.name')}</TableHead>
-                    <TableHead>{t('common.email')}</TableHead>
-                    <TableHead>{t('users.role')}</TableHead>
-                    <TableHead>{t('users.diocese')}</TableHead>
-                    <TableHead>{t('users.church')}</TableHead>
-                    <TableHead className="text-center">{t('common.status')}</TableHead>
-                    <TableHead className="text-right">{t('common.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        {user.full_name || user.username || '-'}
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {t(`roles.${user.role}`)}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="pt-6">
+            <Accordion type="multiple" defaultValue={sortedRoles} className="w-full">
+              {sortedRoles.map((role) => {
+                const usersInRole = usersByRole[role]
+                return (
+                  <AccordionItem key={role} value={role}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <Badge variant={getRoleBadgeVariant(role)} className="text-base px-3 py-1">
+                          {t(`roles.${role}`)}
                         </Badge>
-                      </TableCell>
-                      <TableCell>{getDioceseName(user.diocese_id)}</TableCell>
-                      <TableCell>{getChurchName(user.church_id)}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                          {user.is_active ? t('common.active') : t('common.inactive')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenRoleDialog(user)}
-                            title={t('users.editUser')}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleActive(user)}
-                            title={user.is_active ? t('users.deactivateUser') : t('users.activateUser')}
-                          >
-                            {user.is_active ? (
-                              <UserX className="h-4 w-4 text-destructive" />
-                            ) : (
-                              <UserCheck className="h-4 w-4 text-green-600" />
-                            )}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                        <span className="text-muted-foreground">
+                          ({usersInRole.length} {usersInRole.length === 1 ? 'user' : 'users'})
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>{t('common.name')}</TableHead>
+                              <TableHead>{t('common.email')}</TableHead>
+                              <TableHead>{t('users.diocese')}</TableHead>
+                              <TableHead>{t('users.church')}</TableHead>
+                              <TableHead className="text-center">{t('common.status')}</TableHead>
+                              <TableHead className="text-right">{t('common.actions')}</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {usersInRole.map((user) => (
+                              <TableRow
+                                key={user.id}
+                                className="cursor-pointer hover:bg-muted/50"
+                                onClick={() => router.push(`/admin/users/${user.id}`)}
+                              >
+                                <TableCell className="font-medium">
+                                  {user.full_name || user.username || '-'}
+                                </TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>{getDioceseName(user.diocese_id)}</TableCell>
+                                <TableCell>{getChurchName(user.church_id)}</TableCell>
+                                <TableCell className="text-center">
+                                  <Badge variant={user.is_active ? 'default' : 'secondary'}>
+                                    {user.is_active ? t('common.active') : t('common.inactive')}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleOpenRoleDialog(user)}
+                                      title={t('users.editUser')}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleToggleActive(user)}
+                                      title={user.is_active ? t('users.deactivateUser') : t('users.activateUser')}
+                                    >
+                                      {user.is_active ? (
+                                        <UserX className="h-4 w-4 text-destructive" />
+                                      ) : (
+                                        <UserCheck className="h-4 w-4 text-green-600" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Edit Role Dialog */}
       <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>

@@ -4,9 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/admin/dioceses/[id]/admins - Get all admins for a diocese
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Check authentication
@@ -37,7 +38,7 @@ export async function GET(
         )
       `
       )
-      .eq("diocese_id", params.id)
+      .eq("diocese_id", id)
       .eq("is_active", true)
       .order("assigned_at", { ascending: false });
 
@@ -62,9 +63,10 @@ export async function GET(
 // POST /api/admin/dioceses/[id]/admins - Assign a user as diocese admin
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Check authentication
@@ -91,7 +93,7 @@ export async function POST(
     const { data, error } = await supabase
       .from("diocese_admins")
       .insert({
-        diocese_id: params.id,
+        diocese_id: id,
         user_id,
         assigned_by: user.id,
         notes,

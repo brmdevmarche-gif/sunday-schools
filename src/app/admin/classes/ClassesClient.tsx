@@ -44,6 +44,7 @@ import type {
   CreateClassInput,
   Church,
   Diocese,
+  ExtendedUser,
 } from "@/lib/types/sunday-school";
 import {
   createClassAction,
@@ -77,7 +78,7 @@ interface ClassesClientProps {
   initialClasses: ClassWithCount[];
   churches: Church[];
   dioceses: Diocese[];
-  userProfile: any;
+  userProfile: ExtendedUser;
 }
 
 export default function ClassesClient({
@@ -160,7 +161,7 @@ export default function ClassesClient({
 
       setAvailableUsers(users);
       setIsAssignDialogOpen(true);
-    } catch (error) {
+    } catch {
       toast.error(t("classes.failedToLoadUsers"));
     }
   }
@@ -172,7 +173,7 @@ export default function ClassesClient({
       const roster = await getClassAssignmentsData(cls.id);
       setClassRoster(roster as Assignment[]);
       setIsRosterDialogOpen(true);
-    } catch (error) {
+    } catch {
       toast.error(t("classes.failedToLoadRoster"));
     }
   }
@@ -244,7 +245,7 @@ export default function ClassesClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error) {
+    } catch {
       toast.error(t("classes.removeFailed"));
     }
   }
@@ -617,9 +618,9 @@ export default function ClassesClient({
             </DialogTitle>
             <DialogDescription>
               {assignmentType === "teacher"
-                ? t("classes.selectTeacher", { className: selectedClass?.name })
+                ? t("classes.selectTeacher", { className: selectedClass?.name ?? "" })
                 : t("classes.selectStudent", {
-                    className: selectedClass?.name,
+                    className: selectedClass?.name ?? "",
                   })}
             </DialogDescription>
           </DialogHeader>
@@ -671,7 +672,7 @@ export default function ClassesClient({
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>
-              {t("classes.classRoster", { className: selectedClass?.name })}
+              {t("classes.classRoster", { className: selectedClass?.name ?? "" })}
             </DialogTitle>
             <DialogDescription>
               {t("classes.rosterDescription")}

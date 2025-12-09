@@ -37,8 +37,8 @@ import type { AttendanceStatus } from "@/lib/types/sunday-school";
 import {
   getClassAttendanceAction,
   bulkMarkAttendanceAction,
+  getClassStudentsAction,
 } from "../admin/attendance/actions";
-import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/auth";
 
 interface ClassInfo {
@@ -106,33 +106,17 @@ export default function TeacherAttendanceClient({
   async function loadStudents(classId: string) {
     setIsLoading(true);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("class_assignments")
-        .select(
-          `
-          user_id,
-          users!class_assignments_user_id_fkey (
-            id,
-            full_name,
-            email
-          )
-        `
-        )
-        .eq("class_id", classId)
-        .eq("assignment_type", "student")
-        .eq("is_active", true)
-        .order("users(full_name)");
+      const result = await getClassStudentsAction(classId);
 
-      if (error) throw error;
-
-      const studentList =
-        data?.map((a) => a.users as unknown as Student).filter(Boolean) || [];
-
-      setStudents(studentList);
+      if (result.success && result.data) {
+        setStudents(result.data);
+      } else {
+        setStudents([]);
+      }
     } catch (error) {
       console.error("Error loading students:", error);
       toast.error(t("attendance.failedToLoadStudents"));
+      setStudents([]);
     } finally {
       setIsLoading(false);
     }
@@ -486,13 +470,13 @@ export default function TeacherAttendanceClient({
                         key={student.id}
                         className={`border-2 rounded-xl p-4 space-y-3 transition-all ${
                           status === "present"
-                            ? "border-green-200 bg-green-50"
+                            ? "border-green-200 bg-green-500/10"
                             : status === "absent"
-                            ? "border-red-200 bg-red-50"
+                            ? "border-red-200 bg-red-500/10"
                             : status === "excused"
-                            ? "border-yellow-200 bg-yellow-50"
+                            ? "border-yellow-200 bg-yellow-500/10"
                             : status === "late"
-                            ? "border-orange-200 bg-orange-50"
+                            ? "border-orange-200 bg-orange-500/10"
                             : "border-border bg-card hover:border-primary/50"
                         }`}
                       >

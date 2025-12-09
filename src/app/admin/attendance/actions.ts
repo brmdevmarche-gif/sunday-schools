@@ -224,3 +224,38 @@ export async function deleteAttendanceAction(attendanceId: string) {
   revalidatePath('/admin/attendance')
   return { success: true }
 }
+
+/**
+ * Get students for a class (bypasses RLS)
+ */
+export async function getClassStudentsAction(classId: string) {
+  const adminClient = createAdminClient()
+
+  const { data, error } = await adminClient
+    .from('class_assignments')
+    .select(`
+      user_id,
+      users!class_assignments_user_id_fkey (
+        id,
+        full_name,
+        email,
+        avatar_url
+      )
+    `)
+    .eq('class_id', classId)
+    .eq('assignment_type', 'student')
+    .eq('is_active', true)
+    .order('users(full_name)', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching class students:', error)
+    throw new Error(`Failed to fetch students: ${error.message}`)
+  }
+
+  // Extract the user objects from the join
+  const students = data
+    ?.map((assignment: any) => assignment.users)
+    .filter(Boolean) || []
+
+  return { success: true, data: students }
+}

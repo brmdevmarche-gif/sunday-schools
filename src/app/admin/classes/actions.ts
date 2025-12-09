@@ -172,7 +172,7 @@ export async function getAvailableTeachersData(churchId: string) {
 
   const { data, error } = await supabase
     .from('users')
-    .select('id, email, full_name, username')
+    .select('id, email, full_name, username, avatar_url, phone')
     .eq('role', 'teacher')
     .eq('church_id', churchId)
     .eq('is_active', true)
@@ -191,7 +191,7 @@ export async function getAvailableStudentsData(churchId: string) {
 
   const { data, error } = await supabase
     .from('users')
-    .select('id, email, full_name, username')
+    .select('id, email, full_name, username, avatar_url, phone')
     .eq('role', 'student')
     .eq('church_id', churchId)
     .eq('is_active', true)
@@ -217,27 +217,68 @@ export async function assignUserToClassAction(
   } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  const { error } = await supabase.from('class_assignments').insert({
-    class_id: classId,
-    user_id: userId,
-    assignment_type: assignmentType,
-    assigned_by: user.id,
-    is_active: true,
-  })
+  // Use admin client to bypass RLS for assignment operations
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
 
-  if (error) {
-    console.error('Error assigning user to class:', error)
-    throw new Error('Failed to assign user to class')
+  // Check if an assignment already exists (active or inactive)
+  const { data: existing } = await adminClient
+    .from('class_assignments')
+    .select('id, is_active')
+    .eq('class_id', classId)
+    .eq('user_id', userId)
+    .eq('assignment_type', assignmentType)
+    .single()
+
+  if (existing) {
+    // If assignment exists but is inactive, reactivate it
+    if (!existing.is_active) {
+      const { error } = await adminClient
+        .from('class_assignments')
+        .update({ is_active: true, assigned_by: user.id })
+        .eq('id', existing.id)
+
+      if (error) {
+        console.error('Error reactivating user assignment:', error)
+        throw new Error('Failed to assign user to class')
+      }
+    }
+    // If already active, it's already assigned - silently succeed
+  } else {
+    // No existing assignment, create a new one
+    const { error } = await adminClient.from('class_assignments').insert({
+      class_id: classId,
+      user_id: userId,
+      assignment_type: assignmentType,
+      assigned_by: user.id,
+      is_active: true,
+    })
+
+    if (error) {
+      console.error('Error assigning user to class:', error)
+      throw new Error('Failed to assign user to class')
+    }
   }
 
   revalidatePath('/admin/classes')
+  revalidatePath(`/admin/classes/${classId}`)
   return { success: true }
 }
 
-export async function removeUserFromClassAction(assignmentId: string) {
+export async function removeUserFromClassAction(assignmentId: string, classId?: string) {
   const supabase = await createClient()
 
-  const { error } = await supabase
+  // Verify user is authenticated
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Use admin client to bypass RLS
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { error } = await adminClient
     .from('class_assignments')
     .update({ is_active: false })
     .eq('id', assignmentId)
@@ -248,6 +289,9 @@ export async function removeUserFromClassAction(assignmentId: string) {
   }
 
   revalidatePath('/admin/classes')
+  if (classId) {
+    revalidatePath(`/admin/classes/${classId}`)
+  }
   return { success: true }
 }
 

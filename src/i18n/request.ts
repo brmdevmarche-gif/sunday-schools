@@ -10,8 +10,8 @@ export default getRequestConfig(async () => {
   let locale: Locale = 'en'
 
   try {
-    const headersList = headers()
-    const headerLocale = (await headersList).get('x-next-intl-locale')
+    const headersList = await headers()
+    const headerLocale = headersList.get('x-next-intl-locale')
 
     // Validate that the locale from header is one of our supported locales
     if (headerLocale && locales.includes(headerLocale as Locale)) {

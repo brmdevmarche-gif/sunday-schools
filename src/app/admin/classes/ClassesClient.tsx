@@ -38,7 +38,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Users, UserPlus } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, UserPlus, Search, User as UserIcon, Mail, Phone } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type {
   Class,
   CreateClassInput,
@@ -66,6 +67,8 @@ interface User {
   email: string;
   full_name?: string | null;
   username?: string | null;
+  avatar_url?: string | null;
+  phone?: string | null;
 }
 
 interface Assignment {
@@ -105,7 +108,8 @@ export default function ClassesClient({
   const [assignmentType, setAssignmentType] = useState<"teacher" | "student">(
     "teacher"
   );
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [formData, setFormData] = useState<CreateClassInput>({
     church_id: "",
@@ -151,7 +155,8 @@ export default function ClassesClient({
   ) {
     setSelectedClass(cls);
     setAssignmentType(type);
-    setSelectedUserId("");
+    setSelectedUserIds([]);
+    setSearchQuery("");
 
     try {
       const users =
@@ -165,6 +170,26 @@ export default function ClassesClient({
       toast.error(t("classes.failedToLoadUsers"));
     }
   }
+
+  function toggleUserSelection(userId: string) {
+    setSelectedUserIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  }
+
+  // Filter users based on search query
+  const filteredUsers = availableUsers.filter((user) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      user.full_name?.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query) ||
+      user.phone?.toLowerCase().includes(query) ||
+      user.username?.toLowerCase().includes(query)
+    );
+  });
 
   async function handleOpenRoster(cls: Class) {
     setSelectedClass(cls);
@@ -206,19 +231,28 @@ export default function ClassesClient({
   }
 
   async function handleAssignUser() {
-    if (!selectedClass || !selectedUserId) return;
+    if (!selectedClass || selectedUserIds.length === 0) return;
 
     setIsSubmitting(true);
     try {
-      await assignUserToClassAction(
-        selectedClass.id,
-        selectedUserId,
-        assignmentType
+      // Assign all selected users
+      const promises = selectedUserIds.map((userId) =>
+        assignUserToClassAction(selectedClass.id, userId, assignmentType)
       );
+
+      await Promise.all(promises);
+
+      const count = selectedUserIds.length;
       toast.success(
-        assignmentType === "teacher"
-          ? t("classes.teacherAssigned")
-          : t("classes.studentAssigned")
+        count === 1
+          ? assignmentType === "teacher"
+            ? t("classes.teacherAssigned")
+            : t("classes.studentAssigned")
+          : `${count} ${
+              assignmentType === "teacher"
+                ? t("classes.teachersAssigned")
+                : t("classes.studentsAssigned")
+            }`
       );
       setIsAssignDialogOpen(false);
       startTransition(() => {
@@ -236,7 +270,7 @@ export default function ClassesClient({
     if (!confirm(t("classes.removeUserConfirm"))) return;
 
     try {
-      await removeUserFromClassAction(assignmentId);
+      await removeUserFromClassAction(assignmentId, selectedClass?.id);
       toast.success(t("classes.userRemoved"));
       if (selectedClass) {
         const roster = await getClassAssignmentsData(selectedClass.id);
@@ -391,7 +425,11 @@ export default function ClassesClient({
               </TableHeader>
               <TableBody>
                 {filteredClasses.map((cls) => (
-                  <TableRow key={cls.id}>
+                  <TableRow
+                    key={cls.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => router.push(`/admin/classes/${cls.id}`)}
+                  >
                     <TableCell className="font-medium">{cls.name}</TableCell>
                     <TableCell>{getChurchName(cls.church_id)}</TableCell>
                     <TableCell>{cls.grade_level || "-"}</TableCell>
@@ -410,11 +448,14 @@ export default function ClassesClient({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
+                      <div className="flex justify-end gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleOpenRoster(cls)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenRoster(cls);
+                          }}
                           title={t("classes.viewRoster")}
                         >
                           <Users className="h-4 w-4" />
@@ -422,22 +463,44 @@ export default function ClassesClient({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleOpenAssignDialog(cls, "teacher")}
-                          title={t("classes.assignTeacher")}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenAssignDialog(cls, "student");
+                          }}
+                          title={t("classes.assignStudent")}
+                          className="text-blue-600 hover:text-blue-700"
                         >
                           <UserPlus className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleOpenDialog(cls)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenAssignDialog(cls, "teacher");
+                          }}
+                          title={t("classes.assignTeacher")}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          <UserIcon className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDialog(cls);
+                          }}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDelete(cls)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(cls);
+                          }}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -609,7 +672,7 @@ export default function ClassesClient({
 
       {/* Assign User Dialog */}
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh]">
           <DialogHeader>
             <DialogTitle>
               {assignmentType === "teacher"
@@ -626,26 +689,86 @@ export default function ClassesClient({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t("classes.selectUser")}</Label>
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      assignmentType === "teacher"
-                        ? t("classes.chooseTeacher")
-                        : t("classes.chooseStudent")
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUsers.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t("common.search") + " " + (assignmentType === "teacher" ? t("classes.byNameEmailPhone") : t("classes.byNameEmailPhone"))}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {/* User Cards */}
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+              {filteredUsers.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <UserIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>{searchQuery ? t("common.noResults") : t("classes.noUsersAvailable")}</p>
+                </div>
+              ) : (
+                filteredUsers.map((user) => (
+                  <Card
+                    key={user.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      selectedUserIds.includes(user.id)
+                        ? "ring-2 ring-primary bg-primary/5"
+                        : "hover:bg-muted/50"
+                    }`}
+                    onClick={() => toggleUserSelection(user.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={user.avatar_url || undefined} alt={user.full_name || user.email} />
+                          <AvatarFallback className="bg-primary/10">
+                            {(user.full_name || user.email)
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {user.full_name || user.username || t("common.unnamed")}
+                          </p>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            <span className="truncate">{user.email}</span>
+                          </div>
+                          {user.phone && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Phone className="h-3 w-3" />
+                              <span>{user.phone}</span>
+                            </div>
+                          )}
+                        </div>
+                        {selectedUserIds.includes(user.id) && (
+                          <div className="flex-shrink-0">
+                            <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                              <svg
+                                className="h-3 w-3 text-primary-foreground"
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 
@@ -659,9 +782,13 @@ export default function ClassesClient({
             </Button>
             <Button
               onClick={handleAssignUser}
-              disabled={isSubmitting || !selectedUserId}
+              disabled={isSubmitting || selectedUserIds.length === 0}
             >
-              {isSubmitting ? t("classes.assigning") : t("classes.assign")}
+              {isSubmitting
+                ? t("classes.assigning")
+                : selectedUserIds.length > 0
+                ? `${t("classes.assign")} (${selectedUserIds.length})`
+                : t("classes.assign")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -287,6 +287,84 @@ export interface UpdateStoreItemInput {
   is_available_to_all_classes?: boolean;
 }
 
+// =====================================================
+// STORE ORDERS
+// =====================================================
+
+export type OrderStatus = "pending" | "approved" | "fulfilled" | "cancelled" | "rejected";
+export type PriceTier = "normal" | "mastor" | "botl";
+
+export interface Order {
+  id: string;
+  user_id: string;
+  class_id: string | null;
+  status: OrderStatus;
+  total_points: number;
+  notes: string | null;
+  admin_notes: string | null;
+  processed_by: string | null;
+  processed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  store_item_id: string;
+  item_name: string;
+  item_description: string | null;
+  item_image_url: string | null;
+  quantity: number;
+  price_tier: PriceTier;
+  unit_price: number;
+  total_price: number;
+  created_at: string;
+}
+
+export interface CreateOrderItemInput {
+  store_item_id: string;
+  quantity: number;
+  price_tier: PriceTier;
+}
+
+export interface CreateOrderInput {
+  items: CreateOrderItemInput[];
+  notes?: string;
+  class_id?: string;
+}
+
+export interface UpdateOrderStatusInput {
+  order_id: string;
+  status: OrderStatus;
+  admin_notes?: string;
+}
+
+// Extended order types with joined data
+export interface OrderWithDetails extends Order {
+  user: {
+    id: string;
+    full_name: string | null;
+    email: string;
+    role: UserRole;
+  };
+  class: {
+    id: string;
+    name: string;
+  } | null;
+  items: OrderItem[];
+  processed_by_user: {
+    id: string;
+    full_name: string | null;
+  } | null;
+}
+
+export interface CartItem {
+  store_item: StoreItem;
+  quantity: number;
+  price_tier: PriceTier;
+}
+
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 export type TaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
 
@@ -365,36 +443,6 @@ export interface TripParticipant {
   notes: string | null;
 }
 
-export type OrderStatus =
-  | "pending"
-  | "approved"
-  | "declined"
-  | "paid"
-  | "delivered"
-  | "cancelled";
-export type PaymentStatus = "unpaid" | "partial" | "paid";
-
-export interface StoreOrder {
-  id: string;
-  user_id: string | null;
-  total_amount: number;
-  status: OrderStatus | null;
-  payment_status: PaymentStatus | null;
-  parent_approved: boolean | null;
-  notes: string | null;
-  created_at: string;
-  updated_at: string | null;
-}
-
-export interface StoreOrderItem {
-  id: string;
-  order_id: string | null;
-  item_id: string | null;
-  quantity: number;
-  unit_price: number;
-  subtotal: number;
-  created_at: string;
-}
 
 export type AttendanceStatus = "present" | "absent" | "excused" | "late";
 

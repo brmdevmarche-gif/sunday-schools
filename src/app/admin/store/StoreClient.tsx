@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Package, Search, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, Search, Eye, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import type { StoreItem } from "@/lib/types/sunday-school";
 import ImageUpload from "@/components/ImageUpload";
@@ -61,6 +63,8 @@ export default function StoreClient({
   classes,
   userRole,
 }: StoreClientProps) {
+  const router = useRouter();
+  const t = useTranslations();
   const [items, setItems] = useState<StoreItem[]>(initialItems);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -335,15 +339,24 @@ export default function StoreClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Store Management</h1>
+          <h1 className="text-3xl font-bold">{t("store.title")} {t("common.management")}</h1>
           <p className="text-muted-foreground mt-1">
-            Manage store items and pricing
+            {t("store.subtitle")}
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Item
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/store/orders")}
+          >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            {t("store.ordersManagement")}
+          </Button>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t("store.addItem")}
+          </Button>
+        </div>
       </div>
 
       {/* Search */}

@@ -153,6 +153,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           items.push({ name: "Store", href: "/admin/store", icon: "store" });
         }
 
+        // Activities Management - all admins and teachers
+        items.push({
+          name: t("activities.title"),
+          href: "/admin/activities",
+          icon: "trophy",
+        });
+
         setNavItems(items);
       } catch (error) {
         console.error("Error loading admin layout:", error);

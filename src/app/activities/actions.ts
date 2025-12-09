@@ -44,10 +44,7 @@ export async function getAvailableActivitiesAction() {
   // Get activities available to the user
   const { data: activities, error } = await adminClient
     .from('activities')
-    .select(`
-      *,
-      parent_activity:activities!parent_activity_id(id, name)
-    `)
+    .select('*')
     .eq('status', 'active')
     .or(`diocese_id.is.null,diocese_id.eq.${profile.diocese_id},church_id.eq.${profile.church_id}${classIds.length > 0 ? `,class_id.in.(${classIds.join(',')})` : ''}`)
     .order('created_at', { ascending: false })

@@ -38,7 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, UserPlus, X, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, UserPlus, X, Search, Eye } from "lucide-react";
 import type {
   UserWithClassAssignments,
   Diocese,
@@ -404,6 +404,14 @@ export default function StudentsClient({
                       <TableCell>{age ? `${age} yrs` : "-"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.push(`/admin/students/${student.id}`)}
+                            title="View details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                           {canEdit && (
                             <>
                               <Button

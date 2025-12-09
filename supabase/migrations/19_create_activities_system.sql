@@ -46,9 +46,16 @@ EXCEPTION
 END $$;
 
 -- =====================================================
+-- DROP EXISTING TABLES IF THEY EXIST (fresh start)
+-- =====================================================
+DROP TABLE IF EXISTS public.activity_completions CASCADE;
+DROP TABLE IF EXISTS public.activity_participants CASCADE;
+DROP TABLE IF EXISTS public.activities CASCADE;
+
+-- =====================================================
 -- ACTIVITIES TABLE
 -- =====================================================
-CREATE TABLE IF NOT EXISTS public.activities (
+CREATE TABLE public.activities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Basic information
@@ -97,7 +104,7 @@ CREATE TABLE IF NOT EXISTS public.activities (
 -- =====================================================
 -- ACTIVITY PARTICIPANTS TABLE
 -- =====================================================
-CREATE TABLE IF NOT EXISTS public.activity_participants (
+CREATE TABLE public.activity_participants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- References
@@ -123,7 +130,7 @@ CREATE TABLE IF NOT EXISTS public.activity_participants (
 -- =====================================================
 -- ACTIVITY COMPLETIONS TABLE
 -- =====================================================
-CREATE TABLE IF NOT EXISTS public.activity_completions (
+CREATE TABLE public.activity_completions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- References
@@ -164,23 +171,23 @@ CREATE TABLE IF NOT EXISTS public.activity_completions (
 -- =====================================================
 
 -- Activities indexes
-CREATE INDEX IF NOT EXISTS idx_activities_parent ON public.activities(parent_activity_id);
-CREATE INDEX IF NOT EXISTS idx_activities_diocese ON public.activities(diocese_id);
-CREATE INDEX IF NOT EXISTS idx_activities_church ON public.activities(church_id);
-CREATE INDEX IF NOT EXISTS idx_activities_class ON public.activities(class_id);
-CREATE INDEX IF NOT EXISTS idx_activities_status ON public.activities(status);
-CREATE INDEX IF NOT EXISTS idx_activities_created_at ON public.activities(created_at DESC);
+CREATE INDEX idx_activities_parent ON public.activities(parent_activity_id);
+CREATE INDEX idx_activities_diocese ON public.activities(diocese_id);
+CREATE INDEX idx_activities_church ON public.activities(church_id);
+CREATE INDEX idx_activities_class ON public.activities(class_id);
+CREATE INDEX idx_activities_status ON public.activities(status);
+CREATE INDEX idx_activities_created_at ON public.activities(created_at DESC);
 
 -- Participants indexes
-CREATE INDEX IF NOT EXISTS idx_participants_activity ON public.activity_participants(activity_id);
-CREATE INDEX IF NOT EXISTS idx_participants_user ON public.activity_participants(user_id);
-CREATE INDEX IF NOT EXISTS idx_participants_status ON public.activity_participants(status);
+CREATE INDEX idx_participants_activity ON public.activity_participants(activity_id);
+CREATE INDEX idx_participants_user ON public.activity_participants(user_id);
+CREATE INDEX idx_participants_status ON public.activity_participants(status);
 
 -- Completions indexes
-CREATE INDEX IF NOT EXISTS idx_completions_activity ON public.activity_completions(activity_id);
-CREATE INDEX IF NOT EXISTS idx_completions_user ON public.activity_completions(user_id);
-CREATE INDEX IF NOT EXISTS idx_completions_status ON public.activity_completions(status);
-CREATE INDEX IF NOT EXISTS idx_completions_revoked ON public.activity_completions(is_revoked);
+CREATE INDEX idx_completions_activity ON public.activity_completions(activity_id);
+CREATE INDEX idx_completions_user ON public.activity_completions(user_id);
+CREATE INDEX idx_completions_status ON public.activity_completions(status);
+CREATE INDEX idx_completions_revoked ON public.activity_completions(is_revoked);
 
 -- =====================================================
 -- ENABLE RLS

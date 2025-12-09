@@ -86,6 +86,32 @@ export async function updateActivityAction(input: UpdateActivityInput) {
 }
 
 /**
+ * Get activity by ID
+ */
+export async function getActivityByIdAction(activityId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const adminClient = createAdminClient()
+
+  const { data, error } = await adminClient
+    .from('activities')
+    .select('*')
+    .eq('id', activityId)
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to fetch activity: ${error.message}`)
+  }
+
+  return { success: true, data }
+}
+
+/**
  * Delete an activity
  */
 export async function deleteActivityAction(activityId: string) {
@@ -132,11 +158,7 @@ export async function getActivitiesAction(filters?: {
 
   let query = adminClient
     .from('activities')
-    .select(`
-      *,
-      parent_activity:activities!parent_activity_id(id, name),
-      sub_activities:activities!parent_activity_id(id, name, status)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
 
   // Apply filters

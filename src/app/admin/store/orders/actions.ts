@@ -211,20 +211,36 @@ export async function getAllOrdersAction(filters?: {
   // Apply filters based on user role
   if (profile.role === 'church_admin' && profile.church_id) {
     // Church admin can only see orders from their church
-    query = query.in('user_id',
-      adminClient
-        .from('users')
-        .select('id')
-        .eq('church_id', profile.church_id)
-    )
+    const { data: churchUsers } = await adminClient
+      .from('users')
+      .select('id')
+      .eq('church_id', profile.church_id)
+
+    const userIds = churchUsers?.map(u => u.id) || []
+    if (userIds.length === 0) {
+      // No users in this church, return empty result
+      return {
+        success: true,
+        data: []
+      }
+    }
+    query = query.in('user_id', userIds)
   } else if (profile.role === 'diocese_admin' && profile.diocese_id) {
     // Diocese admin can only see orders from their diocese
-    query = query.in('user_id',
-      adminClient
-        .from('users')
-        .select('id')
-        .eq('diocese_id', profile.diocese_id)
-    )
+    const { data: dioceseUsers } = await adminClient
+      .from('users')
+      .select('id')
+      .eq('diocese_id', profile.diocese_id)
+
+    const userIds = dioceseUsers?.map(u => u.id) || []
+    if (userIds.length === 0) {
+      // No users in this diocese, return empty result
+      return {
+        success: true,
+        data: []
+      }
+    }
+    query = query.in('user_id', userIds)
   }
 
   // Apply additional filters

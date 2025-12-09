@@ -288,13 +288,6 @@
     "assignedTo": "معين لـ",
     "selectUsersToAssign": "اختر المستخدمين لتعيينهم لـ {className}"
   },
-  "activities": {
-    "game": "لعبة",
-    "craft": "حرفة",
-    "worship": "عبادة",
-    "service": "خدمة",
-    "other": "أخرى"
-  },
   "settings": {
     "title": "الإعدادات",
     "subtitle": "إدارة تفضيلاتك وإعدادات النظام",
@@ -546,6 +539,13 @@
       "active": "نشط",
       "completed": "مكتمل",
       "cancelled": "ملغي"
+    },
+    "type": {
+      "game": "لعبة",
+      "craft": "حرفة",
+      "worship": "عبادة",
+      "service": "خدمة",
+      "other": "أخرى"
     },
     "points": "نقاط",
     "totalPoints": "إجمالي النقاط",

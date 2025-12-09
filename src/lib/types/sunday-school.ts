@@ -171,7 +171,7 @@ export interface Lesson {
 
 export type ActivityType = "game" | "craft" | "worship" | "service" | "other";
 
-export interface Activity {
+export interface ClassActivity {
   id: string;
   church_id: string | null;
   class_id: string | null;
@@ -545,7 +545,7 @@ export type RegistrationStatus =
   | "cancelled"
   | "confirmed";
 
-export interface ActivityParticipant {
+export interface ClassActivityParticipant {
   id: string;
   activity_id: string | null;
   user_id: string | null;
@@ -644,7 +644,7 @@ export interface CreateLessonInput {
   scripture_references?: string;
 }
 
-export interface CreateActivityInput {
+export interface CreateClassActivityInput {
   church_id: string;
   class_id?: string;
   title: string;

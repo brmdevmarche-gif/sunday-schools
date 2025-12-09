@@ -288,13 +288,6 @@
     "assignedTo": "Assigned to",
     "selectUsersToAssign": "Select users to assign to {className}"
   },
-  "activities": {
-    "game": "Game",
-    "craft": "Craft",
-    "worship": "Worship",
-    "service": "Service",
-    "other": "Other"
-  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your preferences and system settings",
@@ -546,6 +539,13 @@
       "active": "Active",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "type": {
+      "game": "Game",
+      "craft": "Craft",
+      "worship": "Worship",
+      "service": "Service",
+      "other": "Other"
     },
     "points": "points",
     "totalPoints": "Total Points",

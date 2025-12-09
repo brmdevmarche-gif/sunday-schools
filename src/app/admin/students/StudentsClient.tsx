@@ -80,11 +80,15 @@ export default function StudentsClient({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<UserWithClassAssignments | null>(null);
-  const [selectedStudent, setSelectedStudent] = useState<UserWithClassAssignments | null>(null);
+  const [editingStudent, setEditingStudent] =
+    useState<UserWithClassAssignments | null>(null);
+  const [selectedStudent, setSelectedStudent] =
+    useState<UserWithClassAssignments | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDioceseFilter, setSelectedDioceseFilter] = useState<string>("all");
-  const [selectedChurchFilter, setSelectedChurchFilter] = useState<string>("all");
+  const [selectedDioceseFilter, setSelectedDioceseFilter] =
+    useState<string>("all");
+  const [selectedChurchFilter, setSelectedChurchFilter] =
+    useState<string>("all");
 
   const [formData, setFormData] = useState<CreateStudentInput>({
     email: "",
@@ -172,7 +176,11 @@ export default function StudentsClient({
   }
 
   async function handleDelete(student: UserWithClassAssignments) {
-    if (!confirm(`Are you sure you want to delete ${student.full_name}? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${student.full_name}? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -213,8 +221,13 @@ export default function StudentsClient({
     }
   }
 
-  async function handleRemoveFromClass(student: UserWithClassAssignments, classId: string) {
-    if (!confirm("Are you sure you want to remove this student from the class?")) {
+  async function handleRemoveFromClass(
+    student: UserWithClassAssignments,
+    classId: string
+  ) {
+    if (
+      !confirm("Are you sure you want to remove this student from the class?")
+    ) {
       return;
     }
 
@@ -250,10 +263,12 @@ export default function StudentsClient({
       student.email.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesDiocese =
-      selectedDioceseFilter === "all" || student.diocese_id === selectedDioceseFilter;
+      selectedDioceseFilter === "all" ||
+      student.diocese_id === selectedDioceseFilter;
 
     const matchesChurch =
-      selectedChurchFilter === "all" || student.church_id === selectedChurchFilter;
+      selectedChurchFilter === "all" ||
+      student.church_id === selectedChurchFilter;
 
     return matchesSearch && matchesDiocese && matchesChurch;
   });
@@ -371,7 +386,8 @@ export default function StudentsClient({
               <TableBody>
                 {filteredStudents.map((student) => {
                   const age = student.date_of_birth
-                    ? new Date().getFullYear() - new Date(student.date_of_birth).getFullYear()
+                    ? new Date().getFullYear() -
+                      new Date(student.date_of_birth).getFullYear()
                     : null;
 
                   return (
@@ -380,24 +396,34 @@ export default function StudentsClient({
                         {student.full_name || "-"}
                       </TableCell>
                       <TableCell>{student.email}</TableCell>
-                      <TableCell>{getDioceseName(student.diocese_id)}</TableCell>
+                      <TableCell>
+                        {getDioceseName(student.diocese_id)}
+                      </TableCell>
                       <TableCell>{getChurchName(student.church_id)}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {student.classAssignments && student.classAssignments.length > 0 ? (
+                          {student.classAssignments &&
+                          student.classAssignments.length > 0 ? (
                             student.classAssignments.map((assignment) => (
                               <Badge
                                 key={assignment.class_id}
                                 variant="secondary"
                                 className="text-xs cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                                onClick={() => handleRemoveFromClass(student, assignment.class_id)}
+                                onClick={() =>
+                                  handleRemoveFromClass(
+                                    student,
+                                    assignment.class_id
+                                  )
+                                }
                               >
                                 {assignment.class_name}
                                 <X className="ml-1 h-3 w-3" />
                               </Badge>
                             ))
                           ) : (
-                            <span className="text-sm text-muted-foreground">No classes</span>
+                            <span className="text-sm text-muted-foreground">
+                              No classes
+                            </span>
                           )}
                         </div>
                       </TableCell>
@@ -407,7 +433,9 @@ export default function StudentsClient({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/admin/students/${student.id}`)}
+                            onClick={() =>
+                              router.push(`/admin/students/${student.id}`)
+                            }
                             title="View details"
                           >
                             <Eye className="h-4 w-4" />
@@ -571,7 +599,10 @@ export default function StudentsClient({
                     type="date"
                     value={formData.date_of_birth}
                     onChange={(e) =>
-                      setFormData({ ...formData, date_of_birth: e.target.value })
+                      setFormData({
+                        ...formData,
+                        date_of_birth: e.target.value,
+                      })
                     }
                     disabled={isSubmitting}
                   />
@@ -665,16 +696,18 @@ export default function StudentsClient({
                 </SelectTrigger>
                 <SelectContent>
                   {availableClasses.map((classItem) => {
-                    const alreadyAssigned = selectedStudent?.classAssignments?.some(
-                      (a) => a.class_id === classItem.id
-                    );
+                    const alreadyAssigned =
+                      selectedStudent?.classAssignments?.some(
+                        (a) => a.class_id === classItem.id
+                      );
                     return (
                       <SelectItem
                         key={classItem.id}
                         value={classItem.id}
                         disabled={alreadyAssigned}
                       >
-                        {classItem.name} {alreadyAssigned && "(Already assigned)"}
+                        {classItem.name}{" "}
+                        {alreadyAssigned && "(Already assigned)"}
                       </SelectItem>
                     );
                   })}
@@ -691,7 +724,10 @@ export default function StudentsClient({
             >
               Cancel
             </Button>
-            <Button onClick={handleAssignToClass} disabled={isSubmitting || !assignClass}>
+            <Button
+              onClick={handleAssignToClass}
+              disabled={isSubmitting || !assignClass}
+            >
               {isSubmitting ? "Assigning..." : "Assign"}
             </Button>
           </DialogFooter>

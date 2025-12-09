@@ -1,78 +1,81 @@
-'use server'
+"use server";
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface StudentDetails {
-  id: string
-  email: string
-  full_name: string | null
-  date_of_birth: string | null
-  gender: string | null
-  phone: string | null
-  address: string | null
-  avatar_url: string | null
-  diocese_id: string | null
-  church_id: string | null
-  created_at: string
-  diocese_name?: string | null
-  church_name?: string | null
+  id: string;
+  email: string;
+  full_name: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  phone: string | null;
+  address: string | null;
+  avatar_url: string | null;
+  diocese_id: string | null;
+  church_id: string | null;
+  created_at: string;
+  diocese_name?: string | null;
+  church_name?: string | null;
   class_assignments?: {
-    class_id: string
-    class_name: string
-  }[]
+    class_id: string;
+    class_name: string;
+  }[];
 }
 
 export interface ActivityParticipation {
-  id: string
-  activity_id: string
-  activity_name: string
-  activity_description: string | null
-  activity_image_url: string | null
-  points: number
-  status: string
-  requested_at: string
-  approved_at: string | null
-  completion_status: string | null
-  points_awarded: number | null
-  completed_at: string | null
-  is_revoked: boolean | null
+  id: string;
+  activity_id: string;
+  activity_name: string;
+  activity_description: string | null;
+  activity_image_url: string | null;
+  points: number;
+  status: string;
+  requested_at: string;
+  approved_at: string | null;
+  completion_status: string | null;
+  points_awarded: number | null;
+  completed_at: string | null;
+  is_revoked: boolean | null;
 }
 
 export interface AvailableActivity {
-  id: string
-  name: string
-  description: string | null
-  image_url: string | null
-  points: number
-  requires_participation_approval: boolean
-  requires_completion_approval: boolean
-  is_time_sensitive: boolean
-  deadline: string | null
-  max_participants: number | null
-  status: string
-  diocese_id: string | null
-  church_id: string | null
-  class_id: string | null
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  points: number;
+  requires_participation_approval: boolean;
+  requires_completion_approval: boolean;
+  is_time_sensitive: boolean;
+  deadline: string | null;
+  max_participants: number | null;
+  status: string;
+  diocese_id: string | null;
+  church_id: string | null;
+  class_id: string | null;
 }
 
 export interface PointsSummary {
-  total_points: number
-  pending_points: number
-  revoked_points: number
-  activities_completed: number
-  activities_pending: number
+  total_points: number;
+  pending_points: number;
+  revoked_points: number;
+  activities_completed: number;
+  activities_pending: number;
 }
 
 /**
  * Get student details with diocese, church, and class info
  */
-export async function getStudentDetailsAction(studentId: string): Promise<StudentDetails> {
-  const supabase = createAdminClient()
+export async function getStudentDetailsAction(
+  studentId: string
+): Promise<StudentDetails> {
+  const supabase = createAdminClient();
 
   // Get student info
   const { data: student, error } = await supabase
-    .from('users')
-    .select(`
+    .from("users")
+    .select(
+      `
       id,
       email,
       full_name,
@@ -86,25 +89,28 @@ export async function getStudentDetailsAction(studentId: string): Promise<Studen
       created_at,
       dioceses:diocese_id(name),
       churches:church_id(name)
-    `)
-    .eq('id', studentId)
-    .eq('role', 'student')
-    .single()
+    `
+    )
+    .eq("id", studentId)
+    .eq("role", "student")
+    .single();
 
   if (error || !student) {
-    throw new Error('Student not found')
+    throw new Error("Student not found");
   }
 
   // Get class assignments
   const { data: assignments } = await supabase
-    .from('class_assignments')
-    .select(`
+    .from("class_assignments")
+    .select(
+      `
       class_id,
       classes:classes(name)
-    `)
-    .eq('user_id', studentId)
-    .eq('assignment_type', 'student')
-    .eq('is_active', true)
+    `
+    )
+    .eq("user_id", studentId)
+    .eq("assignment_type", "student")
+    .eq("is_active", true);
 
   const dioceses = student.dioceses as unknown as { name: string } | null;
   const churches = student.churches as unknown as { name: string } | null;
@@ -113,45 +119,47 @@ export async function getStudentDetailsAction(studentId: string): Promise<Studen
     ...student,
     diocese_name: dioceses?.name ?? null,
     church_name: churches?.name ?? null,
-    class_assignments: assignments?.map(a => {
-      const classData = a.classes as unknown as { name: string } | null;
-      return {
-        class_id: a.class_id!,
-        class_name: classData?.name || 'Unknown',
-      };
-    }) || [],
-  }
+    class_assignments:
+      assignments?.map((a) => {
+        const classData = a.classes as unknown as { name: string } | null;
+        return {
+          class_id: a.class_id!,
+          class_name: classData?.name || "Unknown",
+        };
+      }) || [],
+  };
 }
 
 /**
  * Get student's activity participations and completions
  */
 export async function getStudentActivitiesAction(studentId: string): Promise<{
-  participated: ActivityParticipation[]
-  available: AvailableActivity[]
+  participated: ActivityParticipation[];
+  available: AvailableActivity[];
 }> {
-  const supabase = createAdminClient()
+  const supabase = createAdminClient();
 
   // Get student's diocese, church, and classes
   const { data: student } = await supabase
-    .from('users')
-    .select('diocese_id, church_id')
-    .eq('id', studentId)
-    .single()
+    .from("users")
+    .select("diocese_id, church_id")
+    .eq("id", studentId)
+    .single();
 
   const { data: classIds } = await supabase
-    .from('class_assignments')
-    .select('class_id')
-    .eq('user_id', studentId)
-    .eq('assignment_type', 'student')
-    .eq('is_active', true)
+    .from("class_assignments")
+    .select("class_id")
+    .eq("user_id", studentId)
+    .eq("assignment_type", "student")
+    .eq("is_active", true);
 
-  const studentClassIds = classIds?.map(c => c.class_id) || []
+  const studentClassIds = classIds?.map((c) => c.class_id) || [];
 
   // Get participated activities (with participation and completion data)
   const { data: participations } = await supabase
-    .from('activity_participants')
-    .select(`
+    .from("activity_participants")
+    .select(
+      `
       id,
       activity_id,
       status,
@@ -163,153 +171,171 @@ export async function getStudentActivitiesAction(studentId: string): Promise<{
         image_url,
         points
       )
-    `)
-    .eq('user_id', studentId)
-    .order('requested_at', { ascending: false })
+    `
+    )
+    .eq("user_id", studentId)
+    .order("requested_at", { ascending: false });
 
   // Get completions for these activities
-  const activityIds = participations?.map(p => p.activity_id) || []
-  const { data: completions } = activityIds.length > 0
-    ? await supabase
-        .from('activity_completions')
-        .select('activity_id, status, points_awarded, completed_at, is_revoked')
-        .eq('user_id', studentId)
-        .in('activity_id', activityIds)
-    : { data: [] }
+  const activityIds = participations?.map((p) => p.activity_id) || [];
+  const { data: completions } =
+    activityIds.length > 0
+      ? await supabase
+          .from("activity_completions")
+          .select(
+            "activity_id, status, points_awarded, completed_at, is_revoked"
+          )
+          .eq("user_id", studentId)
+          .in("activity_id", activityIds)
+      : { data: [] };
 
   const completionsMap = new Map(
-    completions?.map(c => [c.activity_id, c]) || []
-  )
+    completions?.map((c) => [c.activity_id, c]) || []
+  );
 
-  const participated: ActivityParticipation[] = participations?.map(p => {
-    const activityData = p.activities as unknown as { name: string; description: string | null; image_url: string | null; points: number } | null;
-    return {
-      id: p.id,
-      activity_id: p.activity_id,
-      activity_name: activityData?.name || 'Unknown Activity',
-      activity_description: activityData?.description || null,
-      activity_image_url: activityData?.image_url || null,
-      points: activityData?.points || 0,
-      status: p.status,
-      requested_at: p.requested_at,
-      approved_at: p.approved_at,
-      completion_status: completionsMap.get(p.activity_id)?.status || null,
-      points_awarded: completionsMap.get(p.activity_id)?.points_awarded || null,
-      completed_at: completionsMap.get(p.activity_id)?.completed_at || null,
-      is_revoked: completionsMap.get(p.activity_id)?.is_revoked || null,
-    };
-  }) || []
+  const participated: ActivityParticipation[] =
+    participations?.map((p) => {
+      const activityData = p.activities as unknown as {
+        name: string;
+        description: string | null;
+        image_url: string | null;
+        points: number;
+      } | null;
+      return {
+        id: p.id,
+        activity_id: p.activity_id,
+        activity_name: activityData?.name || "Unknown Activity",
+        activity_description: activityData?.description || null,
+        activity_image_url: activityData?.image_url || null,
+        points: activityData?.points || 0,
+        status: p.status,
+        requested_at: p.requested_at,
+        approved_at: p.approved_at,
+        completion_status: completionsMap.get(p.activity_id)?.status || null,
+        points_awarded:
+          completionsMap.get(p.activity_id)?.points_awarded || null,
+        completed_at: completionsMap.get(p.activity_id)?.completed_at || null,
+        is_revoked: completionsMap.get(p.activity_id)?.is_revoked || null,
+      };
+    }) || [];
 
   // Get available activities (matching student's scope)
-  const scopeFilters = []
-  
+  const scopeFilters = [];
+
   // Global activities (no scope restrictions)
   scopeFilters.push(
     supabase
-      .from('activities')
-      .select('*')
-      .eq('status', 'active')
-      .is('diocese_id', null)
-      .is('church_id', null)
-      .is('class_id', null)
-  )
+      .from("activities")
+      .select("*")
+      .eq("status", "active")
+      .is("diocese_id", null)
+      .is("church_id", null)
+      .is("class_id", null)
+  );
 
   // Diocese-level activities
   if (student?.diocese_id) {
     scopeFilters.push(
       supabase
-        .from('activities')
-        .select('*')
-        .eq('status', 'active')
-        .eq('diocese_id', student.diocese_id)
-        .is('church_id', null)
-        .is('class_id', null)
-    )
+        .from("activities")
+        .select("*")
+        .eq("status", "active")
+        .eq("diocese_id", student.diocese_id)
+        .is("church_id", null)
+        .is("class_id", null)
+    );
   }
 
   // Church-level activities
   if (student?.church_id) {
     scopeFilters.push(
       supabase
-        .from('activities')
-        .select('*')
-        .eq('status', 'active')
-        .eq('church_id', student.church_id)
-        .is('class_id', null)
-    )
+        .from("activities")
+        .select("*")
+        .eq("status", "active")
+        .eq("church_id", student.church_id)
+        .is("class_id", null)
+    );
   }
 
   // Class-level activities
   if (studentClassIds.length > 0) {
     scopeFilters.push(
       supabase
-        .from('activities')
-        .select('*')
-        .eq('status', 'active')
-        .in('class_id', studentClassIds)
-    )
+        .from("activities")
+        .select("*")
+        .eq("status", "active")
+        .in("class_id", studentClassIds)
+    );
   }
 
   // Execute all filters and combine results
-  const results = await Promise.all(scopeFilters.map(query => query))
+  const results = await Promise.all(scopeFilters.map((query) => query));
   const allAvailableActivities = results
-    .flatMap(r => r.data || [])
-    .filter((activity, index, self) => 
-      // Remove duplicates by id
-      index === self.findIndex(a => a.id === activity.id)
-    )
+    .flatMap((r) => r.data || [])
+    .filter(
+      (activity, index, self) =>
+        // Remove duplicates by id
+        index === self.findIndex((a) => a.id === activity.id)
+    );
 
   // Filter out activities the student already participated in
-  const participatedIds = new Set(participations?.map(p => p.activity_id) || [])
+  const participatedIds = new Set(
+    participations?.map((p) => p.activity_id) || []
+  );
   const available: AvailableActivity[] = allAvailableActivities
-    .filter(a => !participatedIds.has(a.id))
+    .filter((a) => !participatedIds.has(a.id))
     .sort((a, b) => {
       // Sort by deadline (soonest first), then by name
       if (a.deadline && b.deadline) {
-        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
       }
-      if (a.deadline) return -1
-      if (b.deadline) return 1
-      return (a.name || '').localeCompare(b.name || '')
-    })
+      if (a.deadline) return -1;
+      if (b.deadline) return 1;
+      return (a.name || "").localeCompare(b.name || "");
+    });
 
   return {
     participated,
     available,
-  }
+  };
 }
 
 /**
  * Get student's points summary
  */
-export async function getStudentPointsAction(studentId: string): Promise<PointsSummary> {
-  const supabase = createAdminClient()
+export async function getStudentPointsAction(
+  studentId: string
+): Promise<PointsSummary> {
+  const supabase = createAdminClient();
 
   // Get all completions
   const { data: completions } = await supabase
-    .from('activity_completions')
-    .select('status, points_awarded, is_revoked')
-    .eq('user_id', studentId)
+    .from("activity_completions")
+    .select("status, points_awarded, is_revoked")
+    .eq("user_id", studentId);
 
-  const total_points = completions
-    ?.filter(c => c.status === 'approved' && !c.is_revoked)
-    .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0
+  const total_points =
+    completions
+      ?.filter((c) => c.status === "approved" && !c.is_revoked)
+      .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0;
 
-  const pending_points = completions
-    ?.filter(c => c.status === 'pending')
-    .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0
+  const pending_points =
+    completions
+      ?.filter((c) => c.status === "pending")
+      .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0;
 
-  const revoked_points = completions
-    ?.filter(c => c.is_revoked)
-    .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0
+  const revoked_points =
+    completions
+      ?.filter((c) => c.is_revoked)
+      .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0;
 
-  const activities_completed = completions
-    ?.filter(c => c.status === 'approved' && !c.is_revoked)
-    .length || 0
+  const activities_completed =
+    completions?.filter((c) => c.status === "approved" && !c.is_revoked)
+      .length || 0;
 
-  const activities_pending = completions
-    ?.filter(c => c.status === 'pending')
-    .length || 0
+  const activities_pending =
+    completions?.filter((c) => c.status === "pending").length || 0;
 
   return {
     total_points,
@@ -317,5 +343,5 @@ export async function getStudentPointsAction(studentId: string): Promise<PointsS
     revoked_points,
     activities_completed,
     activities_pending,
-  }
+  };
 }

@@ -71,7 +71,13 @@ export default function StudentDetailsClient({
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+    const statusConfig: Record<
+      string,
+      {
+        variant: "default" | "secondary" | "destructive" | "outline";
+        label: string;
+      }
+    > = {
       pending: { variant: "outline", label: "Pending" },
       approved: { variant: "default", label: "Approved" },
       rejected: { variant: "destructive", label: "Rejected" },
@@ -79,10 +85,11 @@ export default function StudentDetailsClient({
       withdrawn: { variant: "secondary", label: "Withdrawn" },
     };
 
-    const config = statusConfig[status] || { variant: "outline" as const, label: status };
-    return (
-      <Badge variant={config.variant}>{config.label}</Badge>
-    );
+    const config = statusConfig[status] || {
+      variant: "outline" as const,
+      label: status,
+    };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const getCompletionBadge = (
@@ -99,7 +106,14 @@ export default function StudentDetailsClient({
     }
     if (!completionStatus) return null;
 
-    const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string; icon?: typeof Clock }> = {
+    const config: Record<
+      string,
+      {
+        variant: "default" | "secondary" | "destructive" | "outline";
+        label: string;
+        icon?: typeof Clock;
+      }
+    > = {
       pending: {
         variant: "outline",
         label: "Pending Review",
@@ -141,8 +155,7 @@ export default function StudentDetailsClient({
   };
 
   const age = student.date_of_birth
-    ? new Date().getFullYear() -
-      new Date(student.date_of_birth).getFullYear()
+    ? new Date().getFullYear() - new Date(student.date_of_birth).getFullYear()
     : null;
 
   return (
@@ -262,21 +275,22 @@ export default function StudentDetailsClient({
               </div>
             )}
 
-            {student.class_assignments && student.class_assignments.length > 0 && (
-              <div className="flex items-center gap-3 md:col-span-2">
-                <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Classes</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {student.class_assignments.map((assignment) => (
-                      <Badge key={assignment.class_id} variant="secondary">
-                        {assignment.class_name}
-                      </Badge>
-                    ))}
+            {student.class_assignments &&
+              student.class_assignments.length > 0 && (
+                <div className="flex items-center gap-3 md:col-span-2">
+                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Classes</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {student.class_assignments.map((assignment) => (
+                        <Badge key={assignment.class_id} variant="secondary">
+                          {assignment.class_name}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </CardContent>
       </Card>
@@ -353,7 +367,8 @@ export default function StudentDetailsClient({
         <CardHeader>
           <CardTitle>Activities</CardTitle>
           <CardDescription>
-            View activities this student has participated in and available activities
+            View activities this student has participated in and available
+            activities
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -419,8 +434,12 @@ export default function StudentDetailsClient({
                             activity.is_revoked
                           )}
                         </TableCell>
-                        <TableCell>{formatDate(activity.requested_at)}</TableCell>
-                        <TableCell>{formatDate(activity.completed_at)}</TableCell>
+                        <TableCell>
+                          {formatDate(activity.requested_at)}
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(activity.completed_at)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

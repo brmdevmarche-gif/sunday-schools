@@ -160,6 +160,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           icon: "trophy",
         });
 
+        // Trips Management - all admins and teachers
+        items.push({
+          name: "Trips",
+          href: "/admin/trips",
+          icon: "trip",
+        });
+
         setNavItems(items);
       } catch (error) {
         console.error("Error loading admin layout:", error);

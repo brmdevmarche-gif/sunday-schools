@@ -191,17 +191,28 @@ export interface ClassActivity {
   updated_at: string | null;
 }
 
+export type TripType = "event" | "funny" | "learning";
+export type TripStatus = "opened" | "coming_soon" | "started" | "history" | "cancelled";
+export type TripPaymentStatus = "pending" | "paid" | "refunded";
+export type TripApprovalStatus = "pending" | "approved" | "rejected";
+
 export interface Trip {
   id: string;
   church_id: string | null;
   title: string;
   description: string | null;
-  destination: string;
-  trip_date: string;
-  return_date: string | null;
-  departure_time: string | null;
-  return_time: string | null;
+  destination: string | null; // Kept for backward compatibility, but use destinations array instead
+  trip_date: string | null;
+  trip_time: string | null;
+  duration_hours: number | null;
+  time_to_go: string | null;
+  time_to_back: string | null;
+  return_date: string | null; // Kept for backward compatibility
+  departure_time: string | null; // Kept for backward compatibility, use time_to_go instead
+  return_time: string | null; // Kept for backward compatibility, use time_to_back instead
   meeting_point: string | null;
+  trip_type: TripType | null;
+  status: TripStatus;
   cost: number | null;
   max_participants: number | null;
   requires_parent_approval: boolean | null;
@@ -211,6 +222,46 @@ export interface Trip {
   created_by: string | null;
   created_at: string;
   updated_at: string | null;
+}
+
+export interface TripDestination {
+  id: string;
+  trip_id: string;
+  location_name: string;
+  location_address: string | null;
+  location_description: string | null;
+  visit_order: number;
+  created_at: string;
+}
+
+export interface TripParticipant {
+  id: string;
+  trip_id: string;
+  user_id: string;
+  parent_approval: boolean | null;
+  approval_status: TripApprovalStatus;
+  payment_status: TripPaymentStatus;
+  approved_at: string | null;
+  approved_by: string | null;
+  emergency_contact: string | null;
+  medical_info: string | null;
+  registered_at: string;
+}
+
+export interface TripParticipantWithUser extends TripParticipant {
+  user: {
+    id: string;
+    full_name: string | null;
+    email: string;
+    phone: string | null;
+  };
+}
+
+export interface TripWithDetails extends Trip {
+  destinations?: TripDestination[];
+  participants?: TripParticipantWithUser[];
+  participants_count?: number;
+  my_participation?: TripParticipant;
 }
 
 export type StudentCase = "normal" | "mastor" | "botl";
@@ -556,20 +607,7 @@ export interface ClassActivityParticipant {
   notes: string | null;
 }
 
-export interface TripParticipant {
-  id: string;
-  trip_id: string | null;
-  user_id: string | null;
-  registration_status: RegistrationStatus | null;
-  parent_approved: boolean | null;
-  payment_status: "unpaid" | "partial" | "paid" | null;
-  amount_paid: number | null;
-  registered_at: string;
-  medical_info: string | null;
-  emergency_contact: string | null;
-  attended: boolean | null;
-  notes: string | null;
-}
+// TripParticipant moved up with Trip interface above
 
 
 export type AttendanceStatus = "present" | "absent" | "excused" | "late";
@@ -663,16 +701,41 @@ export interface CreateTripInput {
   church_id: string;
   title: string;
   description?: string;
-  destination: string;
   trip_date: string;
-  return_date?: string;
-  departure_time?: string;
-  return_time?: string;
-  meeting_point?: string;
+  trip_time?: string;
+  duration_hours?: number;
+  time_to_go?: string;
+  time_to_back?: string;
+  trip_type: TripType;
+  status?: TripStatus;
   cost?: number;
   max_participants?: number;
+  requires_parent_approval?: boolean;
   transportation_details?: string;
   what_to_bring?: string;
+  is_published?: boolean;
+  destinations?: Array<{
+    location_name: string;
+    location_address?: string;
+    location_description?: string;
+    visit_order?: number;
+  }>;
+}
+
+export interface UpdateTripInput extends Partial<CreateTripInput> {
+  id: string;
+}
+
+export interface SubscribeToTripInput {
+  trip_id: string;
+  emergency_contact?: string;
+  medical_info?: string;
+}
+
+export interface UpdateTripParticipantInput {
+  participant_id: string;
+  approval_status?: TripApprovalStatus;
+  payment_status?: TripPaymentStatus;
 }
 
 // Attendance helper types

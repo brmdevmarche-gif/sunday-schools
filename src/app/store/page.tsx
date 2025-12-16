@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
+import { getMyCompletionsAction } from "../activities/actions";
+import { getWishlistAction } from "./wishlist-actions";
 import StoreClient from "./StoreClient";
 
 export default async function StorePage() {
@@ -72,12 +74,23 @@ export default async function StorePage() {
     return false;
   }) || [];
 
+  // Fetch user's points and wishlist
+  const [pointsResult, wishlistResult] = await Promise.all([
+    getMyCompletionsAction(),
+    getWishlistAction(),
+  ]);
+
+  const pointsData = pointsResult.data || { totalPoints: 0, pendingPoints: 0 };
+  const wishlistItemIds = wishlistResult.data || [];
+
   return (
     <div className="min-h-screen bg-background">
       <StoreClient
         items={availableItems}
         userProfile={profile}
         userClassIds={classIds}
+        pointsData={pointsData}
+        wishlistItemIds={wishlistItemIds}
       />
     </div>
   );

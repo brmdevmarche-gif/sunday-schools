@@ -33,10 +33,11 @@ export interface AssignToClassInput {
 }
 
 export async function createStudentAction(input: CreateStudentInput) {
-  const supabase = await createClient()
+  // Use admin client for admin operations
+  const adminClient = createAdminClient()
 
   // Create auth user
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email: input.email,
     password: input.password,
     email_confirm: true,
@@ -46,8 +47,11 @@ export async function createStudentAction(input: CreateStudentInput) {
     throw new Error(`Failed to create student account: ${authError.message}`)
   }
 
+  // Wait a moment for the trigger to create the profile
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+
   // Update user profile
-  const { error: updateError } = await supabase
+  const { error: updateError } = await adminClient
     .from('users')
     .update({
       full_name: input.full_name,

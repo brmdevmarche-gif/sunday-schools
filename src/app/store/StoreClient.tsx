@@ -18,9 +18,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ShoppingCart, Plus, Minus, Trash2, Package, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, Package, ArrowLeft, Heart, Trophy } from "lucide-react";
 import type { StoreItem, PriceTier } from "@/lib/types/sunday-school";
 import { createOrderAction } from "../admin/store/orders/actions";
+import { addToWishlistAction, removeFromWishlistAction } from "./wishlist-actions";
 
 interface CartItem {
   item: StoreItem;
@@ -32,15 +33,22 @@ interface StoreClientProps {
   items: StoreItem[];
   userProfile: any;
   userClassIds: string[];
+  pointsData: {
+    totalPoints: number;
+    pendingPoints: number;
+  };
+  wishlistItemIds: string[];
 }
 
-export default function StoreClient({ items, userProfile, userClassIds }: StoreClientProps) {
+export default function StoreClient({ items, userProfile, userClassIds, pointsData, wishlistItemIds }: StoreClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const [cart, setCart] = useState<Map<string, CartItem>>(new Map());
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set(wishlistItemIds));
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
 
   // Determine user's price tier based on their profile
   // This should ideally come from a user property, but for now we'll default to normal
@@ -141,6 +149,31 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
   const cartItems = Array.from(cart.values());
   const totalPoints = calculateTotal();
 
+  async function handleToggleWishlist(itemId: string) {
+    setIsWishlistLoading(true);
+    try {
+      const isInWishlist = wishlist.has(itemId);
+      if (isInWishlist) {
+        await removeFromWishlistAction(itemId);
+        setWishlist(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemId);
+          return newSet;
+        });
+        toast.success(t("store.removedFromWishlist") || "Removed from wishlist");
+      } else {
+        await addToWishlistAction(itemId);
+        setWishlist(prev => new Set(prev).add(itemId));
+        toast.success(t("store.addedToWishlist") || "Added to wishlist");
+      }
+    } catch (error: any) {
+      console.error("Error toggling wishlist:", error);
+      toast.error(error.message || t("store.wishlistError") || "Failed to update wishlist");
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  }
+
   return (
     <>
       {/* Header */}
@@ -157,8 +190,16 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => router.push("/store/orders")}>
-                {t("store.myOrders")}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // TODO: Navigate to wishlist page or show wishlist items
+                  toast.info(t("store.wishlistComingSoon") || "Wishlist feature coming soon");
+                }}
+                className="gap-2"
+              >
+                <Heart className="h-4 w-4" />
+                {t("store.wishlist") || "Wishlist"} ({wishlist.size})
               </Button>
               <Button
                 onClick={() => setIsCheckoutOpen(true)}
@@ -169,6 +210,21 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
                 {t("store.cart")} ({cart.size})
               </Button>
             </div>
+          </div>
+
+          {/* Points Stats */}
+          <div className="mt-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("activities.totalPoints") || "Total Points"}</p>
+                    <p className="text-3xl font-bold">{pointsData.totalPoints}</p>
+                  </div>
+                  <Trophy className="h-8 w-8 text-amber-500" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -190,18 +246,46 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
               const inCart = cart.has(item.id);
               const cartQuantity = cart.get(item.id)?.quantity || 0;
 
+              const isInWishlist = wishlist.has(item.id);
+
               return (
-                <Card key={item.id} className="flex flex-col">
+                <Card key={item.id} className="flex flex-col relative">
                   {item.image_url && (
-                    <div className="aspect-square overflow-hidden rounded-t-lg bg-muted">
+                    <div className="aspect-square overflow-hidden rounded-t-lg bg-muted relative">
                       <img
                         src={item.image_url}
                         alt={item.name}
                         className="h-full w-full object-cover"
                       />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+                        onClick={() => handleToggleWishlist(item.id)}
+                        disabled={isWishlistLoading}
+                      >
+                        <Heart
+                          className={`h-4 w-4 ${isInWishlist ? "fill-red-500 text-red-500" : ""}`}
+                        />
+                      </Button>
                     </div>
                   )}
-                  <CardHeader>
+                  <CardHeader className="relative">
+                    {!item.image_url && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="bg-background/80 hover:bg-background"
+                          onClick={() => handleToggleWishlist(item.id)}
+                          disabled={isWishlistLoading}
+                        >
+                          <Heart
+                            className={`h-4 w-4 ${isInWishlist ? "fill-red-500 text-red-500" : ""}`}
+                          />
+                        </Button>
+                      </div>
+                    )}
                     <CardTitle className="text-lg">{item.name}</CardTitle>
                     {item.description && (
                       <CardDescription className="line-clamp-2">

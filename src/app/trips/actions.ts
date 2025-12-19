@@ -18,13 +18,13 @@ export async function getAvailableTripsAction() {
 
   const adminClient = createAdminClient()
 
-  // Get published trips
+  // Get available trips
   const { data: trips, error } = await adminClient
     .from('trips')
     .select('*')
-    .eq('is_published', true)
-    .in('status', ['opened', 'coming_soon'])
-    .order('trip_date', { ascending: true, nullsLast: true })
+    .eq('available', true)
+    .in('status', ['active', 'started'])
+    .order('start_datetime', { ascending: true, nullsFirst: false })
 
   if (error) {
     throw new Error(`Failed to fetch trips: ${error.message}`)
@@ -59,10 +59,35 @@ export async function getAvailableTripsAction() {
       return acc
     }, {})
 
+    // Get churches and dioceses for trips
+    const { data: allChurches } = await adminClient
+      .from('trip_churches')
+      .select('*')
+      .in('trip_id', tripIds)
+
+    const { data: allDioceses } = await adminClient
+      .from('trip_dioceses')
+      .select('*')
+      .in('trip_id', tripIds)
+
+    const churchesByTrip = (allChurches || []).reduce((acc: Record<string, any[]>, church) => {
+      if (!acc[church.trip_id]) acc[church.trip_id] = []
+      acc[church.trip_id].push(church)
+      return acc
+    }, {})
+
+    const diocesesByTrip = (allDioceses || []).reduce((acc: Record<string, any[]>, diocese) => {
+      if (!acc[diocese.trip_id]) acc[diocese.trip_id] = []
+      acc[diocese.trip_id].push(diocese)
+      return acc
+    }, {})
+
     // Attach destinations and participation status to trips
     const tripsWithDetails: TripWithDetails[] = trips.map(trip => ({
       ...trip,
       destinations: destinationsByTrip[trip.id] || [],
+      churches: churchesByTrip[trip.id] || [],
+      dioceses: diocesesByTrip[trip.id] || [],
       my_participation: participationsByTrip[trip.id] || undefined,
     }))
 
@@ -111,11 +136,11 @@ export async function subscribeToTripAction(input: SubscribeToTripInput) {
   // Check if trip exists and is available
   const { data: trip } = await adminClient
     .from('trips')
-    .select('max_participants, is_published, status')
+    .select('max_participants, available, status')
     .eq('id', input.trip_id)
     .single()
 
-  if (!trip || !trip.is_published || !['opened', 'coming_soon'].includes(trip.status)) {
+  if (!trip || !trip.available || !['active', 'started'].includes(trip.status)) {
     throw new Error('This trip is not available for subscription')
   }
 
@@ -216,4 +241,5 @@ export async function getMyTripsAction() {
 
   return { success: true, data: [] }
 }
+
 

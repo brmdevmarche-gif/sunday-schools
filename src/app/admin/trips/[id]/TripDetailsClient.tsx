@@ -63,14 +63,9 @@ export default function TripDetailsClient({
   const [stats, setStats] = useState(initialStats);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
-  function formatDate(dateString: string | null) {
+  function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
-  }
-
-  function formatTime(timeString: string | null) {
-    if (!timeString) return "";
-    return timeString.split("T")[1]?.split(".")[0]?.substring(0, 5) || timeString.substring(0, 5);
+    return new Date(dateString).toLocaleString();
   }
 
   function getStatusColor(status: string) {
@@ -200,9 +195,14 @@ export default function TripDetailsClient({
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge className={`mt-1 ${getStatusColor(trip.status)}`}>
-                        {trip.status.replace("_", " ")}
-                      </Badge>
+                      <div className="flex gap-2 mt-1">
+                        <Badge className={getStatusColor(trip.status)}>
+                          {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+                        </Badge>
+                        {!trip.available && (
+                          <Badge variant="outline">Unavailable</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -214,48 +214,26 @@ export default function TripDetailsClient({
                   <CardTitle>Date & Time</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Trip Date
-                      </p>
-                      <p className="mt-1 font-medium">{formatDate(trip.trip_date)}</p>
-                    </div>
-                    {trip.trip_time && (
+                  <div className="space-y-4">
+                    {trip.start_datetime && (
+                      <div>
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Start Date & Time
+                        </p>
+                        <p className="mt-1 font-medium">{formatDateTime(trip.start_datetime)}</p>
+                      </div>
+                    )}
+                    {trip.end_datetime && (
                       <div>
                         <p className="text-sm text-muted-foreground flex items-center gap-2">
                           <Clock className="h-4 w-4" />
-                          Trip Time
+                          End Date & Time
                         </p>
-                        <p className="mt-1 font-medium">{formatTime(trip.trip_time)}</p>
+                        <p className="mt-1 font-medium">{formatDateTime(trip.end_datetime)}</p>
                       </div>
                     )}
                   </div>
-
-                  {(trip.time_to_go || trip.time_to_back) && (
-                    <div className="grid grid-cols-2 gap-4">
-                      {trip.time_to_go && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Time to Go</p>
-                          <p className="mt-1 font-medium">{formatTime(trip.time_to_go)}</p>
-                        </div>
-                      )}
-                      {trip.time_to_back && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Time to Back</p>
-                          <p className="mt-1 font-medium">{formatTime(trip.time_to_back)}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {trip.duration_hours && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Duration</p>
-                      <p className="mt-1 font-medium">{trip.duration_hours} hours</p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
@@ -276,12 +254,9 @@ export default function TripDetailsClient({
                             {index + 1}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium">{dest.location_name}</p>
-                            {dest.location_address && (
-                              <p className="text-sm text-muted-foreground mt-1">{dest.location_address}</p>
-                            )}
-                            {dest.location_description && (
-                              <p className="text-sm text-muted-foreground mt-2">{dest.location_description}</p>
+                            <p className="font-medium">{dest.destination_name}</p>
+                            {dest.description && (
+                              <p className="text-sm text-muted-foreground mt-2">{dest.description}</p>
                             )}
                           </div>
                         </div>
@@ -321,14 +296,24 @@ export default function TripDetailsClient({
                 <CardHeader>
                   <CardTitle>Statistics</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cost</p>
-                    <p className="mt-1 text-2xl font-bold flex items-center gap-2">
-                      <DollarSign className="h-5 w-5" />
-                      {trip.cost || "Free"}
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Pricing</p>
+                  <div className="mt-1 space-y-1">
+                    <p className="font-medium flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Normal: ${trip.price_normal}
+                    </p>
+                    <p className="font-medium flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Mastor: ${trip.price_mastor}
+                    </p>
+                    <p className="font-medium flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Botl: ${trip.price_botl}
                     </p>
                   </div>
+                </div>
                   {trip.max_participants && (
                     <div>
                       <p className="text-sm text-muted-foreground">Max Participants</p>

@@ -192,33 +192,28 @@ export interface ClassActivity {
 }
 
 export type TripType = "event" | "funny" | "learning";
-export type TripStatus = "opened" | "coming_soon" | "started" | "history" | "cancelled";
+export type TripStatus = "active" | "started" | "ended" | "canceled" | "soldout";
 export type TripPaymentStatus = "pending" | "paid" | "refunded";
 export type TripApprovalStatus = "pending" | "approved" | "rejected";
 
 export interface Trip {
   id: string;
-  church_id: string | null;
+  church_id: string | null; // Kept for backward compatibility, use trip_churches instead
   title: string;
   description: string | null;
   destination: string | null; // Kept for backward compatibility, but use destinations array instead
-  trip_date: string | null;
-  trip_time: string | null;
-  duration_hours: number | null;
-  time_to_go: string | null;
-  time_to_back: string | null;
-  return_date: string | null; // Kept for backward compatibility
-  departure_time: string | null; // Kept for backward compatibility, use time_to_go instead
-  return_time: string | null; // Kept for backward compatibility, use time_to_back instead
-  meeting_point: string | null;
+  start_datetime: string | null;
+  end_datetime: string | null;
   trip_type: TripType | null;
   status: TripStatus;
-  cost: number | null;
+  available: boolean;
+  price_normal: number;
+  price_mastor: number;
+  price_botl: number;
   max_participants: number | null;
   requires_parent_approval: boolean | null;
   transportation_details: string | null;
   what_to_bring: string | null;
-  is_published: boolean | null;
   created_by: string | null;
   created_at: string;
   updated_at: string | null;
@@ -227,10 +222,23 @@ export interface Trip {
 export interface TripDestination {
   id: string;
   trip_id: string;
-  location_name: string;
-  location_address: string | null;
-  location_description: string | null;
+  destination_name: string;
+  description: string | null;
   visit_order: number;
+  created_at: string;
+}
+
+export interface TripChurch {
+  id: string;
+  trip_id: string;
+  church_id: string;
+  created_at: string;
+}
+
+export interface TripDiocese {
+  id: string;
+  trip_id: string;
+  diocese_id: string;
   created_at: string;
 }
 
@@ -259,6 +267,8 @@ export interface TripParticipantWithUser extends TripParticipant {
 
 export interface TripWithDetails extends Trip {
   destinations?: TripDestination[];
+  churches?: TripChurch[];
+  dioceses?: TripDiocese[];
   participants?: TripParticipantWithUser[];
   participants_count?: number;
   my_participation?: TripParticipant;
@@ -698,32 +708,33 @@ export interface CreateClassActivityInput {
 }
 
 export interface CreateTripInput {
-  church_id: string;
   title: string;
   description?: string;
-  trip_date: string;
-  trip_time?: string;
-  duration_hours?: number;
-  time_to_go?: string;
-  time_to_back?: string;
+  start_datetime: string;
+  end_datetime: string;
   trip_type: TripType;
   status?: TripStatus;
-  cost?: number;
+  available?: boolean;
+  price_normal: number;
+  price_mastor: number;
+  price_botl: number;
   max_participants?: number;
   requires_parent_approval?: boolean;
   transportation_details?: string;
   what_to_bring?: string;
-  is_published?: boolean;
+  church_ids?: string[];
+  diocese_ids?: string[];
   destinations?: Array<{
-    location_name: string;
-    location_address?: string;
-    location_description?: string;
+    destination_name: string;
+    description?: string;
     visit_order?: number;
   }>;
 }
 
 export interface UpdateTripInput extends Partial<CreateTripInput> {
   id: string;
+  church_ids?: string[];
+  diocese_ids?: string[];
 }
 
 export interface SubscribeToTripInput {

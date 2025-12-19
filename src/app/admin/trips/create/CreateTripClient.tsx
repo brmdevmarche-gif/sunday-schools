@@ -23,50 +23,76 @@ import type { CreateTripInput, TripType, TripStatus, Church } from "@/lib/types/
 interface CreateTripClientProps {
   userProfile: any;
   churches: Church[];
+  dioceses: Array<{ id: string; name: string }>;
 }
 
 interface Destination {
-  location_name: string;
-  location_address: string;
-  location_description: string;
+  destination_name: string;
+  description: string;
   visit_order: number;
 }
 
-export default function CreateTripClient({ userProfile, churches }: CreateTripClientProps) {
+export default function CreateTripClient({ userProfile, churches, dioceses }: CreateTripClientProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [churchIds, setChurchIds] = useState<string[]>([]);
+  const [dioceseIds, setDioceseIds] = useState<string[]>([]);
+
+  // Filter churches based on selected dioceses
+  const filteredChurches = dioceseIds.length > 0
+    ? churches.filter(church => dioceseIds.includes(church.diocese_id || ""))
+    : churches;
 
   const [formData, setFormData] = useState<Partial<CreateTripInput>>({
-    church_id: userProfile.church_id || "",
     title: "",
     description: "",
-    trip_date: "",
-    trip_time: "",
-    duration_hours: undefined,
-    time_to_go: "",
-    time_to_back: "",
+    start_datetime: "",
+    end_datetime: "",
     trip_type: "event" as TripType,
-    status: "opened" as TripStatus,
-    cost: undefined,
+    status: "active" as TripStatus,
+    available: true,
+    price_normal: 0,
+    price_mastor: 0,
+    price_botl: 0,
     max_participants: undefined,
     requires_parent_approval: true,
     transportation_details: "",
     what_to_bring: "",
-    is_published: false,
   });
 
   function handleInputChange(field: string, value: any) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
+  function handleChurchChange(churchId: string, checked: boolean) {
+    if (checked) {
+      setChurchIds([...churchIds, churchId]);
+    } else {
+      setChurchIds(churchIds.filter(id => id !== churchId));
+    }
+  }
+
+  function handleDioceseChange(dioceseId: string, checked: boolean) {
+    if (checked) {
+      setDioceseIds([...dioceseIds, dioceseId]);
+      // Auto-remove churches that are not in the selected dioceses
+      const churchesInDiocese = churches.filter(c => c.diocese_id === dioceseId).map(c => c.id);
+      setChurchIds(prev => prev.filter(id => churchesInDiocese.includes(id) || churches.find(c => c.id === id && !dioceses.find(d => d.id === c.diocese_id))));
+    } else {
+      setDioceseIds(dioceseIds.filter(id => id !== dioceseId));
+      // Remove churches from deselected diocese
+      const churchesInDiocese = churches.filter(c => c.diocese_id === dioceseId).map(c => c.id);
+      setChurchIds(prev => prev.filter(id => !churchesInDiocese.includes(id)));
+    }
+  }
+
   function addDestination() {
     setDestinations([
       ...destinations,
       {
-        location_name: "",
-        location_address: "",
-        location_description: "",
+        destination_name: "",
+        description: "",
         visit_order: destinations.length + 1,
       },
     ]);
@@ -85,15 +111,15 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!formData.title || !formData.trip_date || !formData.church_id || !formData.trip_type) {
+    if (!formData.title || !formData.start_datetime || !formData.end_datetime || !formData.trip_type) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     // Validate destinations if any are added
     for (const dest of destinations) {
-      if (!dest.location_name.trim()) {
-        toast.error("All destinations must have a location name");
+      if (!dest.destination_name.trim()) {
+        toast.error("All destinations must have a destination name");
         return;
       }
     }
@@ -102,10 +128,11 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
     try {
       await createTripAction({
         ...formData,
+        church_ids: churchIds.length > 0 ? churchIds : undefined,
+        diocese_ids: dioceseIds.length > 0 ? dioceseIds : undefined,
         destinations: destinations.map((d) => ({
-          location_name: d.location_name,
-          location_address: d.location_address || undefined,
-          location_description: d.location_description || undefined,
+          destination_name: d.destination_name,
+          description: d.description || undefined,
           visit_order: d.visit_order,
         })),
       } as CreateTripInput);
@@ -143,26 +170,6 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
                 <CardTitle>Basic Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="church_id">Church *</Label>
-                  <Select
-                    value={formData.church_id}
-                    onValueChange={(value) => handleInputChange("church_id", value)}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a church" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {churches.map((church) => (
-                        <SelectItem key={church.id} value={church.id}>
-                          {church.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div>
                   <Label htmlFor="title">Title *</Label>
                   <Input
@@ -214,11 +221,11 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="opened">Opened</SelectItem>
-                        <SelectItem value="coming_soon">Coming Soon</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="started">Started</SelectItem>
-                        <SelectItem value="history">History</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="ended">Ended</SelectItem>
+                        <SelectItem value="canceled">Canceled</SelectItem>
+                        <SelectItem value="soldout">Sold Out</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -232,59 +239,25 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
                 <CardTitle>Date & Time</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="trip_date">Trip Date *</Label>
-                    <Input
-                      id="trip_date"
-                      type="date"
-                      value={formData.trip_date}
-                      onChange={(e) => handleInputChange("trip_date", e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="trip_time">Trip Time</Label>
-                    <Input
-                      id="trip_time"
-                      type="time"
-                      value={formData.trip_time}
-                      onChange={(e) => handleInputChange("trip_time", e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="time_to_go">Time to Go</Label>
-                    <Input
-                      id="time_to_go"
-                      type="time"
-                      value={formData.time_to_go}
-                      onChange={(e) => handleInputChange("time_to_go", e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="time_to_back">Time to Back</Label>
-                    <Input
-                      id="time_to_back"
-                      type="time"
-                      value={formData.time_to_back}
-                      onChange={(e) => handleInputChange("time_to_back", e.target.value)}
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="start_datetime">Start Date & Time *</Label>
+                  <Input
+                    id="start_datetime"
+                    type="datetime-local"
+                    value={formData.start_datetime}
+                    onChange={(e) => handleInputChange("start_datetime", e.target.value)}
+                    required
+                  />
                 </div>
 
                 <div>
-                  <Label htmlFor="duration_hours">Duration (hours)</Label>
+                  <Label htmlFor="end_datetime">End Date & Time *</Label>
                   <Input
-                    id="duration_hours"
-                    type="number"
-                    min="0"
-                    value={formData.duration_hours || ""}
-                    onChange={(e) => handleInputChange("duration_hours", e.target.value ? parseInt(e.target.value) : undefined)}
+                    id="end_datetime"
+                    type="datetime-local"
+                    value={formData.end_datetime}
+                    onChange={(e) => handleInputChange("end_datetime", e.target.value)}
+                    required
                   />
                 </div>
               </CardContent>
@@ -322,28 +295,20 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
                         </Button>
                       </div>
                       <div>
-                        <Label>Location Name *</Label>
+                        <Label>Destination Name *</Label>
                         <Input
-                          value={dest.location_name}
-                          onChange={(e) => updateDestination(index, "location_name", e.target.value)}
-                          placeholder="Enter location name"
+                          value={dest.destination_name}
+                          onChange={(e) => updateDestination(index, "destination_name", e.target.value)}
+                          placeholder="Enter destination name"
                           required
                         />
                       </div>
                       <div>
-                        <Label>Location Address</Label>
-                        <Input
-                          value={dest.location_address}
-                          onChange={(e) => updateDestination(index, "location_address", e.target.value)}
-                          placeholder="Enter location address"
-                        />
-                      </div>
-                      <div>
-                        <Label>Location Description</Label>
+                        <Label>Description</Label>
                         <Textarea
-                          value={dest.location_description}
-                          onChange={(e) => updateDestination(index, "location_description", e.target.value)}
-                          placeholder="Enter location description"
+                          value={dest.description}
+                          onChange={(e) => updateDestination(index, "description", e.target.value)}
+                          placeholder="Enter destination description"
                           rows={2}
                         />
                       </div>
@@ -392,16 +357,12 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
                 <CardTitle>Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="cost">Cost</Label>
-                  <Input
-                    id="cost"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.cost || ""}
-                    onChange={(e) => handleInputChange("cost", e.target.value ? parseFloat(e.target.value) : undefined)}
-                    placeholder="0.00"
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="available">Available</Label>
+                  <Switch
+                    id="available"
+                    checked={formData.available ?? true}
+                    onCheckedChange={(checked) => handleInputChange("available", checked)}
                   />
                 </div>
 
@@ -424,17 +385,111 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
                     onCheckedChange={(checked) => handleInputChange("requires_parent_approval", checked)}
                   />
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="is_published">Published</Label>
-                  <Switch
-                    id="is_published"
-                    checked={formData.is_published || false}
-                    onCheckedChange={(checked) => handleInputChange("is_published", checked)}
+            {/* Pricing */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Pricing</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="price_normal">Normal Price *</Label>
+                  <Input
+                    id="price_normal"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.price_normal || 0}
+                    onChange={(e) => handleInputChange("price_normal", parseFloat(e.target.value) || 0)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="price_mastor">Mastor Price *</Label>
+                  <Input
+                    id="price_mastor"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.price_mastor || 0}
+                    onChange={(e) => handleInputChange("price_mastor", parseFloat(e.target.value) || 0)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="price_botl">Botl Price *</Label>
+                  <Input
+                    id="price_botl"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.price_botl || 0}
+                    onChange={(e) => handleInputChange("price_botl", parseFloat(e.target.value) || 0)}
+                    required
                   />
                 </div>
               </CardContent>
             </Card>
+
+            {/* Church & Diocese Selection */}
+            {(userProfile.role === "super_admin" || userProfile.role === "diocese_admin") && (
+              <>
+                {/* Diocese Selection */}
+                {userProfile.role === "super_admin" && dioceses.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Available in Dioceses</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="border rounded p-2 max-h-40 overflow-y-auto">
+                        {dioceses.map((diocese) => (
+                          <label key={diocese.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={dioceseIds.includes(diocese.id)}
+                              onChange={(e) => handleDioceseChange(diocese.id, e.target.checked)}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-sm">{diocese.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Church Selection */}
+                {churches.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Available in Churches</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="border rounded p-2 max-h-40 overflow-y-auto">
+                        {filteredChurches.map((church) => (
+                          <label key={church.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={churchIds.includes(church.id)}
+                              onChange={(e) => handleChurchChange(church.id, e.target.checked)}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-sm">
+                              {church.name}
+                              {church.diocese_id && ` - ${dioceses.find(d => d.id === church.diocese_id)?.name || ''}`}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
 
             {/* Submit */}
             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -447,4 +502,3 @@ export default function CreateTripClient({ userProfile, churches }: CreateTripCl
     </div>
   );
 }
-

@@ -94,14 +94,9 @@ export default function TripsClient({
     }
   }
 
-  function formatDate(dateString: string | null) {
+  function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
-  }
-
-  function formatTime(timeString: string | null) {
-    if (!timeString) return "";
-    return timeString.split("T")[1]?.split(".")[0]?.substring(0, 5) || timeString.substring(0, 5);
+    return new Date(dateString).toLocaleString();
   }
 
   function handleSubscribeClick(trip: TripWithDetails) {
@@ -244,7 +239,7 @@ export default function TripsClient({
                         <div className="pl-6 space-y-1">
                           {trip.destinations.slice(0, 2).map((dest, idx) => (
                             <p key={dest.id} className="text-xs text-muted-foreground">
-                              {idx + 1}. {dest.location_name}
+                              {idx + 1}. {dest.destination_name}
                             </p>
                           ))}
                           {trip.destinations.length > 2 && (
@@ -256,45 +251,37 @@ export default function TripsClient({
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {trip.trip_date && (
+                    <div className="space-y-2 text-sm">
+                      {trip.start_datetime && (
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-blue-500" />
                           <span className="text-muted-foreground">
-                            {formatDate(trip.trip_date)}
+                            Start: {formatDateTime(trip.start_datetime)}
                           </span>
                         </div>
                       )}
-                      {trip.time_to_go && (
+                      {trip.end_datetime && (
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-green-500" />
                           <span className="text-muted-foreground">
-                            {formatTime(trip.time_to_go)}
-                          </span>
-                        </div>
-                      )}
-                      {trip.duration_hours && (
-                        <div className="flex items-center gap-2 col-span-2">
-                          <Clock className="h-4 w-4 text-purple-500" />
-                          <span className="text-muted-foreground">
-                            Duration: {trip.duration_hours} hours
+                            End: {formatDateTime(trip.end_datetime)}
                           </span>
                         </div>
                       )}
                       {trip.max_participants && (
-                        <div className="flex items-center gap-2 col-span-2">
+                        <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-orange-500" />
                           <span className="text-muted-foreground">
                             Max: {trip.max_participants} participants
                           </span>
                         </div>
                       )}
-                      {trip.cost !== null && trip.cost !== undefined && (
-                        <div className="flex items-center gap-2 col-span-2">
-                          <DollarSign className="h-4 w-4" />
-                          <span className="font-medium">Cost: ${trip.cost}</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="font-medium">
+                          Price: ${trip.price_normal} (normal), ${trip.price_mastor} (mastor), ${trip.price_botl} (botl)
+                        </span>
+                      </div>
                     </div>
 
                     {isSubscribed ? (
@@ -349,9 +336,9 @@ export default function TripsClient({
             {selectedTrip && (
               <div className="p-3 bg-muted rounded-lg">
                 <p className="font-medium">{selectedTrip.title}</p>
-                {selectedTrip.trip_date && (
+                {selectedTrip.start_datetime && (
                   <p className="text-sm text-muted-foreground">
-                    {formatDate(selectedTrip.trip_date)}
+                    {formatDateTime(selectedTrip.start_datetime)}
                   </p>
                 )}
               </div>
@@ -399,4 +386,5 @@ export default function TripsClient({
     </>
   );
 }
+
 

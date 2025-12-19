@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
-import { getTripByIdAction, getChurchesForTrips } from "../actions";
+import { getTripByIdAction, getChurchesForTrips, getDiocesesForTrips } from "../../actions";
 import EditTripClient from "../EditTripClient";
 
 export default async function EditTripPage({
@@ -29,8 +29,11 @@ export default async function EditTripPage({
     notFound();
   }
 
-  const churches = await getChurchesForTrips();
+  const [churches, dioceses] = await Promise.all([
+    getChurchesForTrips(),
+    getDiocesesForTrips(),
+  ]);
 
-  return <EditTripClient trip={result.data} userProfile={profile} churches={churches} />;
+  return <EditTripClient trip={result.data} userProfile={profile} churches={churches} dioceses={dioceses} />;
 }
 

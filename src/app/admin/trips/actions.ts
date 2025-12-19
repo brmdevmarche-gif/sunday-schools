@@ -39,8 +39,8 @@ export async function createTripAction(input: CreateTripInput) {
 
   const adminClient = createAdminClient()
 
-  // Extract destinations from input
-  const { destinations, ...tripData } = input
+  // Extract associations from input
+  const { destinations, church_ids, diocese_ids, ...tripData } = input
 
   // Create the trip
   const { data: trip, error: tripError } = await adminClient
@@ -60,9 +60,8 @@ export async function createTripAction(input: CreateTripInput) {
   if (destinations && destinations.length > 0) {
     const destinationsToInsert = destinations.map((dest, index) => ({
       trip_id: trip.id,
-      location_name: dest.location_name,
-      location_address: dest.location_address || null,
-      location_description: dest.location_description || null,
+      destination_name: dest.destination_name,
+      description: dest.description || null,
       visit_order: dest.visit_order || index + 1,
     }))
 
@@ -72,7 +71,38 @@ export async function createTripAction(input: CreateTripInput) {
 
     if (destError) {
       console.error('Failed to create destinations:', destError)
-      // Don't throw, trip is already created
+    }
+  }
+
+  // Create church associations if provided
+  if (church_ids && church_ids.length > 0) {
+    const churchAssociations = church_ids.map(churchId => ({
+      trip_id: trip.id,
+      church_id: churchId,
+    }))
+
+    const { error: churchError } = await adminClient
+      .from('trip_churches')
+      .insert(churchAssociations)
+
+    if (churchError) {
+      console.error('Failed to create church associations:', churchError)
+    }
+  }
+
+  // Create diocese associations if provided
+  if (diocese_ids && diocese_ids.length > 0) {
+    const dioceseAssociations = diocese_ids.map(dioceseId => ({
+      trip_id: trip.id,
+      diocese_id: dioceseId,
+    }))
+
+    const { error: dioceseError } = await adminClient
+      .from('trip_dioceses')
+      .insert(dioceseAssociations)
+
+    if (dioceseError) {
+      console.error('Failed to create diocese associations:', dioceseError)
     }
   }
 
@@ -93,7 +123,7 @@ export async function updateTripAction(input: UpdateTripInput) {
 
   const adminClient = createAdminClient()
 
-  const { id, destinations, ...updateData } = input
+  const { id, destinations, church_ids, diocese_ids, ...updateData } = input
 
   // Update the trip
   const { data: trip, error: tripError } = await adminClient
@@ -119,9 +149,8 @@ export async function updateTripAction(input: UpdateTripInput) {
     if (destinations.length > 0) {
       const destinationsToInsert = destinations.map((dest, index) => ({
         trip_id: id,
-        location_name: dest.location_name,
-        location_address: dest.location_address || null,
-        location_description: dest.location_description || null,
+        destination_name: dest.destination_name,
+        description: dest.description || null,
         visit_order: dest.visit_order || index + 1,
       }))
 
@@ -131,6 +160,56 @@ export async function updateTripAction(input: UpdateTripInput) {
 
       if (destError) {
         console.error('Failed to update destinations:', destError)
+      }
+    }
+  }
+
+  // Update church associations if provided
+  if (church_ids !== undefined) {
+    // Delete existing associations
+    await adminClient
+      .from('trip_churches')
+      .delete()
+      .eq('trip_id', id)
+
+    // Insert new associations
+    if (church_ids.length > 0) {
+      const churchAssociations = church_ids.map(churchId => ({
+        trip_id: id,
+        church_id: churchId,
+      }))
+
+      const { error: churchError } = await adminClient
+        .from('trip_churches')
+        .insert(churchAssociations)
+
+      if (churchError) {
+        console.error('Failed to update church associations:', churchError)
+      }
+    }
+  }
+
+  // Update diocese associations if provided
+  if (diocese_ids !== undefined) {
+    // Delete existing associations
+    await adminClient
+      .from('trip_dioceses')
+      .delete()
+      .eq('trip_id', id)
+
+    // Insert new associations
+    if (diocese_ids.length > 0) {
+      const dioceseAssociations = diocese_ids.map(dioceseId => ({
+        trip_id: id,
+        diocese_id: dioceseId,
+      }))
+
+      const { error: dioceseError } = await adminClient
+        .from('trip_dioceses')
+        .insert(dioceseAssociations)
+
+      if (dioceseError) {
+        console.error('Failed to update diocese associations:', dioceseError)
       }
     }
   }
@@ -171,7 +250,27 @@ export async function getTripByIdAction(tripId: string) {
     .eq('trip_id', tripId)
     .order('visit_order', { ascending: true })
 
-  return { success: true, data: { ...trip, destinations: destinations || [] } }
+  // Get church associations
+  const { data: churches } = await adminClient
+    .from('trip_churches')
+    .select('*')
+    .eq('trip_id', tripId)
+
+  // Get diocese associations
+  const { data: dioceses } = await adminClient
+    .from('trip_dioceses')
+    .select('*')
+    .eq('trip_id', tripId)
+
+  return { 
+    success: true, 
+    data: { 
+      ...trip, 
+      destinations: destinations || [],
+      churches: churches || [],
+      dioceses: dioceses || [],
+    } 
+  }
 }
 
 /**
@@ -221,7 +320,7 @@ export async function getTripsAction(filters?: {
   let query = adminClient
     .from('trips')
     .select('*')
-    .order('trip_date', { ascending: false, nullsLast: true })
+    .order('start_datetime', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
   // Apply filters
@@ -245,31 +344,48 @@ export async function getTripsAction(filters?: {
     throw new Error(`Failed to fetch trips: ${error.message}`)
   }
 
-  // Get destinations for all trips
+  // Get destinations, churches, and dioceses for all trips
   if (data && data.length > 0) {
     const tripIds = data.map(t => t.id)
-    const { data: destinations } = await adminClient
-      .from('trip_destinations')
-      .select('*')
-      .in('trip_id', tripIds)
-      .order('visit_order', { ascending: true })
+    
+    const [destinationsResult, churchesResult, diocesesResult] = await Promise.all([
+      adminClient.from('trip_destinations').select('*').in('trip_id', tripIds).order('visit_order', { ascending: true }),
+      adminClient.from('trip_churches').select('*').in('trip_id', tripIds),
+      adminClient.from('trip_dioceses').select('*').in('trip_id', tripIds),
+    ])
 
-    // Group destinations by trip_id
-    const destinationsByTrip = (destinations || []).reduce((acc: Record<string, any[]>, dest) => {
-      if (!acc[dest.trip_id]) {
-        acc[dest.trip_id] = []
-      }
+    const destinations = destinationsResult.data || []
+    const churches = churchesResult.data || []
+    const dioceses = diocesesResult.data || []
+
+    // Group by trip_id
+    const destinationsByTrip = destinations.reduce((acc: Record<string, any[]>, dest) => {
+      if (!acc[dest.trip_id]) acc[dest.trip_id] = []
       acc[dest.trip_id].push(dest)
       return acc
     }, {})
 
-    // Attach destinations to trips
-    const tripsWithDestinations = data.map(trip => ({
+    const churchesByTrip = churches.reduce((acc: Record<string, any[]>, church) => {
+      if (!acc[church.trip_id]) acc[church.trip_id] = []
+      acc[church.trip_id].push(church)
+      return acc
+    }, {})
+
+    const diocesesByTrip = dioceses.reduce((acc: Record<string, any[]>, diocese) => {
+      if (!acc[diocese.trip_id]) acc[diocese.trip_id] = []
+      acc[diocese.trip_id].push(diocese)
+      return acc
+    }, {})
+
+    // Attach to trips
+    const tripsWithDetails = data.map(trip => ({
       ...trip,
-      destinations: destinationsByTrip[trip.id] || []
+      destinations: destinationsByTrip[trip.id] || [],
+      churches: churchesByTrip[trip.id] || [],
+      dioceses: diocesesByTrip[trip.id] || [],
     }))
 
-    return { success: true, data: tripsWithDestinations }
+    return { success: true, data: tripsWithDetails }
   }
 
   return { success: true, data: data || [] }
@@ -361,12 +477,16 @@ export async function getTripDetailsAction(tripId: string) {
     throw new Error(`Failed to fetch trip: ${tripError.message}`)
   }
 
-  // Get destinations
-  const { data: destinations } = await adminClient
-    .from('trip_destinations')
-    .select('*')
-    .eq('trip_id', tripId)
-    .order('visit_order', { ascending: true })
+  // Get destinations, churches, and dioceses
+  const [destinationsResult, churchesResult, diocesesResult] = await Promise.all([
+    adminClient.from('trip_destinations').select('*').eq('trip_id', tripId).order('visit_order', { ascending: true }),
+    adminClient.from('trip_churches').select('*').eq('trip_id', tripId),
+    adminClient.from('trip_dioceses').select('*').eq('trip_id', tripId),
+  ])
+
+  const destinations = destinationsResult.data || []
+  const churches = churchesResult.data || []
+  const dioceses = diocesesResult.data || []
 
   // Get participants count by status
   const { data: participants } = await adminClient
@@ -387,7 +507,9 @@ export async function getTripDetailsAction(tripId: string) {
     success: true,
     data: {
       trip,
-      destinations: destinations || [],
+      destinations,
+      churches,
+      dioceses,
       participantsStats,
     }
   }
@@ -406,6 +528,25 @@ export async function getChurchesForTrips() {
 
   if (error) {
     console.error('Error fetching churches:', error)
+    return []
+  }
+
+  return data || []
+}
+
+/**
+ * Get dioceses for dropdown (used in create/edit forms)
+ */
+export async function getDiocesesForTrips() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('dioceses')
+    .select('*')
+    .order('name', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching dioceses:', error)
     return []
   }
 

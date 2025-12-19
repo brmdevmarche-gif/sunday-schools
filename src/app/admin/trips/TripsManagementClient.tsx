@@ -83,16 +83,16 @@ export default function TripsManagementClient({
 
   function getStatusColor(status: TripStatus) {
     switch (status) {
-      case "opened":
+      case "active":
         return "bg-green-500/10 text-green-700 dark:text-green-400";
-      case "coming_soon":
-        return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
       case "started":
-        return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
-      case "history":
+        return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+      case "ended":
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
-      case "cancelled":
+      case "canceled":
         return "bg-red-500/10 text-red-700 dark:text-red-400";
+      case "soldout":
+        return "bg-orange-500/10 text-orange-700 dark:text-orange-400";
       default:
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
@@ -126,15 +126,10 @@ export default function TripsManagementClient({
     }
   }
 
-  function formatDate(dateString: string | null) {
+  function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
-  }
-
-  function formatTime(timeString: string | null) {
-    if (!timeString) return "";
-    // Handle both TIME and TIMESTAMP formats
-    return timeString.split("T")[1]?.split(".")[0]?.substring(0, 5) || timeString.substring(0, 5);
+    const date = new Date(dateString);
+    return date.toLocaleString();
   }
 
   return (
@@ -173,11 +168,11 @@ export default function TripsManagementClient({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="opened">Opened</SelectItem>
-            <SelectItem value="coming_soon">Coming Soon</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
             <SelectItem value="started">Started</SelectItem>
-            <SelectItem value="history">History</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="ended">Ended</SelectItem>
+            <SelectItem value="canceled">Canceled</SelectItem>
+            <SelectItem value="soldout">Sold Out</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -219,12 +214,15 @@ export default function TripsManagementClient({
                     </CardTitle>
                     <div className="flex gap-2 mt-2 flex-wrap">
                       <Badge className={getStatusColor(trip.status)}>
-                        {trip.status.replace("_", " ")}
+                        {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
                       </Badge>
                       {trip.trip_type && (
                         <Badge className={getTypeColor(trip.trip_type)}>
                           {trip.trip_type}
                         </Badge>
+                      )}
+                      {!trip.available && (
+                        <Badge variant="outline">Unavailable</Badge>
                       )}
                     </div>
                   </div>
@@ -261,62 +259,54 @@ export default function TripsManagementClient({
                   </p>
                 )}
 
-                {/* Destinations */}
-                {trip.destinations && trip.destinations.length > 0 && (
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Destinations:</span>
-                    </div>
-                    <div className="pl-6 space-y-1">
-                      {trip.destinations.map((dest, idx) => (
-                        <p key={dest.id} className="text-xs text-muted-foreground">
-                          {idx + 1}. {dest.location_name}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    {/* Destinations */}
+                    {trip.destinations && trip.destinations.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Destinations:</span>
+                        </div>
+                        <div className="pl-6 space-y-1">
+                          {trip.destinations.map((dest, idx) => (
+                            <p key={dest.id} className="text-xs text-muted-foreground">
+                              {idx + 1}. {dest.destination_name}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {trip.trip_date && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-blue-500" />
-                      <span className="text-muted-foreground">
-                        {formatDate(trip.trip_date)}
-                      </span>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {trip.start_datetime && (
+                        <div className="flex items-center gap-2 col-span-2">
+                          <Calendar className="h-4 w-4 text-blue-500" />
+                          <span className="text-muted-foreground">
+                            Start: {formatDateTime(trip.start_datetime)}
+                          </span>
+                        </div>
+                      )}
+                      {trip.end_datetime && (
+                        <div className="flex items-center gap-2 col-span-2">
+                          <Clock className="h-4 w-4 text-green-500" />
+                          <span className="text-muted-foreground">
+                            End: {formatDateTime(trip.end_datetime)}
+                          </span>
+                        </div>
+                      )}
+                      {trip.max_participants && (
+                        <div className="flex items-center gap-2 col-span-2">
+                          <Users className="h-4 w-4 text-orange-500" />
+                          <span className="text-muted-foreground">
+                            Max: {trip.max_participants} participants
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 col-span-2">
+                        <span className="font-medium">
+                          Price: ${trip.price_normal} (normal), ${trip.price_mastor} (mastor), ${trip.price_botl} (botl)
+                        </span>
+                      </div>
                     </div>
-                  )}
-                  {trip.time_to_go && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-green-500" />
-                      <span className="text-muted-foreground">
-                        {formatTime(trip.time_to_go)}
-                      </span>
-                    </div>
-                  )}
-                  {trip.duration_hours && (
-                    <div className="flex items-center gap-2 col-span-2">
-                      <Clock className="h-4 w-4 text-purple-500" />
-                      <span className="text-muted-foreground">
-                        Duration: {trip.duration_hours} hours
-                      </span>
-                    </div>
-                  )}
-                  {trip.max_participants && (
-                    <div className="flex items-center gap-2 col-span-2">
-                      <Users className="h-4 w-4 text-orange-500" />
-                      <span className="text-muted-foreground">
-                        Max: {trip.max_participants} participants
-                      </span>
-                    </div>
-                  )}
-                  {trip.cost !== null && trip.cost !== undefined && (
-                    <div className="flex items-center gap-2 col-span-2">
-                      <span className="font-medium">Cost: ${trip.cost}</span>
-                    </div>
-                  )}
-                </div>
 
                 <Button
                   variant="outline"

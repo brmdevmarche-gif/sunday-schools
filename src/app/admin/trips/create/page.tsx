@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
-import { getChurchesForTrips } from "../actions";
+import { getChurchesForTrips, getDiocesesForTrips } from "../actions";
 import CreateTripClient from "./CreateTripClient";
 
 export default async function CreateTripPage() {
@@ -16,8 +16,12 @@ export default async function CreateTripPage() {
     redirect("/admin/dashboard");
   }
 
-  const churches = await getChurchesForTrips();
+  const [churches, dioceses] = await Promise.all([
+    getChurchesForTrips(),
+    getDiocesesForTrips(),
+  ]);
 
-  return <CreateTripClient userProfile={profile} churches={churches} />;
+  return <CreateTripClient userProfile={profile} churches={churches} dioceses={dioceses} />;
 }
+
 

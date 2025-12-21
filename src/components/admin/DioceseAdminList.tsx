@@ -59,14 +59,15 @@ export function DioceseAdminList({
       const response = await fetch(`/api/admin/dioceses/${dioceseId}/admins`);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch admins");
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Failed to fetch admins (${response.status})`);
       }
 
       const { data } = await response.json();
       setAdmins(data || []);
     } catch (error) {
       console.error("Error fetching admins:", error);
-      toast.error("Failed to load diocese admins");
+      toast.error(error instanceof Error ? error.message : "Failed to load diocese admins");
     } finally {
       setLoading(false);
     }

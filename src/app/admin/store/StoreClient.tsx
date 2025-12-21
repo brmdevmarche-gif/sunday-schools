@@ -382,7 +382,7 @@ export default function StoreClient({
             <ShoppingCart className="mr-2 h-4 w-4" />
             {t("store.ordersManagement")}
           </Button>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button onClick={() => router.push("/admin/store/create")}>
             <Plus className="mr-2 h-4 w-4" />
             {t("store.addItem")}
           </Button>

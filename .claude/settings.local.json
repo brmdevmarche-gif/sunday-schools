@@ -21,7 +21,11 @@
       "Bash(ls:*)",
       "Bash(tail:*)",
       "Bash(npm run build:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npx tsx:*)",
+      "Bash(psql:*)",
+      "Bash(echo:*)",
+      "Bash(npm run db:migrate:*)"
     ],
     "deny": [],
     "ask": []

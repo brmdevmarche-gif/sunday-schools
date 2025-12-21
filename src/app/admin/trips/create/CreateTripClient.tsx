@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Plus, Trash2, MapPin } from "lucide-react";
 import { createTripAction } from "../actions";
+import TripImageUpload from "@/components/trips/TripImageUpload";
 import type {
   CreateTripInput,
   TripType,
@@ -62,6 +63,7 @@ export default function CreateTripClient({
   const [formData, setFormData] = useState<Partial<CreateTripInput>>({
     title: "",
     description: "",
+    image_url: "",
     start_datetime: "",
     end_datetime: "",
     trip_type: "one_day" as TripType,
@@ -237,6 +239,11 @@ export default function CreateTripClient({
                     rows={4}
                   />
                 </div>
+
+                <TripImageUpload
+                  value={formData.image_url || ""}
+                  onChange={(url) => handleInputChange("image_url", url)}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">

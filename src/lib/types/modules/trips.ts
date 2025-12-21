@@ -23,6 +23,7 @@ export interface Trip {
   title: string;
   description: string | null;
   destination: string | null; // Kept for backward compatibility, but use destinations array instead
+  image_url: string | null;
   start_datetime: string | null;
   end_datetime: string | null;
   trip_type: TripType | null;
@@ -118,6 +119,7 @@ export interface TripWithDetails extends Trip {
 export interface CreateTripInput {
   title: string;
   description?: string;
+  image_url?: string;
   start_datetime: string;
   end_datetime: string;
   trip_type: TripType;

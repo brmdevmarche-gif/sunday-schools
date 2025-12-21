@@ -242,4 +242,73 @@ export async function getMyTripsAction() {
   return { success: true, data: [] }
 }
 
+/**
+ * Get trip details by ID
+ */
+export async function getTripDetailsAction(tripId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const adminClient = createAdminClient()
+
+  // Get trip
+  const { data: trip, error } = await adminClient
+    .from('trips')
+    .select('*')
+    .eq('id', tripId)
+    .single()
+
+  if (error || !trip) {
+    return { success: false, data: null }
+  }
+
+  // Get destinations
+  const { data: destinations } = await adminClient
+    .from('trip_destinations')
+    .select('*')
+    .eq('trip_id', tripId)
+    .order('visit_order', { ascending: true })
+
+  // Get user's participation status
+  const { data: participation } = await adminClient
+    .from('trip_participants')
+    .select('*')
+    .eq('trip_id', tripId)
+    .eq('user_id', user.id)
+    .single()
+
+  // Get participant count
+  const { count } = await adminClient
+    .from('trip_participants')
+    .select('*', { count: 'exact', head: true })
+    .eq('trip_id', tripId)
+    .eq('approval_status', 'approved')
+
+  // Get churches and dioceses
+  const { data: churches } = await adminClient
+    .from('trip_churches')
+    .select('*')
+    .eq('trip_id', tripId)
+
+  const { data: dioceses } = await adminClient
+    .from('trip_dioceses')
+    .select('*')
+    .eq('trip_id', tripId)
+
+  const tripWithDetails: TripWithDetails = {
+    ...trip,
+    destinations: destinations || [],
+    churches: churches || [],
+    dioceses: dioceses || [],
+    my_participation: participation || undefined,
+    participants_count: count || 0,
+  }
+
+  return { success: true, data: tripWithDetails }
+}
+
 

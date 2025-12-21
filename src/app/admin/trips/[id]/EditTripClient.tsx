@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Plus, Trash2, MapPin } from "lucide-react";
 import { updateTripAction } from "../actions";
+import TripImageUpload from "@/components/trips/TripImageUpload";
 import type {
   TripWithDetails,
   UpdateTripInput,
@@ -77,6 +78,7 @@ export default function EditTripClient({
     id: trip.id,
     title: trip.title,
     description: trip.description || "",
+    image_url: trip.image_url || "",
     start_datetime: formatDateTimeLocal(trip.start_datetime),
     end_datetime: formatDateTimeLocal(trip.end_datetime),
     trip_type: trip.trip_type || "one_day",
@@ -252,6 +254,11 @@ export default function EditTripClient({
                     rows={4}
                   />
                 </div>
+
+                <TripImageUpload
+                  value={formData.image_url || ""}
+                  onChange={(url) => handleInputChange("image_url", url)}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">

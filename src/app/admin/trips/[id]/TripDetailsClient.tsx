@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -35,6 +41,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { updateTripParticipantAction } from "../actions";
 import type {
   TripWithDetails,
@@ -67,6 +74,11 @@ export default function TripDetailsClient({
   const [participants, setParticipants] = useState(initialParticipants);
   const [stats, setStats] = useState(initialStats);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(
+    new Set()
+  );
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
 
   function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
@@ -84,6 +96,118 @@ export default function TripDetailsClient({
         return "bg-red-500/10 text-red-700 dark:text-red-400";
       default:
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+    }
+  }
+
+  function toggleParticipant(participantId: string) {
+    setSelectedParticipants((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(participantId)) {
+        newSet.delete(participantId);
+      } else {
+        newSet.add(participantId);
+      }
+      return newSet;
+    });
+  }
+
+  function toggleAll() {
+    if (selectedParticipants.size === participants.length) {
+      setSelectedParticipants(new Set());
+    } else {
+      setSelectedParticipants(new Set(participants.map((p) => p.id)));
+    }
+  }
+
+  async function handleBulkUpdate(updates: {
+    approval_status?: TripApprovalStatus;
+    payment_status?: TripPaymentStatus;
+  }) {
+    if (selectedParticipants.size === 0) return;
+
+    setIsBulkUpdating(true);
+    try {
+      const updatePromises = Array.from(selectedParticipants).map(
+        (participantId) =>
+          updateTripParticipantAction({
+            participant_id: participantId,
+            ...updates,
+          })
+      );
+
+      await Promise.all(updatePromises);
+
+      // Update local state for all selected participants
+      setParticipants((prev) =>
+        prev.map((p) =>
+          selectedParticipants.has(p.id)
+            ? {
+                ...p,
+                ...updates,
+                approved_at:
+                  updates.approval_status === "approved"
+                    ? new Date().toISOString()
+                    : p.approved_at,
+              }
+            : p
+        )
+      );
+
+      // Update stats
+      setStats((prev) => {
+        let newStats = { ...prev };
+
+        selectedParticipants.forEach((participantId) => {
+          const participant = participants.find((p) => p.id === participantId);
+          if (!participant) return;
+
+          // Update approval stats
+          if (
+            updates.approval_status &&
+            updates.approval_status !== participant.approval_status
+          ) {
+            if (participant.approval_status === "pending") newStats.pending--;
+            if (participant.approval_status === "approved") newStats.approved--;
+            if (participant.approval_status === "rejected") newStats.rejected--;
+
+            if (updates.approval_status === "pending") newStats.pending++;
+            if (updates.approval_status === "approved") newStats.approved++;
+            if (updates.approval_status === "rejected") newStats.rejected++;
+          }
+
+          // Update payment stats
+          if (
+            updates.payment_status &&
+            updates.payment_status !== participant.payment_status
+          ) {
+            if (participant.payment_status === "paid") newStats.paid--;
+            if (
+              participant.payment_status === "pending" ||
+              participant.payment_status === null
+            )
+              newStats.unpaid--;
+
+            if (updates.payment_status === "paid") newStats.paid++;
+            if (
+              updates.payment_status === "pending" ||
+              updates.payment_status === null
+            )
+              newStats.unpaid++;
+          }
+        });
+
+        return newStats;
+      });
+
+      setSelectedParticipants(new Set());
+      toast.success(
+        `${selectedParticipants.size} participants updated successfully`
+      );
+    } catch (error: any) {
+      console.error("Error updating participants:", error);
+      toast.error(error.message || "Failed to update participants");
+    } finally {
+      setIsBulkUpdating(false);
     }
   }
 
@@ -191,7 +315,11 @@ export default function TripDetailsClient({
         </Button>
       </div>
 
-      <Tabs defaultValue="details" className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList>
           <TabsTrigger value="details">Trip Details</TabsTrigger>
           <TabsTrigger value="participants">
@@ -418,6 +546,15 @@ export default function TripDetailsClient({
                     </Badge>
                   </div>
                 </CardContent>
+                <CardFooter className="justify-end">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setActiveTab("participants")}
+                  >
+                    View Participants
+                  </Button>
+                </CardFooter>
               </Card>
             </div>
           </div>
@@ -427,7 +564,45 @@ export default function TripDetailsClient({
         <TabsContent value="participants">
           <Card>
             <CardHeader>
-              <CardTitle>Participants</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Participants</CardTitle>
+                {selectedParticipants.size > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {selectedParticipants.size} selected
+                    </span>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleBulkUpdate({ approval_status: "approved" })
+                      }
+                      disabled={isBulkUpdating}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Approve Selected
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() =>
+                        handleBulkUpdate({ approval_status: "rejected" })
+                      }
+                      disabled={isBulkUpdating}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject Selected
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedParticipants(new Set())}
+                      disabled={isBulkUpdating}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {participants.length === 0 ? (
@@ -442,6 +617,15 @@ export default function TripDetailsClient({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={
+                            selectedParticipants.size === participants.length &&
+                            participants.length > 0
+                          }
+                          onCheckedChange={toggleAll}
+                        />
+                      </TableHead>
                       <TableHead>Student</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Approval Status</TableHead>
@@ -453,6 +637,14 @@ export default function TripDetailsClient({
                   <TableBody>
                     {participants.map((participant) => (
                       <TableRow key={participant.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedParticipants.has(participant.id)}
+                            onCheckedChange={() =>
+                              toggleParticipant(participant.id)
+                            }
+                          />
+                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">
@@ -507,68 +699,73 @@ export default function TripDetailsClient({
                           </span>
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                          <div className="flex items-center gap-2">
+                            {participant.approval_status !== "approved" && (
                               <Button
+                                size="sm"
                                 variant="ghost"
-                                size="icon"
+                                onClick={() =>
+                                  handleUpdateParticipant(participant.id, {
+                                    approval_status: "approved",
+                                  })
+                                }
                                 disabled={isUpdating === participant.id}
                               >
-                                <MoreVertical className="h-4 w-4" />
+                                <CheckCircle2 className="h-4 w-4 mr-1" />
+                                Approve
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {participant.approval_status !== "approved" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleUpdateParticipant(participant.id, {
-                                      approval_status: "approved",
-                                    })
-                                  }
+                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={isUpdating === participant.id}
                                 >
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Approve
-                                </DropdownMenuItem>
-                              )}
-                              {participant.approval_status !== "rejected" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleUpdateParticipant(participant.id, {
-                                      approval_status: "rejected",
-                                    })
-                                  }
-                                  className="text-destructive"
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Reject
-                                </DropdownMenuItem>
-                              )}
-                              {participant.payment_status !== "paid" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleUpdateParticipant(participant.id, {
-                                      payment_status: "paid",
-                                    })
-                                  }
-                                >
-                                  <DollarSign className="h-4 w-4 mr-2" />
-                                  Mark as Paid
-                                </DropdownMenuItem>
-                              )}
-                              {participant.payment_status === "paid" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleUpdateParticipant(participant.id, {
-                                      payment_status: "pending",
-                                    })
-                                  }
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Mark as Unpaid
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {participant.approval_status !== "rejected" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateParticipant(participant.id, {
+                                        approval_status: "rejected",
+                                      })
+                                    }
+                                    className="text-destructive"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Reject
+                                  </DropdownMenuItem>
+                                )}
+                                {participant.payment_status !== "paid" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateParticipant(participant.id, {
+                                        payment_status: "paid",
+                                      })
+                                    }
+                                  >
+                                    <DollarSign className="h-4 w-4 mr-2" />
+                                    Mark as Paid
+                                  </DropdownMenuItem>
+                                )}
+                                {participant.payment_status === "paid" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateParticipant(participant.id, {
+                                        payment_status: "pending",
+                                      })
+                                    }
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Mark as Unpaid
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

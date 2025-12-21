@@ -85,12 +85,22 @@ export default function TripsClient({
 
   function getTypeColor(type: TripType | null) {
     switch (type) {
-      case "event":
+      case "one_day":
         return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
-      case "funny":
-        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
-      case "learning":
+      case "spiritual":
         return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+      case "volunteering":
+        return "bg-green-500/10 text-green-700 dark:text-green-400";
+      case "fun":
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+      case "retreat":
+        return "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400";
+      case "carnival":
+        return "bg-pink-500/10 text-pink-700 dark:text-pink-400";
+      case "tournament":
+        return "bg-orange-500/10 text-orange-700 dark:text-orange-400";
+      case "other":
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
       default:
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
@@ -170,9 +180,14 @@ export default function TripsClient({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="event">Event</SelectItem>
-              <SelectItem value="funny">Funny</SelectItem>
-              <SelectItem value="learning">Learning</SelectItem>
+              <SelectItem value="one_day">One Day</SelectItem>
+              <SelectItem value="spiritual">Spiritual</SelectItem>
+              <SelectItem value="volunteering">Volunteering</SelectItem>
+              <SelectItem value="fun">Fun</SelectItem>
+              <SelectItem value="retreat">Retreat</SelectItem>
+              <SelectItem value="carnival">Carnival</SelectItem>
+              <SelectItem value="tournament">Tournament</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -198,7 +213,19 @@ export default function TripsClient({
                 trip.my_participation?.approval_status === "pending";
 
               return (
-                <Card key={trip.id} className="flex flex-col">
+                <Card key={trip.id} className="flex flex-col overflow-hidden">
+                  {trip.image_url && (
+                    <div className="w-full h-48 overflow-hidden">
+                      <img
+                        src={trip.image_url}
+                        alt={trip.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  )}
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -293,37 +320,39 @@ export default function TripsClient({
                       </div>
                     </div>
 
-                    {isSubscribed ? (
-                      <div className="flex items-center gap-2 text-sm mt-auto pt-2">
-                        {isApproved ? (
-                          <>
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            <span className="text-green-600">Approved</span>
-                            {trip.my_participation?.payment_status ===
-                              "paid" && <Badge className="ml-auto">Paid</Badge>}
-                          </>
-                        ) : isPending ? (
-                          <>
-                            <Clock className="h-4 w-4 text-yellow-500" />
-                            <span className="text-yellow-600">
-                              Pending Approval
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="h-4 w-4 text-red-500" />
-                            <span className="text-red-600">Rejected</span>
-                          </>
-                        )}
-                      </div>
-                    ) : (
+                    <div className="mt-auto pt-2 space-y-2">
+                      {isSubscribed && (
+                        <div className="flex items-center gap-2 text-sm">
+                          {isApproved ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <span className="text-green-600">Approved</span>
+                              {trip.my_participation?.payment_status ===
+                                "paid" && <Badge className="ml-auto">Paid</Badge>}
+                            </>
+                          ) : isPending ? (
+                            <>
+                              <Clock className="h-4 w-4 text-yellow-500" />
+                              <span className="text-yellow-600">
+                                Pending Approval
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-4 w-4 text-red-500" />
+                              <span className="text-red-600">Rejected</span>
+                            </>
+                          )}
+                        </div>
+                      )}
                       <Button
-                        className="w-full mt-auto"
-                        onClick={() => handleSubscribeClick(trip)}
+                        className="w-full"
+                        variant={isSubscribed ? "outline" : "default"}
+                        onClick={() => router.push(`/trips/${trip.id}`)}
                       >
-                        Subscribe
+                        View Details
                       </Button>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
               );

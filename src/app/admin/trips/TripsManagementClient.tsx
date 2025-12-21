@@ -100,12 +100,22 @@ export default function TripsManagementClient({
 
   function getTypeColor(type: TripType | null) {
     switch (type) {
-      case "event":
+      case "one_day":
         return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
-      case "funny":
-        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
-      case "learning":
+      case "spiritual":
         return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+      case "volunteering":
+        return "bg-green-500/10 text-green-700 dark:text-green-400";
+      case "fun":
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+      case "retreat":
+        return "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400";
+      case "carnival":
+        return "bg-pink-500/10 text-pink-700 dark:text-pink-400";
+      case "tournament":
+        return "bg-orange-500/10 text-orange-700 dark:text-orange-400";
+      case "other":
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
       default:
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
@@ -186,9 +196,14 @@ export default function TripsManagementClient({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="event">Event</SelectItem>
-            <SelectItem value="funny">Funny</SelectItem>
-            <SelectItem value="learning">Learning</SelectItem>
+            <SelectItem value="one_day">One Day</SelectItem>
+            <SelectItem value="spiritual">Spiritual</SelectItem>
+            <SelectItem value="volunteering">Volunteering</SelectItem>
+            <SelectItem value="fun">Fun</SelectItem>
+            <SelectItem value="retreat">Retreat</SelectItem>
+            <SelectItem value="carnival">Carnival</SelectItem>
+            <SelectItem value="tournament">Tournament</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -207,7 +222,19 @@ export default function TripsManagementClient({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTrips.map((trip) => (
-            <Card key={trip.id} className="flex flex-col">
+            <Card key={trip.id} className="flex flex-col overflow-hidden">
+              {trip.image_url && (
+                <div className="w-full h-48 overflow-hidden">
+                  <img
+                    src={trip.image_url}
+                    alt={trip.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

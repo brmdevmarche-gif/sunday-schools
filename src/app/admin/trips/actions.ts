@@ -401,7 +401,7 @@ export async function getTripParticipantsAction(tripId: string) {
     .from('trip_participants')
     .select(`
       *,
-      users!user_id(
+      user:users!user_id(
         id,
         full_name,
         email,

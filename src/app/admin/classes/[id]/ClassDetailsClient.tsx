@@ -12,12 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -52,7 +47,7 @@ import {
   Tag,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { ExtendedUser } from "@/lib/types/sunday-school";
+import type { ExtendedUser } from "@/lib/types";
 import {
   deleteClassAction,
   getAvailableStudentsData,
@@ -79,7 +74,9 @@ export default function ClassDetailsClient({
   const [, startTransition] = useTransition();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [assignmentType, setAssignmentType] = useState<"teacher" | "student">("student");
+  const [assignmentType, setAssignmentType] = useState<"teacher" | "student">(
+    "student"
+  );
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,7 +99,9 @@ export default function ClassDetailsClient({
 
   function toggleUserSelection(userId: string) {
     setSelectedUserIds((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
     );
   }
 
@@ -219,7 +218,9 @@ export default function ClassDetailsClient({
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">{classData.name}</h1>
               <Badge variant={classData.is_active ? "default" : "secondary"}>
-                {classData.is_active ? t("common.active") : t("common.inactive")}
+                {classData.is_active
+                  ? t("common.active")
+                  : t("common.inactive")}
               </Badge>
             </div>
             <p className="text-muted-foreground mt-1">
@@ -298,7 +299,9 @@ export default function ClassDetailsClient({
             <div className="flex items-start gap-3">
               <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-sm font-medium">{t("classes.academicYear")}</p>
+                <p className="text-sm font-medium">
+                  {t("classes.academicYear")}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {classData.academic_year || "-"}
                 </p>
@@ -309,7 +312,8 @@ export default function ClassDetailsClient({
               <div>
                 <p className="text-sm font-medium">{t("classes.capacity")}</p>
                 <p className="text-sm text-muted-foreground">
-                  {students.length}/{classData.capacity || "-"} {t("classes.students")}
+                  {students.length}/{classData.capacity || "-"}{" "}
+                  {t("classes.students")}
                 </p>
               </div>
             </div>
@@ -357,7 +361,9 @@ export default function ClassDetailsClient({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{t("classes.teachers")} ({teachers.length})</span>
+                <span>
+                  {t("classes.teachers")} ({teachers.length})
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -378,7 +384,9 @@ export default function ClassDetailsClient({
                           alt={assignment.user?.full_name}
                         />
                         <AvatarFallback>
-                          {(assignment.user?.full_name || assignment.user?.email)
+                          {(
+                            assignment.user?.full_name || assignment.user?.email
+                          )
                             .split(" ")
                             .map((n: string) => n[0])
                             .join("")
@@ -423,7 +431,9 @@ export default function ClassDetailsClient({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{t("classes.students")} ({students.length})</span>
+                <span>
+                  {t("classes.students")} ({students.length})
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -444,7 +454,9 @@ export default function ClassDetailsClient({
                           alt={assignment.user?.full_name}
                         />
                         <AvatarFallback>
-                          {(assignment.user?.full_name || assignment.user?.email)
+                          {(
+                            assignment.user?.full_name || assignment.user?.email
+                          )
                             .split(" ")
                             .map((n: string) => n[0])
                             .join("")
@@ -512,7 +524,9 @@ export default function ClassDetailsClient({
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold">{activity.title}</h3>
+                              <h3 className="font-semibold">
+                                {activity.title}
+                              </h3>
                               <Badge variant={variant}>{scope}</Badge>
                               {activity.activity_type && (
                                 <Badge
@@ -536,7 +550,9 @@ export default function ClassDetailsClient({
                           {activity.activity_date && (
                             <span className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              {new Date(activity.activity_date).toLocaleDateString()}
+                              {new Date(
+                                activity.activity_date
+                              ).toLocaleDateString()}
                             </span>
                           )}
                           {activity.start_time && (
@@ -554,8 +570,7 @@ export default function ClassDetailsClient({
                           )}
                           {activity.cost && activity.cost > 0 && (
                             <span className="flex items-center gap-1">
-                              <DollarSign className="h-4 w-4" />
-                              ${activity.cost}
+                              <DollarSign className="h-4 w-4" />${activity.cost}
                             </span>
                           )}
                         </div>
@@ -626,10 +641,16 @@ export default function ClassDetailsClient({
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-medium">{user.full_name || user.email}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="font-medium">
+                          {user.full_name || user.email}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
                         {user.phone && (
-                          <p className="text-sm text-muted-foreground">{user.phone}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {user.phone}
+                          </p>
                         )}
                       </div>
                       {selectedUserIds.includes(user.id) && (

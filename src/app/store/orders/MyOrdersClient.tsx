@@ -17,16 +17,18 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Package, X } from "lucide-react";
 import { cancelOrderAction } from "@/app/admin/store/orders/actions";
-import type { Order, OrderItem } from "@/lib/types/sunday-school";
+import type { Order, OrderItem } from "@/lib/types";
 
 interface OrderWithItems extends Order {
-  order_items: Array<OrderItem & {
-    store_items: {
-      id: string;
-      name: string;
-      image_url: string | null;
-    } | null;
-  }>;
+  order_items: Array<
+    OrderItem & {
+      store_items: {
+        id: string;
+        name: string;
+        image_url: string | null;
+      } | null;
+    }
+  >;
 }
 
 interface MyOrdersClientProps {
@@ -34,10 +36,15 @@ interface MyOrdersClientProps {
   userProfile: any;
 }
 
-export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientProps) {
+export default function MyOrdersClient({
+  orders,
+  userProfile,
+}: MyOrdersClientProps) {
   const t = useTranslations();
   const router = useRouter();
-  const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(
+    null
+  );
   const [isCancelling, setIsCancelling] = useState(false);
 
   function getStatusColor(status: string) {
@@ -124,11 +131,14 @@ export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientPr
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <span>
-                      {new Date(order.created_at).toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      {new Date(order.created_at).toLocaleDateString(
+                        undefined,
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )}
                     </span>
                     <span className="font-bold text-foreground">
                       {order.total_points} {t("store.points")}
@@ -168,7 +178,10 @@ export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientPr
       </div>
 
       {/* Order Details Dialog */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+      <Dialog
+        open={!!selectedOrder}
+        onOpenChange={() => setSelectedOrder(null)}
+      >
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           {selectedOrder && (
             <>
@@ -182,13 +195,16 @@ export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientPr
                   </Badge>
                 </div>
                 <DialogDescription>
-                  {new Date(selectedOrder.created_at).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {new Date(selectedOrder.created_at).toLocaleDateString(
+                    undefined,
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )}
                 </DialogDescription>
               </DialogHeader>
 
@@ -212,7 +228,8 @@ export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientPr
                         <div className="flex-1">
                           <p className="font-medium">{item.item_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {item.unit_price} {t("store.points")} × {item.quantity}
+                            {item.unit_price} {t("store.points")} ×{" "}
+                            {item.quantity}
                           </p>
                         </div>
                         <p className="font-bold">
@@ -226,7 +243,9 @@ export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientPr
                 {/* Notes */}
                 {selectedOrder.notes && (
                   <div>
-                    <h3 className="font-semibold mb-2">{t("store.orderNotes")}</h3>
+                    <h3 className="font-semibold mb-2">
+                      {t("store.orderNotes")}
+                    </h3>
                     <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
                       {selectedOrder.notes}
                     </p>
@@ -236,7 +255,9 @@ export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientPr
                 {/* Admin Notes */}
                 {selectedOrder.admin_notes && (
                   <div>
-                    <h3 className="font-semibold mb-2">{t("store.adminNotes")}</h3>
+                    <h3 className="font-semibold mb-2">
+                      {t("store.adminNotes")}
+                    </h3>
                     <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
                       {selectedOrder.admin_notes}
                     </p>
@@ -268,7 +289,9 @@ export default function MyOrdersClient({ orders, userProfile }: MyOrdersClientPr
                     disabled={isCancelling}
                   >
                     <X className="h-4 w-4 mr-2" />
-                    {isCancelling ? t("common.cancelling") : t("store.cancelOrder")}
+                    {isCancelling
+                      ? t("common.cancelling")
+                      : t("store.cancelOrder")}
                   </Button>
                 )}
               </DialogFooter>

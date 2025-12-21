@@ -43,8 +43,11 @@ import {
   Filter,
   Search,
 } from "lucide-react";
-import { updateOrderStatusAction, bulkUpdateOrderStatusAction } from "./actions";
-import type { OrderStatus } from "@/lib/types/sunday-school";
+import {
+  updateOrderStatusAction,
+  bulkUpdateOrderStatusAction,
+} from "./actions";
+import type { OrderStatus } from "@/lib/types";
 
 interface OrderUser {
   id: string;
@@ -242,7 +245,9 @@ export default function OrdersManagementClient({
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">{t("store.ordersManagement")}</h1>
+                <h1 className="text-2xl font-bold">
+                  {t("store.ordersManagement")}
+                </h1>
                 <p className="text-sm text-muted-foreground">
                   {filteredOrders.length} {t("store.orders")}
                 </p>
@@ -269,7 +274,9 @@ export default function OrdersManagementClient({
               </div>
               <Select
                 value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value as OrderStatus | "all")}
+                onValueChange={(value) =>
+                  setStatusFilter(value as OrderStatus | "all")
+                }
               >
                 <SelectTrigger className="w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
@@ -277,15 +284,21 @@ export default function OrdersManagementClient({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("store.allStatuses")}</SelectItem>
-                  <SelectItem value="pending">{t("store.status.pending")}</SelectItem>
-                  <SelectItem value="approved">{t("store.status.approved")}</SelectItem>
+                  <SelectItem value="pending">
+                    {t("store.status.pending")}
+                  </SelectItem>
+                  <SelectItem value="approved">
+                    {t("store.status.approved")}
+                  </SelectItem>
                   <SelectItem value="fulfilled">
                     {t("store.status.fulfilled")}
                   </SelectItem>
                   <SelectItem value="cancelled">
                     {t("store.status.cancelled")}
                   </SelectItem>
-                  <SelectItem value="rejected">{t("store.status.rejected")}</SelectItem>
+                  <SelectItem value="rejected">
+                    {t("store.status.rejected")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -339,10 +352,13 @@ export default function OrdersManagementClient({
                   }
                 }}
               />
-              <Label className="text-sm cursor-pointer" onClick={() => {
-                if (allSelected) deselectAll();
-                else selectAll();
-              }}>
+              <Label
+                className="text-sm cursor-pointer"
+                onClick={() => {
+                  if (allSelected) deselectAll();
+                  else selectAll();
+                }}
+              >
                 {allSelected
                   ? t("store.deselectAll")
                   : someSelected
@@ -402,7 +418,9 @@ export default function OrdersManagementClient({
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>{t("common.actions")}</DropdownMenuLabel>
+                              <DropdownMenuLabel>
+                                {t("common.actions")}
+                              </DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => setSelectedOrder(order)}
@@ -483,7 +501,10 @@ export default function OrdersManagementClient({
       </div>
 
       {/* Order Details Dialog */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+      <Dialog
+        open={!!selectedOrder}
+        onOpenChange={() => setSelectedOrder(null)}
+      >
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           {selectedOrder && (
             <>
@@ -494,7 +515,9 @@ export default function OrdersManagementClient({
                       {t("store.order")} #{selectedOrder.id.slice(0, 8)}
                     </DialogTitle>
                     <DialogDescription>
-                      {selectedOrder.users?.full_name || selectedOrder.users?.email} •{" "}
+                      {selectedOrder.users?.full_name ||
+                        selectedOrder.users?.email}{" "}
+                      •{" "}
                       {new Date(selectedOrder.created_at).toLocaleDateString()}
                     </DialogDescription>
                   </div>
@@ -524,7 +547,8 @@ export default function OrdersManagementClient({
                         <div className="flex-1">
                           <p className="font-medium">{item.item_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {item.unit_price} {t("store.points")} × {item.quantity} •{" "}
+                            {item.unit_price} {t("store.points")} ×{" "}
+                            {item.quantity} •{" "}
                             {t(`store.tier.${item.price_tier}`)}
                           </p>
                         </div>
@@ -539,7 +563,9 @@ export default function OrdersManagementClient({
                 {/* User Notes */}
                 {selectedOrder.notes && (
                   <div>
-                    <h3 className="font-semibold mb-2">{t("store.userNotes")}</h3>
+                    <h3 className="font-semibold mb-2">
+                      {t("store.userNotes")}
+                    </h3>
                     <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
                       {selectedOrder.notes}
                     </p>
@@ -548,7 +574,9 @@ export default function OrdersManagementClient({
 
                 {/* Admin Notes */}
                 <div>
-                  <h3 className="font-semibold mb-2">{t("store.adminNotes")}</h3>
+                  <h3 className="font-semibold mb-2">
+                    {t("store.adminNotes")}
+                  </h3>
                   <Textarea
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
@@ -577,7 +605,10 @@ export default function OrdersManagementClient({
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setSelectedOrder(null)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedOrder(null)}
+                >
                   {t("common.close")}
                 </Button>
                 {selectedOrder.status === "pending" && (

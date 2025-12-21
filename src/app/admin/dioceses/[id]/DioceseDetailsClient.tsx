@@ -31,12 +31,7 @@ import {
   Users,
   GraduationCap,
 } from "lucide-react";
-import type {
-  Diocese,
-  Church,
-  DioceseAdmin,
-  ExtendedUser,
-} from "@/lib/types/sunday-school";
+import type { Diocese, Church, DioceseAdmin, ExtendedUser } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
 import ColorPicker from "@/components/ColorPicker";
 import { updateDiocese } from "../actions";

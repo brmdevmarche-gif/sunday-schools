@@ -3,10 +3,7 @@
 // =====================================================
 
 import { createClient } from "@/lib/supabase/server";
-import type {
-  DioceseAdmin,
-  CreateDioceseAdminInput,
-} from "@/lib/types/sunday-school";
+import type { DioceseAdmin, CreateDioceseAdminInput } from "@/lib/types";
 
 /**
  * Assign a user as an administrator of a diocese
@@ -222,7 +219,7 @@ export async function getDioceseAdminsWithUsers(dioceseId: string): Promise<{
       data: data as (DioceseAdmin & {
         user: { id: string; email: string; full_name: string | null };
       })[],
-      error: null
+      error: null,
     };
   } catch (error) {
     console.error("Error fetching diocese admins with users:", error);

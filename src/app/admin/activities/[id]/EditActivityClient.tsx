@@ -20,14 +20,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Users, CheckCircle2 } from "lucide-react";
 import { updateActivityAction } from "../actions";
-import type { Activity, ActivityStatus, UpdateActivityInput } from "@/lib/types/sunday-school";
+import type {
+  Activity,
+  ActivityStatus,
+  UpdateActivityInput,
+} from "@/lib/types";
 
 interface EditActivityClientProps {
   activity: Activity;
   userProfile: any;
 }
 
-export default function EditActivityClient({ activity, userProfile }: EditActivityClientProps) {
+export default function EditActivityClient({
+  activity,
+  userProfile,
+}: EditActivityClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +73,9 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
     setIsLoading(true);
     try {
       await updateActivityAction(formData as UpdateActivityInput);
-      toast.success(t("activities.activityUpdated") || "Activity updated successfully");
+      toast.success(
+        t("activities.activityUpdated") || "Activity updated successfully"
+      );
       router.push("/admin/activities");
     } catch (error: any) {
       console.error("Error updating activity:", error);
@@ -104,7 +113,9 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
 
       <Tabs defaultValue="details" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="details">{t("activities.details") || "Details"}</TabsTrigger>
+          <TabsTrigger value="details">
+            {t("activities.details") || "Details"}
+          </TabsTrigger>
           <TabsTrigger value="participants">
             <Users className="h-4 w-4 mr-2" />
             {t("activities.participants")}
@@ -123,38 +134,54 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                 {/* Basic Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("activities.basicInfo") || "Basic Information"}</CardTitle>
+                    <CardTitle>
+                      {t("activities.basicInfo") || "Basic Information"}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="name">{t("common.name")} *</Label>
                       <Input
                         id="name"
                         value={formData.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
-                        placeholder={t("activities.namePlaceholder") || "Enter activity name"}
+                        onChange={(e) =>
+                          handleInputChange("name", e.target.value)
+                        }
+                        placeholder={
+                          t("activities.namePlaceholder") ||
+                          "Enter activity name"
+                        }
                         required
                       />
                     </div>
 
-                    <div>
-                      <Label htmlFor="description">{t("common.description")}</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">
+                        {t("common.description")}
+                      </Label>
                       <Textarea
                         id="description"
                         value={formData.description || ""}
-                        onChange={(e) => handleInputChange("description", e.target.value)}
-                        placeholder={t("activities.descriptionPlaceholder") || "Enter activity description"}
+                        onChange={(e) =>
+                          handleInputChange("description", e.target.value)
+                        }
+                        placeholder={
+                          t("activities.descriptionPlaceholder") ||
+                          "Enter activity description"
+                        }
                         rows={4}
                       />
                     </div>
 
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="image_url">{t("store.imageUrl")}</Label>
                       <Input
                         id="image_url"
                         type="url"
                         value={formData.image_url || ""}
-                        onChange={(e) => handleInputChange("image_url", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("image_url", e.target.value)
+                        }
                         placeholder="https://example.com/image.jpg"
                       />
                     </div>
@@ -164,25 +191,35 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                 {/* Points Configuration */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("activities.pointsConfig") || "Points Configuration"}</CardTitle>
+                    <CardTitle>
+                      {t("activities.pointsConfig") || "Points Configuration"}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="points">{t("activities.points")} *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="points">
+                          {t("activities.points")} *
+                        </Label>
                         <Input
                           id="points"
                           type="number"
                           min="0"
                           value={formData.points}
-                          onChange={(e) => handleInputChange("points", parseInt(e.target.value))}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "points",
+                              parseInt(e.target.value)
+                            )
+                          }
                           required
                         />
                       </div>
 
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="reduced_points_percentage">
-                          {t("activities.reducedPointsPercentage") || "Reduced Points %"}
+                          {t("activities.reducedPointsPercentage") ||
+                            "Reduced Points %"}
                         </Label>
                         <Input
                           id="reduced_points_percentage"
@@ -190,7 +227,12 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                           min="0"
                           max="100"
                           value={formData.reduced_points_percentage}
-                          onChange={(e) => handleInputChange("reduced_points_percentage", parseInt(e.target.value))}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "reduced_points_percentage",
+                              parseInt(e.target.value)
+                            )
+                          }
                         />
                       </div>
                     </div>
@@ -200,78 +242,119 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                 {/* Time Settings */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("activities.timeSettings") || "Time Settings"}</CardTitle>
+                    <CardTitle>
+                      {t("activities.timeSettings") || "Time Settings"}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label>{t("activities.isTimeSensitive") || "Time Sensitive"}</Label>
+                        <Label>
+                          {t("activities.isTimeSensitive") || "Time Sensitive"}
+                        </Label>
                         <p className="text-sm text-muted-foreground">
-                          {t("activities.timeSensitiveDesc") || "Enable deadlines for this activity"}
+                          {t("activities.timeSensitiveDesc") ||
+                            "Enable deadlines for this activity"}
                         </p>
                       </div>
                       <Switch
                         checked={formData.is_time_sensitive}
-                        onCheckedChange={(checked) => handleInputChange("is_time_sensitive", checked)}
+                        onCheckedChange={(checked) =>
+                          handleInputChange("is_time_sensitive", checked)
+                        }
                       />
                     </div>
 
                     {formData.is_time_sensitive && (
                       <>
-                        <div>
-                          <Label htmlFor="deadline">{t("activities.deadline")}</Label>
+                        <div className="space-y-2">
+                          <Label htmlFor="deadline">
+                            {t("activities.deadline")}
+                          </Label>
                           <Input
                             id="deadline"
                             type="datetime-local"
-                            value={formatDateTimeLocal(formData.deadline as string)}
-                            onChange={(e) => handleInputChange("deadline", e.target.value)}
+                            value={formatDateTimeLocal(
+                              formData.deadline as string
+                            )}
+                            onChange={(e) =>
+                              handleInputChange("deadline", e.target.value)
+                            }
                           />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="start_time">{t("activities.startTime") || "Start Time"}</Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="start_time">
+                              {t("activities.startTime") || "Start Time"}
+                            </Label>
                             <Input
                               id="start_time"
                               type="datetime-local"
-                              value={formatDateTimeLocal(formData.start_time as string)}
-                              onChange={(e) => handleInputChange("start_time", e.target.value)}
+                              value={formatDateTimeLocal(
+                                formData.start_time as string
+                              )}
+                              onChange={(e) =>
+                                handleInputChange("start_time", e.target.value)
+                              }
                             />
                           </div>
 
-                          <div>
-                            <Label htmlFor="end_time">{t("activities.endTime") || "End Time"}</Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="end_time">
+                              {t("activities.endTime") || "End Time"}
+                            </Label>
                             <Input
                               id="end_time"
                               type="datetime-local"
-                              value={formatDateTimeLocal(formData.end_time as string)}
-                              onChange={(e) => handleInputChange("end_time", e.target.value)}
+                              value={formatDateTimeLocal(
+                                formData.end_time as string
+                              )}
+                              onChange={(e) =>
+                                handleInputChange("end_time", e.target.value)
+                              }
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                          <div>
+                          <div className="space-y-2">
                             <Label htmlFor="full_points_window_start">
-                              {t("activities.fullPointsStart") || "Full Points Start"}
+                              {t("activities.fullPointsStart") ||
+                                "Full Points Start"}
                             </Label>
                             <Input
                               id="full_points_window_start"
                               type="datetime-local"
-                              value={formatDateTimeLocal(formData.full_points_window_start as string)}
-                              onChange={(e) => handleInputChange("full_points_window_start", e.target.value)}
+                              value={formatDateTimeLocal(
+                                formData.full_points_window_start as string
+                              )}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "full_points_window_start",
+                                  e.target.value
+                                )
+                              }
                             />
                           </div>
 
-                          <div>
+                          <div className="space-y-2">
                             <Label htmlFor="full_points_window_end">
-                              {t("activities.fullPointsEnd") || "Full Points End"}
+                              {t("activities.fullPointsEnd") ||
+                                "Full Points End"}
                             </Label>
                             <Input
                               id="full_points_window_end"
                               type="datetime-local"
-                              value={formatDateTimeLocal(formData.full_points_window_end as string)}
-                              onChange={(e) => handleInputChange("full_points_window_end", e.target.value)}
+                              value={formatDateTimeLocal(
+                                formData.full_points_window_end as string
+                              )}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "full_points_window_end",
+                                  e.target.value
+                                )
+                              }
                             />
                           </div>
                         </div>
@@ -289,32 +372,53 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                     <CardTitle>{t("common.status")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="status">{t("activities.status") || "Status"}</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="status">
+                        {t("activities.status") || "Status"}
+                      </Label>
                       <Select
                         value={formData.status}
-                        onValueChange={(value) => handleInputChange("status", value)}
+                        onValueChange={(value) =>
+                          handleInputChange("status", value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="draft">{t("activities.status.draft")}</SelectItem>
-                          <SelectItem value="active">{t("activities.status.active")}</SelectItem>
-                          <SelectItem value="completed">{t("activities.status.completed")}</SelectItem>
-                          <SelectItem value="cancelled">{t("activities.status.cancelled")}</SelectItem>
+                          <SelectItem value="draft">
+                            {t("activities.status.draft")}
+                          </SelectItem>
+                          <SelectItem value="active">
+                            {t("activities.status.active")}
+                          </SelectItem>
+                          <SelectItem value="completed">
+                            {t("activities.status.completed")}
+                          </SelectItem>
+                          <SelectItem value="cancelled">
+                            {t("activities.status.cancelled")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <div>
-                      <Label htmlFor="max_participants">{t("activities.maxParticipants") || "Max Participants"}</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="max_participants">
+                        {t("activities.maxParticipants") || "Max Participants"}
+                      </Label>
                       <Input
                         id="max_participants"
                         type="number"
                         min="0"
                         value={formData.max_participants || ""}
-                        onChange={(e) => handleInputChange("max_participants", e.target.value ? parseInt(e.target.value) : undefined)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "max_participants",
+                            e.target.value
+                              ? parseInt(e.target.value)
+                              : undefined
+                          )
+                        }
                         placeholder={t("activities.unlimited") || "Unlimited"}
                       />
                     </div>
@@ -324,7 +428,9 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                 {/* Approval Settings */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("activities.approvalSettings") || "Approval Settings"}</CardTitle>
+                    <CardTitle>
+                      {t("activities.approvalSettings") || "Approval Settings"}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -334,7 +440,12 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                       <Switch
                         id="requires_participation_approval"
                         checked={formData.requires_participation_approval}
-                        onCheckedChange={(checked) => handleInputChange("requires_participation_approval", checked)}
+                        onCheckedChange={(checked) =>
+                          handleInputChange(
+                            "requires_participation_approval",
+                            checked
+                          )
+                        }
                       />
                     </div>
 
@@ -345,7 +456,12 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                       <Switch
                         id="requires_completion_approval"
                         checked={formData.requires_completion_approval}
-                        onCheckedChange={(checked) => handleInputChange("requires_completion_approval", checked)}
+                        onCheckedChange={(checked) =>
+                          handleInputChange(
+                            "requires_completion_approval",
+                            checked
+                          )
+                        }
                       />
                     </div>
                   </CardContent>
@@ -355,7 +471,11 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex flex-col gap-2">
-                      <Button type="submit" disabled={isLoading} className="w-full">
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full"
+                      >
                         <Save className="mr-2 h-4 w-4" />
                         {isLoading ? t("common.saving") : t("common.save")}
                       </Button>
@@ -383,7 +503,8 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                {t("activities.participantsComingSoon") || "Participants management coming soon"}
+                {t("activities.participantsComingSoon") ||
+                  "Participants management coming soon"}
               </p>
             </CardContent>
           </Card>
@@ -396,7 +517,8 @@ export default function EditActivityClient({ activity, userProfile }: EditActivi
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                {t("activities.completionsComingSoon") || "Completions management coming soon"}
+                {t("activities.completionsComingSoon") ||
+                  "Completions management coming soon"}
               </p>
             </CardContent>
           </Card>

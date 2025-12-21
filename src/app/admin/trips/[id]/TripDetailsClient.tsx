@@ -36,7 +36,12 @@ import {
   Phone,
 } from "lucide-react";
 import { updateTripParticipantAction } from "../actions";
-import type { TripWithDetails, TripParticipantWithUser, TripApprovalStatus, TripPaymentStatus } from "@/lib/types/sunday-school";
+import type {
+  TripWithDetails,
+  TripParticipantWithUser,
+  TripApprovalStatus,
+  TripPaymentStatus,
+} from "@/lib/types";
 
 interface TripDetailsClientProps {
   trip: TripWithDetails;
@@ -84,7 +89,10 @@ export default function TripDetailsClient({
 
   async function handleUpdateParticipant(
     participantId: string,
-    updates: { approval_status?: TripApprovalStatus; payment_status?: TripPaymentStatus }
+    updates: {
+      approval_status?: TripApprovalStatus;
+      payment_status?: TripPaymentStatus;
+    }
   ) {
     setIsUpdating(participantId);
     try {
@@ -100,7 +108,10 @@ export default function TripDetailsClient({
             ? {
                 ...p,
                 ...updates,
-                approved_at: updates.approval_status === "approved" ? new Date().toISOString() : p.approved_at,
+                approved_at:
+                  updates.approval_status === "approved"
+                    ? new Date().toISOString()
+                    : p.approved_at,
               }
             : p
         )
@@ -114,7 +125,10 @@ export default function TripDetailsClient({
         let newStats = { ...prev };
 
         // Update approval stats
-        if (updates.approval_status && updates.approval_status !== participant.approval_status) {
+        if (
+          updates.approval_status &&
+          updates.approval_status !== participant.approval_status
+        ) {
           if (participant.approval_status === "pending") newStats.pending--;
           if (participant.approval_status === "approved") newStats.approved--;
           if (participant.approval_status === "rejected") newStats.rejected--;
@@ -125,12 +139,23 @@ export default function TripDetailsClient({
         }
 
         // Update payment stats
-        if (updates.payment_status && updates.payment_status !== participant.payment_status) {
+        if (
+          updates.payment_status &&
+          updates.payment_status !== participant.payment_status
+        ) {
           if (participant.payment_status === "paid") newStats.paid--;
-          if (participant.payment_status === "pending" || participant.payment_status === null) newStats.unpaid--;
+          if (
+            participant.payment_status === "pending" ||
+            participant.payment_status === null
+          )
+            newStats.unpaid--;
 
           if (updates.payment_status === "paid") newStats.paid++;
-          if (updates.payment_status === "pending" || updates.payment_status === null) newStats.unpaid++;
+          if (
+            updates.payment_status === "pending" ||
+            updates.payment_status === null
+          )
+            newStats.unpaid++;
         }
 
         return newStats;
@@ -155,7 +180,9 @@ export default function TripDetailsClient({
           </Button>
           <div>
             <h1 className="text-3xl font-bold">{trip.title}</h1>
-            <p className="text-muted-foreground mt-1">Trip Details & Participant Management</p>
+            <p className="text-muted-foreground mt-1">
+              Trip Details & Participant Management
+            </p>
           </div>
         </div>
         <Button onClick={() => router.push(`/admin/trips/${trip.id}/edit`)}>
@@ -185,7 +212,9 @@ export default function TripDetailsClient({
                 <CardContent className="space-y-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Description</p>
-                    <p className="mt-1">{trip.description || "No description"}</p>
+                    <p className="mt-1">
+                      {trip.description || "No description"}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -197,7 +226,8 @@ export default function TripDetailsClient({
                       <p className="text-sm text-muted-foreground">Status</p>
                       <div className="flex gap-2 mt-1">
                         <Badge className={getStatusColor(trip.status)}>
-                          {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+                          {trip.status.charAt(0).toUpperCase() +
+                            trip.status.slice(1)}
                         </Badge>
                         {!trip.available && (
                           <Badge variant="outline">Unavailable</Badge>
@@ -221,7 +251,9 @@ export default function TripDetailsClient({
                           <Calendar className="h-4 w-4" />
                           Start Date & Time
                         </p>
-                        <p className="mt-1 font-medium">{formatDateTime(trip.start_datetime)}</p>
+                        <p className="mt-1 font-medium">
+                          {formatDateTime(trip.start_datetime)}
+                        </p>
                       </div>
                     )}
                     {trip.end_datetime && (
@@ -230,7 +262,9 @@ export default function TripDetailsClient({
                           <Clock className="h-4 w-4" />
                           End Date & Time
                         </p>
-                        <p className="mt-1 font-medium">{formatDateTime(trip.end_datetime)}</p>
+                        <p className="mt-1 font-medium">
+                          {formatDateTime(trip.end_datetime)}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -254,9 +288,13 @@ export default function TripDetailsClient({
                             {index + 1}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium">{dest.destination_name}</p>
+                            <p className="font-medium">
+                              {dest.destination_name}
+                            </p>
                             {dest.description && (
-                              <p className="text-sm text-muted-foreground mt-2">{dest.description}</p>
+                              <p className="text-sm text-muted-foreground mt-2">
+                                {dest.description}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -275,13 +313,17 @@ export default function TripDetailsClient({
                   <CardContent className="space-y-4">
                     {trip.transportation_details && (
                       <div>
-                        <p className="text-sm text-muted-foreground">Transportation Details</p>
+                        <p className="text-sm text-muted-foreground">
+                          Transportation Details
+                        </p>
                         <p className="mt-1">{trip.transportation_details}</p>
                       </div>
                     )}
                     {trip.what_to_bring && (
                       <div>
-                        <p className="text-sm text-muted-foreground">What to Bring</p>
+                        <p className="text-sm text-muted-foreground">
+                          What to Bring
+                        </p>
                         <p className="mt-1">{trip.what_to_bring}</p>
                       </div>
                     )}
@@ -296,28 +338,32 @@ export default function TripDetailsClient({
                 <CardHeader>
                   <CardTitle>Statistics</CardTitle>
                 </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pricing</p>
-                  <div className="mt-1 space-y-1">
-                    <p className="font-medium flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Normal: ${trip.price_normal}
-                    </p>
-                    <p className="font-medium flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Mastor: ${trip.price_mastor}
-                    </p>
-                    <p className="font-medium flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Botl: ${trip.price_botl}
-                    </p>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pricing</p>
+                    <div className="mt-1 space-y-1">
+                      <p className="font-medium flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Normal: ${trip.price_normal}
+                      </p>
+                      <p className="font-medium flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Mastor: ${trip.price_mastor}
+                      </p>
+                      <p className="font-medium flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Botl: ${trip.price_botl}
+                      </p>
+                    </div>
                   </div>
-                </div>
                   {trip.max_participants && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Max Participants</p>
-                      <p className="mt-1 text-xl font-semibold">{trip.max_participants}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Max Participants
+                      </p>
+                      <p className="mt-1 text-xl font-semibold">
+                        {trip.max_participants}
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -333,14 +379,24 @@ export default function TripDetailsClient({
                     <span className="font-semibold">{stats.total}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Pending Approval</span>
-                    <Badge variant="outline" className={getStatusColor("pending")}>
+                    <span className="text-sm text-muted-foreground">
+                      Pending Approval
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={getStatusColor("pending")}
+                    >
                       {stats.pending}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Approved</span>
-                    <Badge variant="outline" className={getStatusColor("approved")}>
+                    <span className="text-sm text-muted-foreground">
+                      Approved
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={getStatusColor("approved")}
+                    >
                       {stats.approved}
                     </Badge>
                   </div>
@@ -351,8 +407,13 @@ export default function TripDetailsClient({
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Unpaid</span>
-                    <Badge variant="outline" className={getStatusColor("pending")}>
+                    <span className="text-sm text-muted-foreground">
+                      Unpaid
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={getStatusColor("pending")}
+                    >
                       {stats.unpaid}
                     </Badge>
                   </div>
@@ -373,7 +434,9 @@ export default function TripDetailsClient({
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-lg font-medium">No participants yet</p>
-                  <p className="text-sm text-muted-foreground">Participants will appear here when they register</p>
+                  <p className="text-sm text-muted-foreground">
+                    Participants will appear here when they register
+                  </p>
                 </div>
               ) : (
                 <Table>
@@ -393,10 +456,13 @@ export default function TripDetailsClient({
                         <TableCell>
                           <div>
                             <p className="font-medium">
-                              {participant.user?.full_name || participant.user?.email}
+                              {participant.user?.full_name ||
+                                participant.user?.email}
                             </p>
                             {participant.user?.full_name && (
-                              <p className="text-sm text-muted-foreground">{participant.user.email}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {participant.user.email}
+                              </p>
                             )}
                           </div>
                         </TableCell>
@@ -416,18 +482,28 @@ export default function TripDetailsClient({
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(participant.approval_status)}>
+                          <Badge
+                            className={getStatusColor(
+                              participant.approval_status
+                            )}
+                          >
                             {participant.approval_status}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(participant.payment_status)}>
+                          <Badge
+                            className={getStatusColor(
+                              participant.payment_status
+                            )}
+                          >
                             {participant.payment_status}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
-                            {new Date(participant.registered_at).toLocaleDateString()}
+                            {new Date(
+                              participant.registered_at
+                            ).toLocaleDateString()}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -445,7 +521,9 @@ export default function TripDetailsClient({
                               {participant.approval_status !== "approved" && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleUpdateParticipant(participant.id, { approval_status: "approved" })
+                                    handleUpdateParticipant(participant.id, {
+                                      approval_status: "approved",
+                                    })
                                   }
                                 >
                                   <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -455,7 +533,9 @@ export default function TripDetailsClient({
                               {participant.approval_status !== "rejected" && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleUpdateParticipant(participant.id, { approval_status: "rejected" })
+                                    handleUpdateParticipant(participant.id, {
+                                      approval_status: "rejected",
+                                    })
                                   }
                                   className="text-destructive"
                                 >
@@ -466,7 +546,9 @@ export default function TripDetailsClient({
                               {participant.payment_status !== "paid" && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleUpdateParticipant(participant.id, { payment_status: "paid" })
+                                    handleUpdateParticipant(participant.id, {
+                                      payment_status: "paid",
+                                    })
                                   }
                                 >
                                   <DollarSign className="h-4 w-4 mr-2" />
@@ -476,7 +558,9 @@ export default function TripDetailsClient({
                               {participant.payment_status === "paid" && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleUpdateParticipant(participant.id, { payment_status: "pending" })
+                                    handleUpdateParticipant(participant.id, {
+                                      payment_status: "pending",
+                                    })
                                   }
                                 >
                                   <XCircle className="h-4 w-4 mr-2" />
@@ -498,4 +582,3 @@ export default function TripDetailsClient({
     </div>
   );
 }
-

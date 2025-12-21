@@ -721,5 +721,23 @@
     "serverError": "حدث خطأ. يرجى المحاولة مرة أخرى",
     "invalidInput": "يرجى التحقق من المدخلات والمحاولة مرة أخرى",
     "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك"
+  },
+  "trips": {
+    "title": "الرحلات",
+    "subtitle": "إدارة الرحلات والتسجيلات",
+    "createTrip": "إنشاء رحلة",
+    "editTrip": "تعديل الرحلة",
+    "tripType": "نوع الرحلة",
+    "selectTripType": "اختر نوع الرحلة",
+    "types": {
+      "one_day": "يوم واحد",
+      "spiritual": "روحية",
+      "volunteering": "تطوعية",
+      "fun": "ترفيهية",
+      "retreat": "خلوة",
+      "carnival": "كرنفال",
+      "tournament": "مسابقة",
+      "other": "أخرى"
+    }
   }
 }

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Check, X, AlertCircle, Clock } from "lucide-react";
-import type { AttendanceStatus } from "@/lib/types/sunday-school";
+import type { AttendanceStatus } from "@/lib/types";
 
 interface AttendanceStatusButtonsProps {
   status?: AttendanceStatus;
@@ -24,7 +24,9 @@ export function AttendanceStatusButtons({
         variant={status === "present" ? "default" : "outline"}
         onClick={() => onStatusChange("present")}
         disabled={disabled}
-        className={status === "present" ? "bg-green-500 hover:bg-green-600" : ""}
+        className={
+          status === "present" ? "bg-green-500 hover:bg-green-600" : ""
+        }
         title="Present"
       >
         <Check className="h-4 w-4" />
@@ -43,7 +45,9 @@ export function AttendanceStatusButtons({
         variant={status === "excused" ? "default" : "outline"}
         onClick={() => onStatusChange("excused")}
         disabled={disabled}
-        className={status === "excused" ? "bg-yellow-500 hover:bg-yellow-600" : ""}
+        className={
+          status === "excused" ? "bg-yellow-500 hover:bg-yellow-600" : ""
+        }
         title="Excused"
       >
         <AlertCircle className="h-4 w-4" />

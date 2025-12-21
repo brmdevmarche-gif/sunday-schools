@@ -721,5 +721,23 @@
     "serverError": "An error occurred. Please try again",
     "invalidInput": "Please check your input and try again",
     "networkError": "Network error. Please check your connection"
+  },
+  "trips": {
+    "title": "Trips",
+    "subtitle": "Manage trips and registrations",
+    "createTrip": "Create Trip",
+    "editTrip": "Edit Trip",
+    "tripType": "Trip Type",
+    "selectTripType": "Select trip type",
+    "types": {
+      "one_day": "One Day",
+      "spiritual": "Spiritual",
+      "volunteering": "Volunteering",
+      "fun": "Fun",
+      "retreat": "Retreat",
+      "carnival": "Carnival",
+      "tournament": "Tournament",
+      "other": "Other"
+    }
   }
 }

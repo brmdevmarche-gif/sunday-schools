@@ -37,7 +37,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { subscribeToTripAction } from "./actions";
-import type { TripWithDetails, TripType } from "@/lib/types/sunday-school";
+import type { TripWithDetails, TripType } from "@/lib/types";
 
 interface TripsClientProps {
   trips: TripWithDetails[];
@@ -51,7 +51,9 @@ export default function TripsClient({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TripType | "all">("all");
-  const [selectedTrip, setSelectedTrip] = useState<TripWithDetails | null>(null);
+  const [selectedTrip, setSelectedTrip] = useState<TripWithDetails | null>(
+    null
+  );
   const [isSubscribeDialogOpen, setIsSubscribeDialogOpen] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribeForm, setSubscribeForm] = useState({
@@ -190,8 +192,10 @@ export default function TripsClient({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTrips.map((trip) => {
               const isSubscribed = !!trip.my_participation;
-              const isApproved = trip.my_participation?.approval_status === "approved";
-              const isPending = trip.my_participation?.approval_status === "pending";
+              const isApproved =
+                trip.my_participation?.approval_status === "approved";
+              const isPending =
+                trip.my_participation?.approval_status === "pending";
 
               return (
                 <Card key={trip.id} className="flex flex-col">
@@ -238,7 +242,10 @@ export default function TripsClient({
                         </div>
                         <div className="pl-6 space-y-1">
                           {trip.destinations.slice(0, 2).map((dest, idx) => (
-                            <p key={dest.id} className="text-xs text-muted-foreground">
+                            <p
+                              key={dest.id}
+                              className="text-xs text-muted-foreground"
+                            >
                               {idx + 1}. {dest.destination_name}
                             </p>
                           ))}
@@ -279,7 +286,9 @@ export default function TripsClient({
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4" />
                         <span className="font-medium">
-                          Price: ${trip.price_normal} (normal), ${trip.price_mastor} (mastor), ${trip.price_botl} (botl)
+                          Price: ${trip.price_normal} (normal), $
+                          {trip.price_mastor} (mastor), ${trip.price_botl}{" "}
+                          (botl)
                         </span>
                       </div>
                     </div>
@@ -290,14 +299,15 @@ export default function TripsClient({
                           <>
                             <CheckCircle2 className="h-4 w-4 text-green-500" />
                             <span className="text-green-600">Approved</span>
-                            {trip.my_participation?.payment_status === "paid" && (
-                              <Badge className="ml-auto">Paid</Badge>
-                            )}
+                            {trip.my_participation?.payment_status ===
+                              "paid" && <Badge className="ml-auto">Paid</Badge>}
                           </>
                         ) : isPending ? (
                           <>
                             <Clock className="h-4 w-4 text-yellow-500" />
-                            <span className="text-yellow-600">Pending Approval</span>
+                            <span className="text-yellow-600">
+                              Pending Approval
+                            </span>
                           </>
                         ) : (
                           <>
@@ -323,7 +333,10 @@ export default function TripsClient({
       </div>
 
       {/* Subscribe Dialog */}
-      <Dialog open={isSubscribeDialogOpen} onOpenChange={setIsSubscribeDialogOpen}>
+      <Dialog
+        open={isSubscribeDialogOpen}
+        onOpenChange={setIsSubscribeDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Subscribe to Trip</DialogTitle>
@@ -345,24 +358,34 @@ export default function TripsClient({
             )}
 
             <div>
-              <Label htmlFor="emergency_contact">Emergency Contact (Optional)</Label>
+              <Label htmlFor="emergency_contact">
+                Emergency Contact (Optional)
+              </Label>
               <Input
                 id="emergency_contact"
                 value={subscribeForm.emergency_contact}
                 onChange={(e) =>
-                  setSubscribeForm({ ...subscribeForm, emergency_contact: e.target.value })
+                  setSubscribeForm({
+                    ...subscribeForm,
+                    emergency_contact: e.target.value,
+                  })
                 }
                 placeholder="Name and phone number"
               />
             </div>
 
             <div>
-              <Label htmlFor="medical_info">Medical Information (Optional)</Label>
+              <Label htmlFor="medical_info">
+                Medical Information (Optional)
+              </Label>
               <Textarea
                 id="medical_info"
                 value={subscribeForm.medical_info}
                 onChange={(e) =>
-                  setSubscribeForm({ ...subscribeForm, medical_info: e.target.value })
+                  setSubscribeForm({
+                    ...subscribeForm,
+                    medical_info: e.target.value,
+                  })
                 }
                 placeholder="Any medical conditions or allergies to note"
                 rows={3}
@@ -386,5 +409,3 @@ export default function TripsClient({
     </>
   );
 }
-
-

@@ -20,7 +20,8 @@
       "Bash(npx tsc:*)",
       "Bash(ls:*)",
       "Bash(tail:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

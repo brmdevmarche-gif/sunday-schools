@@ -4,7 +4,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +24,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ShoppingCart, Plus, Minus, Trash2, Package, ArrowLeft } from "lucide-react";
-import type { StoreItem, PriceTier } from "@/lib/types/sunday-school";
+import {
+  ShoppingCart,
+  Plus,
+  Minus,
+  Trash2,
+  Package,
+  ArrowLeft,
+} from "lucide-react";
+import type { StoreItem, PriceTier } from "@/lib/types";
 import { createOrderAction } from "../admin/store/orders/actions";
 
 interface CartItem {
@@ -34,7 +47,11 @@ interface StoreClientProps {
   userClassIds: string[];
 }
 
-export default function StoreClient({ items, userProfile, userClassIds }: StoreClientProps) {
+export default function StoreClient({
+  items,
+  userProfile,
+  userClassIds,
+}: StoreClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const [cart, setCart] = useState<Map<string, CartItem>>(new Map());
@@ -153,11 +170,16 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">{t("store.title")}</h1>
-                <p className="text-sm text-muted-foreground">{t("store.description")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("store.description")}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => router.push("/store/orders")}>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/store/orders")}
+              >
                 {t("store.myOrders")}
               </Button>
               <Button
@@ -180,7 +202,9 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="h-16 w-16 text-muted-foreground mb-4" />
               <p className="text-lg font-medium">{t("store.noItems")}</p>
-              <p className="text-sm text-muted-foreground">{t("store.noItemsDescription")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("store.noItemsDescription")}
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -213,7 +237,9 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-2xl font-bold">{price}</p>
-                        <p className="text-xs text-muted-foreground">{t("store.points")}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("store.points")}
+                        </p>
                       </div>
                       {item.stock_type === "quantity" && (
                         <Badge variant="secondary">
@@ -227,15 +253,21 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
                         <Button
                           size="icon"
                           variant="outline"
-                          onClick={() => updateQuantity(item.id, cartQuantity - 1)}
+                          onClick={() =>
+                            updateQuantity(item.id, cartQuantity - 1)
+                          }
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="flex-1 text-center font-medium">{cartQuantity}</span>
+                        <span className="flex-1 text-center font-medium">
+                          {cartQuantity}
+                        </span>
                         <Button
                           size="icon"
                           variant="outline"
-                          onClick={() => updateQuantity(item.id, cartQuantity + 1)}
+                          onClick={() =>
+                            updateQuantity(item.id, cartQuantity + 1)
+                          }
                           disabled={
                             item.stock_type === "quantity" &&
                             cartQuantity >= item.stock_quantity
@@ -254,7 +286,10 @@ export default function StoreClient({ items, userProfile, userClassIds }: StoreC
                     ) : (
                       <Button
                         onClick={() => addToCart(item)}
-                        disabled={item.stock_type === "quantity" && item.stock_quantity === 0}
+                        disabled={
+                          item.stock_type === "quantity" &&
+                          item.stock_quantity === 0
+                        }
                         className="w-full"
                       >
                         <Plus className="h-4 w-4 mr-2" />

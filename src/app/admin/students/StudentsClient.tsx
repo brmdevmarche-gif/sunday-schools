@@ -44,7 +44,7 @@ import type {
   Diocese,
   Church,
   Class,
-} from "@/lib/types/sunday-school";
+} from "@/lib/types";
 import {
   createStudentAction,
   updateStudentAction,

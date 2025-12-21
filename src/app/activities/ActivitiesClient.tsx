@@ -33,7 +33,7 @@ import {
   completeActivityAction,
   withdrawFromActivityAction,
 } from "./actions";
-import type { ActivityWithDetails } from "@/lib/types/sunday-school";
+import type { ActivityWithDetails } from "@/lib/types";
 
 interface ActivitiesClientProps {
   activities: ActivityWithDetails[];
@@ -53,7 +53,9 @@ export default function ActivitiesClient({
   const t = useTranslations();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "available" | "participating" | "completed">("all");
+  const [filterType, setFilterType] = useState<
+    "all" | "available" | "participating" | "completed"
+  >("all");
   const [isLoading, setIsLoading] = useState(false);
 
   // Filter activities
@@ -66,9 +68,7 @@ export default function ActivitiesClient({
         (a) => !a.my_participation && !a.my_completion
       );
     } else if (filterType === "participating") {
-      filtered = filtered.filter(
-        (a) => a.my_participation && !a.my_completion
-      );
+      filtered = filtered.filter((a) => a.my_participation && !a.my_completion);
     } else if (filterType === "completed") {
       filtered = filtered.filter((a) => a.my_completion);
     }
@@ -135,28 +135,49 @@ export default function ActivitiesClient({
   function getParticipationStatus(activity: ActivityWithDetails) {
     if (activity.my_completion) {
       if (activity.my_completion.is_revoked) {
-        return { label: t("activities.revoked"), color: "bg-red-500/10 text-red-700" };
+        return {
+          label: t("activities.revoked"),
+          color: "bg-red-500/10 text-red-700",
+        };
       }
       if (activity.my_completion.status === "pending") {
-        return { label: t("activities.pendingApproval"), color: "bg-yellow-500/10 text-yellow-700" };
+        return {
+          label: t("activities.pendingApproval"),
+          color: "bg-yellow-500/10 text-yellow-700",
+        };
       }
       if (activity.my_completion.status === "completed") {
-        return { label: t("activities.completed"), color: "bg-green-500/10 text-green-700" };
+        return {
+          label: t("activities.completed"),
+          color: "bg-green-500/10 text-green-700",
+        };
       }
       if (activity.my_completion.status === "rejected") {
-        return { label: t("activities.rejected"), color: "bg-red-500/10 text-red-700" };
+        return {
+          label: t("activities.rejected"),
+          color: "bg-red-500/10 text-red-700",
+        };
       }
     }
 
     if (activity.my_participation) {
       if (activity.my_participation.status === "pending") {
-        return { label: t("activities.waitingApproval"), color: "bg-blue-500/10 text-blue-700" };
+        return {
+          label: t("activities.waitingApproval"),
+          color: "bg-blue-500/10 text-blue-700",
+        };
       }
       if (activity.my_participation.status === "approved") {
-        return { label: t("activities.participating"), color: "bg-green-500/10 text-green-700" };
+        return {
+          label: t("activities.participating"),
+          color: "bg-green-500/10 text-green-700",
+        };
       }
       if (activity.my_participation.status === "rejected") {
-        return { label: t("activities.participationRejected"), color: "bg-red-500/10 text-red-700" };
+        return {
+          label: t("activities.participationRejected"),
+          color: "bg-red-500/10 text-red-700",
+        };
       }
     }
 
@@ -196,8 +217,12 @@ export default function ActivitiesClient({
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("activities.totalPoints")}</p>
-                    <p className="text-3xl font-bold">{completionsData.totalPoints}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("activities.totalPoints")}
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {completionsData.totalPoints}
+                    </p>
                   </div>
                   <Trophy className="h-8 w-8 text-amber-500" />
                 </div>
@@ -208,8 +233,12 @@ export default function ActivitiesClient({
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("activities.pendingPoints")}</p>
-                    <p className="text-3xl font-bold">{completionsData.pendingPoints}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("activities.pendingPoints")}
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {completionsData.pendingPoints}
+                    </p>
                   </div>
                   <Clock className="h-8 w-8 text-blue-500" />
                 </div>
@@ -220,9 +249,15 @@ export default function ActivitiesClient({
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("activities.completedCount")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("activities.completedCount")}
+                    </p>
                     <p className="text-3xl font-bold">
-                      {completionsData.completions.filter(c => c.status === 'completed' && !c.is_revoked).length}
+                      {
+                        completionsData.completions.filter(
+                          (c) => c.status === "completed" && !c.is_revoked
+                        ).length
+                      }
                     </p>
                   </div>
                   <Award className="h-8 w-8 text-green-500" />
@@ -253,10 +288,18 @@ export default function ActivitiesClient({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("activities.allActivities")}</SelectItem>
-              <SelectItem value="available">{t("activities.available")}</SelectItem>
-              <SelectItem value="participating">{t("activities.myParticipations")}</SelectItem>
-              <SelectItem value="completed">{t("activities.myCompletions")}</SelectItem>
+              <SelectItem value="all">
+                {t("activities.allActivities")}
+              </SelectItem>
+              <SelectItem value="available">
+                {t("activities.available")}
+              </SelectItem>
+              <SelectItem value="participating">
+                {t("activities.myParticipations")}
+              </SelectItem>
+              <SelectItem value="completed">
+                {t("activities.myCompletions")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -266,7 +309,9 @@ export default function ActivitiesClient({
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Target className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">{t("activities.noActivitiesFound")}</p>
+              <p className="text-lg font-medium">
+                {t("activities.noActivitiesFound")}
+              </p>
               <p className="text-sm text-muted-foreground">
                 {t("activities.noActivitiesFoundDescription")}
               </p>
@@ -309,7 +354,9 @@ export default function ActivitiesClient({
                       <div className="flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-amber-500" />
                         <span className="font-bold">{activity.points}</span>
-                        <span className="text-muted-foreground">{t("activities.points")}</span>
+                        <span className="text-muted-foreground">
+                          {t("activities.points")}
+                        </span>
                       </div>
                       {activity.max_participants && (
                         <div className="flex items-center gap-2">
@@ -325,21 +372,24 @@ export default function ActivitiesClient({
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4 text-red-500" />
                         <span className="text-xs">
-                          {t("activities.deadline")}: {new Date(activity.deadline).toLocaleDateString()}
+                          {t("activities.deadline")}:{" "}
+                          {new Date(activity.deadline).toLocaleDateString()}
                         </span>
                       </div>
                     )}
 
-                    {activity.my_completion && !activity.my_completion.is_revoked && (
-                      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                          <span className="font-medium text-green-700 dark:text-green-400">
-                            +{activity.my_completion.points_awarded} {t("activities.points")}
-                          </span>
+                    {activity.my_completion &&
+                      !activity.my_completion.is_revoked && (
+                        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-green-700 dark:text-green-400">
+                              +{activity.my_completion.points_awarded}{" "}
+                              {t("activities.points")}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     <div className="flex gap-2 mt-auto">
                       {canPart && (

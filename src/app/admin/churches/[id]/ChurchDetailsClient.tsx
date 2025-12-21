@@ -35,7 +35,7 @@ import type {
   Class,
   UserWithClassAssignments,
   Diocese,
-} from "@/lib/types/sunday-school";
+} from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
 import { updateChurchAction } from "../actions";
 import { toast } from "sonner";

@@ -2,7 +2,12 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { ChurchDetailsClient } from "./ChurchDetailsClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import type { Church, Diocese, Class, UserWithClassAssignments } from "@/lib/types/sunday-school";
+import type {
+  Church,
+  Diocese,
+  Class,
+  UserWithClassAssignments,
+} from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +15,9 @@ interface ChurchDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function ChurchDetailsPage({ params }: ChurchDetailsPageProps) {
+export default async function ChurchDetailsPage({
+  params,
+}: ChurchDetailsPageProps) {
   const { id } = await params;
   const supabase = await createClient();
 
@@ -35,7 +42,8 @@ export default async function ChurchDetailsPage({ params }: ChurchDetailsPagePro
   }
 
   const isSuperAdmin = profile.role === "super_admin";
-  const isChurchAdmin = profile.role === "church_admin" && profile.church_id === id;
+  const isChurchAdmin =
+    profile.role === "church_admin" && profile.church_id === id;
 
   // Fetch church details
   const { data: church, error: churchError } = await supabase
@@ -75,29 +83,38 @@ export default async function ChurchDetailsPage({ params }: ChurchDetailsPagePro
     .order("full_name", { ascending: true });
 
   // Fetch class assignments for these users
-  const userIds = users?.map(u => u.id) || [];
-  const { data: assignments } = userIds.length > 0 ? await supabase
-    .from("class_assignments")
-    .select(`
+  const userIds = users?.map((u) => u.id) || [];
+  const { data: assignments } =
+    userIds.length > 0
+      ? await supabase
+          .from("class_assignments")
+          .select(
+            `
       class_id,
       user_id,
       assignment_type,
       classes:classes(id, name)
-    `)
-    .in("user_id", userIds)
-    .eq("is_active", true) : { data: null };
+    `
+          )
+          .in("user_id", userIds)
+          .eq("is_active", true)
+      : { data: null };
 
   // Map assignments to users
-  const usersWithAssignments = users?.map(user => ({
-    ...user,
-    classAssignments: assignments
-      ?.filter(a => a.user_id === user.id)
-      .map(a => ({
-        class_id: a.class_id!,
-        class_name: (a.classes as unknown as { name?: string } | null)?.name || 'Unknown',
-        assignment_type: a.assignment_type,
-      })) || []
-  })) || [];
+  const usersWithAssignments =
+    users?.map((user) => ({
+      ...user,
+      classAssignments:
+        assignments
+          ?.filter((a) => a.user_id === user.id)
+          .map((a) => ({
+            class_id: a.class_id!,
+            class_name:
+              (a.classes as unknown as { name?: string } | null)?.name ||
+              "Unknown",
+            assignment_type: a.assignment_type,
+          })) || [],
+    })) || [];
 
   return (
     <AdminLayout>

@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Shield, ChevronRight } from "lucide-react";
-import type { Diocese, CreateDioceseInput } from "@/lib/types/sunday-school";
+import type { Diocese, CreateDioceseInput } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
 import {
   createDioceseAction,

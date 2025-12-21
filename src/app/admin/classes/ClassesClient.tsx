@@ -38,7 +38,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Users, UserPlus, Search, User as UserIcon, Mail, Phone } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Users,
+  UserPlus,
+  Search,
+  User as UserIcon,
+  Mail,
+  Phone,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type {
   Class,
@@ -46,7 +56,7 @@ import type {
   Church,
   Diocese,
   ExtendedUser,
-} from "@/lib/types/sunday-school";
+} from "@/lib/types";
 import {
   createClassAction,
   updateClassAction,
@@ -448,7 +458,10 @@ export default function ClassesClient({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        className="flex justify-end gap-1 flex-wrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button
                           variant="ghost"
                           size="sm"
@@ -681,7 +694,9 @@ export default function ClassesClient({
             </DialogTitle>
             <DialogDescription>
               {assignmentType === "teacher"
-                ? t("classes.selectTeacher", { className: selectedClass?.name ?? "" })
+                ? t("classes.selectTeacher", {
+                    className: selectedClass?.name ?? "",
+                  })
                 : t("classes.selectStudent", {
                     className: selectedClass?.name ?? "",
                   })}
@@ -694,7 +709,13 @@ export default function ClassesClient({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder={t("common.search") + " " + (assignmentType === "teacher" ? t("classes.byNameEmailPhone") : t("classes.byNameEmailPhone"))}
+                placeholder={
+                  t("common.search") +
+                  " " +
+                  (assignmentType === "teacher"
+                    ? t("classes.byNameEmailPhone")
+                    : t("classes.byNameEmailPhone"))
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -706,7 +727,11 @@ export default function ClassesClient({
               {filteredUsers.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <UserIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>{searchQuery ? t("common.noResults") : t("classes.noUsersAvailable")}</p>
+                  <p>
+                    {searchQuery
+                      ? t("common.noResults")
+                      : t("classes.noUsersAvailable")}
+                  </p>
                 </div>
               ) : (
                 filteredUsers.map((user) => (
@@ -722,7 +747,10 @@ export default function ClassesClient({
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={user.avatar_url || undefined} alt={user.full_name || user.email} />
+                          <AvatarImage
+                            src={user.avatar_url || undefined}
+                            alt={user.full_name || user.email}
+                          />
                           <AvatarFallback className="bg-primary/10">
                             {(user.full_name || user.email)
                               .split(" ")
@@ -734,7 +762,9 @@ export default function ClassesClient({
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">
-                            {user.full_name || user.username || t("common.unnamed")}
+                            {user.full_name ||
+                              user.username ||
+                              t("common.unnamed")}
                           </p>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Mail className="h-3 w-3" />
@@ -799,7 +829,9 @@ export default function ClassesClient({
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>
-              {t("classes.classRoster", { className: selectedClass?.name ?? "" })}
+              {t("classes.classRoster", {
+                className: selectedClass?.name ?? "",
+              })}
             </DialogTitle>
             <DialogDescription>
               {t("classes.rosterDescription")}

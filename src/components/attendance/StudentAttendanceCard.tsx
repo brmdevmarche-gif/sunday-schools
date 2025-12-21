@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { AttendanceStatusButtons } from "./AttendanceStatusButtons";
-import type { AttendanceStatus } from "@/lib/types/sunday-school";
+import type { AttendanceStatus } from "@/lib/types";
 
 interface Student {
   id: string;

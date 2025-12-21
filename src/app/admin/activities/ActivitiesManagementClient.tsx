@@ -35,7 +35,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { deleteActivityAction } from "./actions";
-import type { Activity, ActivityStatus } from "@/lib/types/sunday-school";
+import type { Activity, ActivityStatus } from "@/lib/types";
 
 interface ActivitiesManagementClientProps {
   activities: Activity[];
@@ -49,7 +49,9 @@ export default function ActivitiesManagementClient({
   const t = useTranslations();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ActivityStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<ActivityStatus | "all">(
+    "all"
+  );
   const [activities, setActivities] = useState(initialActivities);
 
   // Filter activities
@@ -134,17 +136,27 @@ export default function ActivitiesManagementClient({
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as ActivityStatus | "all")}
+          onValueChange={(value) =>
+            setStatusFilter(value as ActivityStatus | "all")
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("activities.allStatuses")}</SelectItem>
-            <SelectItem value="draft">{t("activities.status.draft")}</SelectItem>
-            <SelectItem value="active">{t("activities.status.active")}</SelectItem>
-            <SelectItem value="completed">{t("activities.status.completed")}</SelectItem>
-            <SelectItem value="cancelled">{t("activities.status.cancelled")}</SelectItem>
+            <SelectItem value="draft">
+              {t("activities.status.draft")}
+            </SelectItem>
+            <SelectItem value="active">
+              {t("activities.status.active")}
+            </SelectItem>
+            <SelectItem value="completed">
+              {t("activities.status.completed")}
+            </SelectItem>
+            <SelectItem value="cancelled">
+              {t("activities.status.cancelled")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -154,7 +166,9 @@ export default function ActivitiesManagementClient({
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Trophy className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">{t("activities.noActivities")}</p>
+            <p className="text-lg font-medium">
+              {t("activities.noActivities")}
+            </p>
             <p className="text-sm text-muted-foreground">
               {t("activities.noActivitiesDescription")}
             </p>
@@ -179,7 +193,9 @@ export default function ActivitiesManagementClient({
                     <CardTitle className="text-lg line-clamp-1">
                       {activity.name}
                     </CardTitle>
-                    <Badge className={`${getStatusColor(activity.status)} mt-2`}>
+                    <Badge
+                      className={`${getStatusColor(activity.status)} mt-2`}
+                    >
                       {t(`activities.status.${activity.status}`)}
                     </Badge>
                   </div>
@@ -190,10 +206,14 @@ export default function ActivitiesManagementClient({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>{t("common.actions")}</DropdownMenuLabel>
+                      <DropdownMenuLabel>
+                        {t("common.actions")}
+                      </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => router.push(`/admin/activities/${activity.id}`)}
+                        onClick={() =>
+                          router.push(`/admin/activities/${activity.id}`)
+                        }
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         {t("common.edit")}
@@ -260,7 +280,9 @@ export default function ActivitiesManagementClient({
                 <Button
                   variant="outline"
                   className="w-full mt-auto"
-                  onClick={() => router.push(`/admin/activities/${activity.id}`)}
+                  onClick={() =>
+                    router.push(`/admin/activities/${activity.id}`)
+                  }
                 >
                   {t("activities.viewDetails")}
                 </Button>

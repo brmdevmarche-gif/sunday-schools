@@ -35,7 +35,7 @@ import {
   Clock,
 } from "lucide-react";
 import { deleteTripAction } from "./actions";
-import type { TripWithDetails, TripStatus, TripType } from "@/lib/types/sunday-school";
+import type { TripWithDetails, TripStatus, TripType } from "@/lib/types";
 
 interface TripsManagementClientProps {
   trips: TripWithDetails[];
@@ -161,7 +161,9 @@ export default function TripsManagementClient({
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as TripStatus | "all")}
+          onValueChange={(value) =>
+            setStatusFilter(value as TripStatus | "all")
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue />
@@ -214,7 +216,8 @@ export default function TripsManagementClient({
                     </CardTitle>
                     <div className="flex gap-2 mt-2 flex-wrap">
                       <Badge className={getStatusColor(trip.status)}>
-                        {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+                        {trip.status.charAt(0).toUpperCase() +
+                          trip.status.slice(1)}
                       </Badge>
                       {trip.trip_type && (
                         <Badge className={getTypeColor(trip.trip_type)}>
@@ -259,54 +262,58 @@ export default function TripsManagementClient({
                   </p>
                 )}
 
-                    {/* Destinations */}
-                    {trip.destinations && trip.destinations.length > 0 && (
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">Destinations:</span>
-                        </div>
-                        <div className="pl-6 space-y-1">
-                          {trip.destinations.map((dest, idx) => (
-                            <p key={dest.id} className="text-xs text-muted-foreground">
-                              {idx + 1}. {dest.destination_name}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {trip.start_datetime && (
-                        <div className="flex items-center gap-2 col-span-2">
-                          <Calendar className="h-4 w-4 text-blue-500" />
-                          <span className="text-muted-foreground">
-                            Start: {formatDateTime(trip.start_datetime)}
-                          </span>
-                        </div>
-                      )}
-                      {trip.end_datetime && (
-                        <div className="flex items-center gap-2 col-span-2">
-                          <Clock className="h-4 w-4 text-green-500" />
-                          <span className="text-muted-foreground">
-                            End: {formatDateTime(trip.end_datetime)}
-                          </span>
-                        </div>
-                      )}
-                      {trip.max_participants && (
-                        <div className="flex items-center gap-2 col-span-2">
-                          <Users className="h-4 w-4 text-orange-500" />
-                          <span className="text-muted-foreground">
-                            Max: {trip.max_participants} participants
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 col-span-2">
-                        <span className="font-medium">
-                          Price: ${trip.price_normal} (normal), ${trip.price_mastor} (mastor), ${trip.price_botl} (botl)
-                        </span>
-                      </div>
+                {/* Destinations */}
+                {trip.destinations && trip.destinations.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Destinations:</span>
                     </div>
+                    <div className="pl-6 space-y-1">
+                      {trip.destinations.map((dest, idx) => (
+                        <p
+                          key={dest.id}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {idx + 1}. {dest.destination_name}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {trip.start_datetime && (
+                    <div className="flex items-center gap-2 col-span-2">
+                      <Calendar className="h-4 w-4 text-blue-500" />
+                      <span className="text-muted-foreground">
+                        Start: {formatDateTime(trip.start_datetime)}
+                      </span>
+                    </div>
+                  )}
+                  {trip.end_datetime && (
+                    <div className="flex items-center gap-2 col-span-2">
+                      <Clock className="h-4 w-4 text-green-500" />
+                      <span className="text-muted-foreground">
+                        End: {formatDateTime(trip.end_datetime)}
+                      </span>
+                    </div>
+                  )}
+                  {trip.max_participants && (
+                    <div className="flex items-center gap-2 col-span-2">
+                      <Users className="h-4 w-4 text-orange-500" />
+                      <span className="text-muted-foreground">
+                        Max: {trip.max_participants} participants
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 col-span-2">
+                    <span className="font-medium">
+                      Price: ${trip.price_normal} (normal), ${trip.price_mastor}{" "}
+                      (mastor), ${trip.price_botl} (botl)
+                    </span>
+                  </div>
+                </div>
 
                 <Button
                   variant="outline"
@@ -323,4 +330,3 @@ export default function TripsManagementClient({
     </div>
   );
 }
-

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StoreClient from "./StoreClient";
-import type { StoreItem } from "@/lib/types/sunday-school";
+import type { StoreItem } from "@/lib/types";
 
 interface Church {
   id: string;

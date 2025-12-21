@@ -19,13 +19,15 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 import { createActivityAction } from "../actions";
-import type { CreateActivityInput, ActivityStatus } from "@/lib/types/sunday-school";
+import type { CreateActivityInput, ActivityStatus } from "@/lib/types";
 
 interface CreateActivityClientProps {
   userProfile: any;
 }
 
-export default function CreateActivityClient({ userProfile }: CreateActivityClientProps) {
+export default function CreateActivityClient({
+  userProfile,
+}: CreateActivityClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +59,9 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
     setIsLoading(true);
     try {
       await createActivityAction(formData as CreateActivityInput);
-      toast.success(t("activities.activityCreated") || "Activity created successfully");
+      toast.success(
+        t("activities.activityCreated") || "Activity created successfully"
+      );
       router.push("/admin/activities");
     } catch (error: any) {
       console.error("Error creating activity:", error);
@@ -74,9 +78,12 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">{t("activities.createActivity")}</h1>
+          <h1 className="text-3xl font-bold">
+            {t("activities.createActivity")}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            {t("activities.createDescription") || "Create a new activity for students"}
+            {t("activities.createDescription") ||
+              "Create a new activity for students"}
           </p>
         </div>
       </div>
@@ -88,38 +95,49 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("activities.basicInfo") || "Basic Information"}</CardTitle>
+                <CardTitle>
+                  {t("activities.basicInfo") || "Basic Information"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="name">{t("common.name")} *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder={t("activities.namePlaceholder") || "Enter activity name"}
+                    placeholder={
+                      t("activities.namePlaceholder") || "Enter activity name"
+                    }
                     required
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="description">{t("common.description")}</Label>
                   <Textarea
                     id="description"
                     value={formData.description || ""}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    placeholder={t("activities.descriptionPlaceholder") || "Enter activity description"}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
+                    placeholder={
+                      t("activities.descriptionPlaceholder") ||
+                      "Enter activity description"
+                    }
                     rows={4}
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="image_url">{t("store.imageUrl")}</Label>
                   <Input
                     id="image_url"
                     type="url"
                     value={formData.image_url || ""}
-                    onChange={(e) => handleInputChange("image_url", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("image_url", e.target.value)
+                    }
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
@@ -129,25 +147,30 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
             {/* Points Configuration */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("activities.pointsConfig") || "Points Configuration"}</CardTitle>
+                <CardTitle>
+                  {t("activities.pointsConfig") || "Points Configuration"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="points">{t("activities.points")} *</Label>
                     <Input
                       id="points"
                       type="number"
                       min="0"
                       value={formData.points}
-                      onChange={(e) => handleInputChange("points", parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleInputChange("points", parseInt(e.target.value))
+                      }
                       required
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="reduced_points_percentage">
-                      {t("activities.reducedPointsPercentage") || "Reduced Points %"}
+                      {t("activities.reducedPointsPercentage") ||
+                        "Reduced Points %"}
                     </Label>
                     <Input
                       id="reduced_points_percentage"
@@ -155,7 +178,12 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
                       min="0"
                       max="100"
                       value={formData.reduced_points_percentage}
-                      onChange={(e) => handleInputChange("reduced_points_percentage", parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "reduced_points_percentage",
+                          parseInt(e.target.value)
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -165,52 +193,71 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
             {/* Time Settings */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("activities.timeSettings") || "Time Settings"}</CardTitle>
+                <CardTitle>
+                  {t("activities.timeSettings") || "Time Settings"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>{t("activities.isTimeSensitive") || "Time Sensitive"}</Label>
+                    <Label>
+                      {t("activities.isTimeSensitive") || "Time Sensitive"}
+                    </Label>
                     <p className="text-sm text-muted-foreground">
-                      {t("activities.timeSensitiveDesc") || "Enable deadlines for this activity"}
+                      {t("activities.timeSensitiveDesc") ||
+                        "Enable deadlines for this activity"}
                     </p>
                   </div>
                   <Switch
                     checked={formData.is_time_sensitive}
-                    onCheckedChange={(checked) => handleInputChange("is_time_sensitive", checked)}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("is_time_sensitive", checked)
+                    }
                   />
                 </div>
 
                 {formData.is_time_sensitive && (
                   <>
-                    <div>
-                      <Label htmlFor="deadline">{t("activities.deadline")}</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="deadline">
+                        {t("activities.deadline")}
+                      </Label>
                       <Input
                         id="deadline"
                         type="datetime-local"
                         value={formData.deadline || ""}
-                        onChange={(e) => handleInputChange("deadline", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("deadline", e.target.value)
+                        }
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="start_time">{t("activities.startTime") || "Start Time"}</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="start_time">
+                          {t("activities.startTime") || "Start Time"}
+                        </Label>
                         <Input
                           id="start_time"
                           type="datetime-local"
                           value={formData.start_time || ""}
-                          onChange={(e) => handleInputChange("start_time", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("start_time", e.target.value)
+                          }
                         />
                       </div>
 
-                      <div>
-                        <Label htmlFor="end_time">{t("activities.endTime") || "End Time"}</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="end_time">
+                          {t("activities.endTime") || "End Time"}
+                        </Label>
                         <Input
                           id="end_time"
                           type="datetime-local"
                           value={formData.end_time || ""}
-                          onChange={(e) => handleInputChange("end_time", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("end_time", e.target.value)
+                          }
                         />
                       </div>
                     </div>
@@ -228,32 +275,51 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
                 <CardTitle>{t("common.status")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="status">{t("activities.status") || "Status"}</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="status">
+                    {t("activities.status") || "Status"}
+                  </Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => handleInputChange("status", value)}
+                    onValueChange={(value) =>
+                      handleInputChange("status", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="draft">{t("activities.status.draft")}</SelectItem>
-                      <SelectItem value="active">{t("activities.status.active")}</SelectItem>
-                      <SelectItem value="completed">{t("activities.status.completed")}</SelectItem>
-                      <SelectItem value="cancelled">{t("activities.status.cancelled")}</SelectItem>
+                      <SelectItem value="draft">
+                        {t("activities.status.draft")}
+                      </SelectItem>
+                      <SelectItem value="active">
+                        {t("activities.status.active")}
+                      </SelectItem>
+                      <SelectItem value="completed">
+                        {t("activities.status.completed")}
+                      </SelectItem>
+                      <SelectItem value="cancelled">
+                        {t("activities.status.cancelled")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="max_participants">{t("activities.maxParticipants") || "Max Participants"}</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="max_participants">
+                    {t("activities.maxParticipants") || "Max Participants"}
+                  </Label>
                   <Input
                     id="max_participants"
                     type="number"
                     min="0"
                     value={formData.max_participants || ""}
-                    onChange={(e) => handleInputChange("max_participants", e.target.value ? parseInt(e.target.value) : undefined)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "max_participants",
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )
+                    }
                     placeholder={t("activities.unlimited") || "Unlimited"}
                   />
                 </div>
@@ -263,7 +329,9 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
             {/* Approval Settings */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("activities.approvalSettings") || "Approval Settings"}</CardTitle>
+                <CardTitle>
+                  {t("activities.approvalSettings") || "Approval Settings"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -273,7 +341,12 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
                   <Switch
                     id="requires_participation_approval"
                     checked={formData.requires_participation_approval}
-                    onCheckedChange={(checked) => handleInputChange("requires_participation_approval", checked)}
+                    onCheckedChange={(checked) =>
+                      handleInputChange(
+                        "requires_participation_approval",
+                        checked
+                      )
+                    }
                   />
                 </div>
 
@@ -284,7 +357,9 @@ export default function CreateActivityClient({ userProfile }: CreateActivityClie
                   <Switch
                     id="requires_completion_approval"
                     checked={formData.requires_completion_approval}
-                    onCheckedChange={(checked) => handleInputChange("requires_completion_approval", checked)}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("requires_completion_approval", checked)
+                    }
                   />
                 </div>
               </CardContent>

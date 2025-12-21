@@ -33,7 +33,7 @@ import {
   Home,
   Menu,
 } from "lucide-react";
-import type { AttendanceStatus } from "@/lib/types/sunday-school";
+import type { AttendanceStatus } from "@/lib/types";
 import {
   getClassAttendanceAction,
   bulkMarkAttendanceAction,

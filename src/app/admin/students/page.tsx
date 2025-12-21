@@ -2,7 +2,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import StudentsClient from "./StudentsClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import type { ExtendedUser, Diocese, Church, Class } from "@/lib/types/sunday-school";
+import type { ExtendedUser, Diocese, Church, Class } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -82,30 +82,37 @@ export default async function StudentsPage() {
   const { data: classes } = await classesQuery;
 
   // Fetch class assignments for students
-  const studentIds = students?.map(s => s.id) || [];
-  const { data: assignments } = studentIds.length > 0 ? await supabase
-    .from("class_assignments")
-    .select(`
+  const studentIds = students?.map((s) => s.id) || [];
+  const { data: assignments } =
+    studentIds.length > 0
+      ? await supabase
+          .from("class_assignments")
+          .select(
+            `
       class_id,
       user_id,
       assignment_type,
       classes:classes(id, name)
-    `)
-    .in("user_id", studentIds)
-    .eq("assignment_type", "student")
-    .eq("is_active", true) : { data: null };
+    `
+          )
+          .in("user_id", studentIds)
+          .eq("assignment_type", "student")
+          .eq("is_active", true)
+      : { data: null };
 
   // Map assignments to students
-  const studentsWithAssignments = students?.map(student => ({
-    ...student,
-    classAssignments: assignments
-      ?.filter(a => a.user_id === student.id)
-      .map(a => ({
-        class_id: a.class_id!,
-        class_name: (a.classes as any)?.name || 'Unknown',
-        assignment_type: a.assignment_type,
-      })) || []
-  })) || [];
+  const studentsWithAssignments =
+    students?.map((student) => ({
+      ...student,
+      classAssignments:
+        assignments
+          ?.filter((a) => a.user_id === student.id)
+          .map((a) => ({
+            class_id: a.class_id!,
+            class_name: (a.classes as any)?.name || "Unknown",
+            assignment_type: a.assignment_type,
+          })) || [],
+    })) || [];
 
   return (
     <AdminLayout>

@@ -24,9 +24,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Package, Search, Eye, ShoppingCart } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Package,
+  Search,
+  Eye,
+  ShoppingCart,
+} from "lucide-react";
 import { toast } from "sonner";
-import type { StoreItem } from "@/lib/types/sunday-school";
+import type { StoreItem } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
 import {
   createStoreItemAction,
@@ -90,14 +98,20 @@ export default function StoreClient({
   });
 
   // Filter churches based on selected dioceses
-  const filteredChurches = formData.diocese_ids.length > 0
-    ? churches.filter(church => formData.diocese_ids.includes(church.diocese_id))
-    : churches;
+  const filteredChurches =
+    formData.diocese_ids.length > 0
+      ? churches.filter((church) =>
+          formData.diocese_ids.includes(church.diocese_id)
+        )
+      : churches;
 
   // Filter classes based on selected churches
-  const filteredClasses = formData.church_ids.length > 0
-    ? classes.filter(classItem => formData.church_ids.includes(classItem.church_id))
-    : classes;
+  const filteredClasses =
+    formData.church_ids.length > 0
+      ? classes.filter((classItem) =>
+          formData.church_ids.includes(classItem.church_id)
+        )
+      : classes;
 
   // Auto-remove invalid church selections when diocese filter changes
   const handleDioceseChange = (dioceseId: string, checked: boolean) => {
@@ -105,17 +119,18 @@ export default function StoreClient({
     if (checked) {
       newDioceseIds = [...formData.diocese_ids, dioceseId];
     } else {
-      newDioceseIds = formData.diocese_ids.filter(id => id !== dioceseId);
+      newDioceseIds = formData.diocese_ids.filter((id) => id !== dioceseId);
     }
 
     // Filter churches to match new diocese selection
-    const validChurches = newDioceseIds.length > 0
-      ? churches.filter(church => newDioceseIds.includes(church.diocese_id))
-      : churches;
+    const validChurches =
+      newDioceseIds.length > 0
+        ? churches.filter((church) => newDioceseIds.includes(church.diocese_id))
+        : churches;
 
     // Remove any selected churches that are no longer in the filtered list
-    const validChurchIds = formData.church_ids.filter(id =>
-      validChurches.some(church => church.id === id)
+    const validChurchIds = formData.church_ids.filter((id) =>
+      validChurches.some((church) => church.id === id)
     );
 
     setFormData({
@@ -131,17 +146,20 @@ export default function StoreClient({
     if (checked) {
       newChurchIds = [...formData.church_ids, churchId];
     } else {
-      newChurchIds = formData.church_ids.filter(id => id !== churchId);
+      newChurchIds = formData.church_ids.filter((id) => id !== churchId);
     }
 
     // Filter classes to match new church selection
-    const validClasses = newChurchIds.length > 0
-      ? classes.filter(classItem => newChurchIds.includes(classItem.church_id))
-      : classes;
+    const validClasses =
+      newChurchIds.length > 0
+        ? classes.filter((classItem) =>
+            newChurchIds.includes(classItem.church_id)
+          )
+        : classes;
 
     // Remove any selected classes that are no longer in the filtered list
-    const validClassIds = formData.class_ids.filter(id =>
-      validClasses.some(classItem => classItem.id === id)
+    const validClassIds = formData.class_ids.filter((id) =>
+      validClasses.some((classItem) => classItem.id === id)
     );
 
     setFormData({
@@ -169,7 +187,10 @@ export default function StoreClient({
   };
 
   const handleCreate = async () => {
-    if (!formData.name || (formData.stock_type === 'quantity' && formData.stock_quantity < 0)) {
+    if (
+      !formData.name ||
+      (formData.stock_type === "quantity" && formData.stock_quantity < 0)
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -198,7 +219,8 @@ export default function StoreClient({
         resetForm();
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to create store item";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create store item";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -206,7 +228,11 @@ export default function StoreClient({
   };
 
   const handleEdit = async () => {
-    if (!selectedItem || !formData.name || (formData.stock_type === 'quantity' && formData.stock_quantity < 0)) {
+    if (
+      !selectedItem ||
+      !formData.name ||
+      (formData.stock_type === "quantity" && formData.stock_quantity < 0)
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -241,7 +267,8 @@ export default function StoreClient({
                 price_normal: formData.price_normal,
                 price_mastor: formData.price_mastor,
                 price_botl: formData.price_botl,
-                is_available_to_all_classes: formData.is_available_to_all_classes,
+                is_available_to_all_classes:
+                  formData.is_available_to_all_classes,
               }
             : item
         )
@@ -252,7 +279,8 @@ export default function StoreClient({
       setSelectedItem(null);
       resetForm();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to update store item";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update store item";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -270,7 +298,8 @@ export default function StoreClient({
       setItems(items.filter((i) => i.id !== item.id));
       toast.success("Store item deleted successfully");
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to delete store item";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete store item";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -292,7 +321,8 @@ export default function StoreClient({
         } successfully`
       );
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to toggle item status";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to toggle item status";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -339,10 +369,10 @@ export default function StoreClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t("store.title")} {t("common.management")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("store.subtitle")}
-          </p>
+          <h1 className="text-3xl font-bold">
+            {t("store.title")} {t("common.management")}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t("store.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -496,7 +526,7 @@ export default function StoreClient({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="name">Item Name *</Label>
               <Input
                 id="name"
@@ -507,7 +537,7 @@ export default function StoreClient({
                 placeholder="Enter item name"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
@@ -541,7 +571,10 @@ export default function StoreClient({
                     value="quantity"
                     checked={formData.stock_type === "quantity"}
                     onChange={(e) =>
-                      setFormData({ ...formData, stock_type: e.target.value as "quantity" | "on_demand" })
+                      setFormData({
+                        ...formData,
+                        stock_type: e.target.value as "quantity" | "on_demand",
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -554,7 +587,10 @@ export default function StoreClient({
                     value="on_demand"
                     checked={formData.stock_type === "on_demand"}
                     onChange={(e) =>
-                      setFormData({ ...formData, stock_type: e.target.value as "quantity" | "on_demand" })
+                      setFormData({
+                        ...formData,
+                        stock_type: e.target.value as "quantity" | "on_demand",
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -565,7 +601,7 @@ export default function StoreClient({
 
             {/* Stock Quantity (only if type is quantity) */}
             {formData.stock_type === "quantity" && (
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="stock_quantity">Stock Quantity *</Label>
                 <Input
                   id="stock_quantity"
@@ -583,7 +619,7 @@ export default function StoreClient({
             )}
 
             <div className="grid grid-cols-3 gap-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="price_normal">Price (Normal) *</Label>
                 <Input
                   id="price_normal"
@@ -599,7 +635,7 @@ export default function StoreClient({
                   placeholder="Points"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="price_mastor">Price (Mastor) *</Label>
                 <Input
                   id="price_mastor"
@@ -615,7 +651,7 @@ export default function StoreClient({
                   placeholder="Points"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="price_botl">Price (Botl) *</Label>
                 <Input
                   id="price_botl"
@@ -641,15 +677,22 @@ export default function StoreClient({
                   <button
                     type="button"
                     onClick={() => {
-                      if (formData.church_ids.length === filteredChurches.length) {
+                      if (
+                        formData.church_ids.length === filteredChurches.length
+                      ) {
                         setFormData({ ...formData, church_ids: [] });
                       } else {
-                        setFormData({ ...formData, church_ids: filteredChurches.map(c => c.id) });
+                        setFormData({
+                          ...formData,
+                          church_ids: filteredChurches.map((c) => c.id),
+                        });
                       }
                     }}
                     className="text-xs text-primary hover:underline"
                   >
-                    {formData.church_ids.length === filteredChurches.length ? "Deselect All" : "Select All"}
+                    {formData.church_ids.length === filteredChurches.length
+                      ? "Deselect All"
+                      : "Select All"}
                   </button>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
@@ -657,11 +700,16 @@ export default function StoreClient({
                 </p>
                 <div className="border rounded p-2 max-h-40 overflow-y-auto">
                   {filteredChurches.map((church) => (
-                    <label key={church.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
+                    <label
+                      key={church.id}
+                      className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={formData.church_ids.includes(church.id)}
-                        onChange={(e) => handleChurchChange(church.id, e.target.checked)}
+                        onChange={(e) =>
+                          handleChurchChange(church.id, e.target.checked)
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm">
@@ -685,24 +733,35 @@ export default function StoreClient({
                       if (formData.diocese_ids.length === dioceses.length) {
                         setFormData({ ...formData, diocese_ids: [] });
                       } else {
-                        setFormData({ ...formData, diocese_ids: dioceses.map(d => d.id) });
+                        setFormData({
+                          ...formData,
+                          diocese_ids: dioceses.map((d) => d.id),
+                        });
                       }
                     }}
                     className="text-xs text-primary hover:underline"
                   >
-                    {formData.diocese_ids.length === dioceses.length ? "Deselect All" : "Select All"}
+                    {formData.diocese_ids.length === dioceses.length
+                      ? "Deselect All"
+                      : "Select All"}
                   </button>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Select dioceses - item will be available to all churches in selected dioceses
+                  Select dioceses - item will be available to all churches in
+                  selected dioceses
                 </p>
                 <div className="border rounded p-2 max-h-40 overflow-y-auto">
                   {dioceses.map((diocese) => (
-                    <label key={diocese.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
+                    <label
+                      key={diocese.id}
+                      className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={formData.diocese_ids.includes(diocese.id)}
-                        onChange={(e) => handleDioceseChange(diocese.id, e.target.checked)}
+                        onChange={(e) =>
+                          handleDioceseChange(diocese.id, e.target.checked)
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm">{diocese.name}</span>
@@ -722,7 +781,11 @@ export default function StoreClient({
                     name="class_availability"
                     checked={formData.is_available_to_all_classes}
                     onChange={() =>
-                      setFormData({ ...formData, is_available_to_all_classes: true, class_ids: [] })
+                      setFormData({
+                        ...formData,
+                        is_available_to_all_classes: true,
+                        class_ids: [],
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -734,7 +797,10 @@ export default function StoreClient({
                     name="class_availability"
                     checked={!formData.is_available_to_all_classes}
                     onChange={() =>
-                      setFormData({ ...formData, is_available_to_all_classes: false })
+                      setFormData({
+                        ...formData,
+                        is_available_to_all_classes: false,
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -744,51 +810,67 @@ export default function StoreClient({
             </div>
 
             {/* Specific Classes Selection */}
-            {!formData.is_available_to_all_classes && filteredClasses.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Select Classes</Label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (formData.class_ids.length === filteredClasses.length) {
-                        setFormData({ ...formData, class_ids: [] });
-                      } else {
-                        setFormData({ ...formData, class_ids: filteredClasses.map(c => c.id) });
-                      }
-                    }}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    {formData.class_ids.length === filteredClasses.length ? "Deselect All" : "Select All"}
-                  </button>
+            {!formData.is_available_to_all_classes &&
+              filteredClasses.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Select Classes</Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          formData.class_ids.length === filteredClasses.length
+                        ) {
+                          setFormData({ ...formData, class_ids: [] });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            class_ids: filteredClasses.map((c) => c.id),
+                          });
+                        }
+                      }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {formData.class_ids.length === filteredClasses.length
+                        ? "Deselect All"
+                        : "Select All"}
+                    </button>
+                  </div>
+                  <div className="border rounded p-2 max-h-40 overflow-y-auto">
+                    {filteredClasses.map((classItem) => (
+                      <label
+                        key={classItem.id}
+                        className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.class_ids.includes(classItem.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                class_ids: [
+                                  ...formData.class_ids,
+                                  classItem.id,
+                                ],
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                class_ids: formData.class_ids.filter(
+                                  (id) => id !== classItem.id
+                                ),
+                              });
+                            }
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm">{classItem.name}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                <div className="border rounded p-2 max-h-40 overflow-y-auto">
-                  {filteredClasses.map((classItem) => (
-                    <label key={classItem.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.class_ids.includes(classItem.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              class_ids: [...formData.class_ids, classItem.id],
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              class_ids: formData.class_ids.filter((id) => id !== classItem.id),
-                            });
-                          }
-                        }}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">{classItem.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
           </div>
           <DialogFooter>
             <Button
@@ -817,7 +899,7 @@ export default function StoreClient({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="edit-name">Item Name *</Label>
               <Input
                 id="edit-name"
@@ -828,7 +910,7 @@ export default function StoreClient({
                 placeholder="Enter item name"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="edit-description">Description</Label>
               <Textarea
                 id="edit-description"
@@ -862,7 +944,10 @@ export default function StoreClient({
                     value="quantity"
                     checked={formData.stock_type === "quantity"}
                     onChange={(e) =>
-                      setFormData({ ...formData, stock_type: e.target.value as "quantity" | "on_demand" })
+                      setFormData({
+                        ...formData,
+                        stock_type: e.target.value as "quantity" | "on_demand",
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -875,7 +960,10 @@ export default function StoreClient({
                     value="on_demand"
                     checked={formData.stock_type === "on_demand"}
                     onChange={(e) =>
-                      setFormData({ ...formData, stock_type: e.target.value as "quantity" | "on_demand" })
+                      setFormData({
+                        ...formData,
+                        stock_type: e.target.value as "quantity" | "on_demand",
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -886,7 +974,7 @@ export default function StoreClient({
 
             {/* Stock Quantity (only if type is quantity) */}
             {formData.stock_type === "quantity" && (
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-stock_quantity">Stock Quantity *</Label>
                 <Input
                   id="edit-stock_quantity"
@@ -904,7 +992,7 @@ export default function StoreClient({
             )}
 
             <div className="grid grid-cols-3 gap-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-price_normal">Price (Normal) *</Label>
                 <Input
                   id="edit-price_normal"
@@ -920,7 +1008,7 @@ export default function StoreClient({
                   placeholder="Points"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-price_mastor">Price (Mastor) *</Label>
                 <Input
                   id="edit-price_mastor"
@@ -936,7 +1024,7 @@ export default function StoreClient({
                   placeholder="Points"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-price_botl">Price (Botl) *</Label>
                 <Input
                   id="edit-price_botl"
@@ -962,15 +1050,22 @@ export default function StoreClient({
                   <button
                     type="button"
                     onClick={() => {
-                      if (formData.church_ids.length === filteredChurches.length) {
+                      if (
+                        formData.church_ids.length === filteredChurches.length
+                      ) {
                         setFormData({ ...formData, church_ids: [] });
                       } else {
-                        setFormData({ ...formData, church_ids: filteredChurches.map(c => c.id) });
+                        setFormData({
+                          ...formData,
+                          church_ids: filteredChurches.map((c) => c.id),
+                        });
                       }
                     }}
                     className="text-xs text-primary hover:underline"
                   >
-                    {formData.church_ids.length === filteredChurches.length ? "Deselect All" : "Select All"}
+                    {formData.church_ids.length === filteredChurches.length
+                      ? "Deselect All"
+                      : "Select All"}
                   </button>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
@@ -978,11 +1073,16 @@ export default function StoreClient({
                 </p>
                 <div className="border rounded p-2 max-h-40 overflow-y-auto">
                   {filteredChurches.map((church) => (
-                    <label key={church.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
+                    <label
+                      key={church.id}
+                      className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={formData.church_ids.includes(church.id)}
-                        onChange={(e) => handleChurchChange(church.id, e.target.checked)}
+                        onChange={(e) =>
+                          handleChurchChange(church.id, e.target.checked)
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm">
@@ -1006,24 +1106,35 @@ export default function StoreClient({
                       if (formData.diocese_ids.length === dioceses.length) {
                         setFormData({ ...formData, diocese_ids: [] });
                       } else {
-                        setFormData({ ...formData, diocese_ids: dioceses.map(d => d.id) });
+                        setFormData({
+                          ...formData,
+                          diocese_ids: dioceses.map((d) => d.id),
+                        });
                       }
                     }}
                     className="text-xs text-primary hover:underline"
                   >
-                    {formData.diocese_ids.length === dioceses.length ? "Deselect All" : "Select All"}
+                    {formData.diocese_ids.length === dioceses.length
+                      ? "Deselect All"
+                      : "Select All"}
                   </button>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Select dioceses - item will be available to all churches in selected dioceses
+                  Select dioceses - item will be available to all churches in
+                  selected dioceses
                 </p>
                 <div className="border rounded p-2 max-h-40 overflow-y-auto">
                   {dioceses.map((diocese) => (
-                    <label key={diocese.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
+                    <label
+                      key={diocese.id}
+                      className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={formData.diocese_ids.includes(diocese.id)}
-                        onChange={(e) => handleDioceseChange(diocese.id, e.target.checked)}
+                        onChange={(e) =>
+                          handleDioceseChange(diocese.id, e.target.checked)
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm">{diocese.name}</span>
@@ -1043,7 +1154,11 @@ export default function StoreClient({
                     name="edit_class_availability"
                     checked={formData.is_available_to_all_classes}
                     onChange={() =>
-                      setFormData({ ...formData, is_available_to_all_classes: true, class_ids: [] })
+                      setFormData({
+                        ...formData,
+                        is_available_to_all_classes: true,
+                        class_ids: [],
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -1055,7 +1170,10 @@ export default function StoreClient({
                     name="edit_class_availability"
                     checked={!formData.is_available_to_all_classes}
                     onChange={() =>
-                      setFormData({ ...formData, is_available_to_all_classes: false })
+                      setFormData({
+                        ...formData,
+                        is_available_to_all_classes: false,
+                      })
                     }
                     className="w-4 h-4"
                   />
@@ -1065,51 +1183,67 @@ export default function StoreClient({
             </div>
 
             {/* Specific Classes Selection */}
-            {!formData.is_available_to_all_classes && filteredClasses.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Select Classes</Label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (formData.class_ids.length === filteredClasses.length) {
-                        setFormData({ ...formData, class_ids: [] });
-                      } else {
-                        setFormData({ ...formData, class_ids: filteredClasses.map(c => c.id) });
-                      }
-                    }}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    {formData.class_ids.length === filteredClasses.length ? "Deselect All" : "Select All"}
-                  </button>
+            {!formData.is_available_to_all_classes &&
+              filteredClasses.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Select Classes</Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          formData.class_ids.length === filteredClasses.length
+                        ) {
+                          setFormData({ ...formData, class_ids: [] });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            class_ids: filteredClasses.map((c) => c.id),
+                          });
+                        }
+                      }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {formData.class_ids.length === filteredClasses.length
+                        ? "Deselect All"
+                        : "Select All"}
+                    </button>
+                  </div>
+                  <div className="border rounded p-2 max-h-40 overflow-y-auto">
+                    {filteredClasses.map((classItem) => (
+                      <label
+                        key={classItem.id}
+                        className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.class_ids.includes(classItem.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                class_ids: [
+                                  ...formData.class_ids,
+                                  classItem.id,
+                                ],
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                class_ids: formData.class_ids.filter(
+                                  (id) => id !== classItem.id
+                                ),
+                              });
+                            }
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm">{classItem.name}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                <div className="border rounded p-2 max-h-40 overflow-y-auto">
-                  {filteredClasses.map((classItem) => (
-                    <label key={classItem.id} className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.class_ids.includes(classItem.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              class_ids: [...formData.class_ids, classItem.id],
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              class_ids: formData.class_ids.filter((id) => id !== classItem.id),
-                            });
-                          }
-                        }}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">{classItem.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
           </div>
           <DialogFooter>
             <Button

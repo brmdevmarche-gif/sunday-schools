@@ -286,7 +286,8 @@
     "churchLevel": "مستوى الكنيسة",
     "dioceseLevel": "مستوى الأبرشية",
     "assignedTo": "معين لـ",
-    "selectUsersToAssign": "اختر المستخدمين لتعيينهم لـ {className}"
+    "selectUsersToAssign": "اختر المستخدمين لتعيينهم لـ {className}",
+    "fromClass": "من الفصل"
   },
   "settings": {
     "title": "الإعدادات",
@@ -835,6 +836,38 @@
       "participantsUpdated": "تم تحديث {count} مشاركين بنجاح",
       "participantsUpdateError": "فشل تحديث المشاركين",
       "selected": "{count} محدد"
+    },
+    "classDetails": {
+      "allTrips": "جميع الرحلات",
+      "selectTripToView": "اختر رحلة لعرض طلاب الفصل",
+      "loadingTrips": "جاري تحميل الرحلات...",
+      "noTripsFound": "لا توجد رحلات",
+      "exportCSV": "تصدير CSV",
+      "classStudentsStatus": "طلاب الفصل وحالة الاشتراك",
+      "allStudents": "جميع الطلاب",
+      "subscribed": "مشترك",
+      "unsubscribed": "غير مشترك",
+      "notSubscribed": "غير مشترك",
+      "paid": "مدفوع",
+      "pendingPayment": "في انتظار الدفع",
+      "selectTrip": "اختر رحلة",
+      "loadingTripDetails": "جاري تحميل تفاصيل الرحلة...",
+      "noStudentsFound": "لا يوجد طلاب",
+      "subscribe": "اشترك",
+      "subscribing": "جاري الاشتراك...",
+      "processing": "جاري المعالجة...",
+      "approve": "موافقة",
+      "studentSubscribedSuccess": "تم اشتراك الطالب بنجاح",
+      "approvedSuccess": "تم الموافقة على الطالب بنجاح",
+      "markedAsPaidSuccess": "تم تحديد الدفع بنجاح",
+      "failedToLoadTrips": "فشل تحميل الرحلات",
+      "failedToLoadTripDetails": "فشل تحميل تفاصيل الرحلة",
+      "failedToSubscribeStudent": "فشل اشتراك الطالب",
+      "failedToApprove": "فشل الموافقة على الطالب",
+      "failedToMarkAsPaid": "فشل تحديد الدفع",
+      "subscriptionStatus": "حالة الاشتراك",
+      "csvExportedSuccess": "تم تصدير CSV بنجاح",
+      "payNow": "ادفع الآن"
     }
   }
 }

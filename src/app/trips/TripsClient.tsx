@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -110,6 +111,11 @@ export default function TripsClient({
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleString();
   }
+
+  // Get currency symbol based on locale
+  const getCurrencySymbol = () => {
+    return locale === 'ar' ? 'ج.م' : 'E.L';
+  };
 
   function handleSubscribeClick(trip: TripWithDetails) {
     setSelectedTrip(trip);
@@ -311,10 +317,9 @@ export default function TripsClient({
                         </div>
                       )}
                       <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
                         <span className="font-medium">
-                          Price: ${trip.price_normal} (normal), $
-                          {trip.price_mastor} (mastor), ${trip.price_botl}{" "}
+                          Price: {locale === 'ar' ? 'ج.م' : 'E.L'}{trip.price_normal} (normal), {locale === 'ar' ? 'ج.م' : 'E.L'}
+                          {trip.price_mastor} (mastor), {locale === 'ar' ? 'ج.م' : 'E.L'}{trip.price_botl}{" "}
                           (botl)
                         </span>
                       </div>

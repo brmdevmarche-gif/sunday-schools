@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -70,6 +71,12 @@ export default function TripDetailsClient({
   stats: initialStats,
   userProfile,
 }: TripDetailsClientProps) {
+  const locale = useLocale();
+
+  // Get currency symbol based on locale
+  const getCurrencySymbol = () => {
+    return locale === 'ar' ? 'ج.م' : 'E.L';
+  };
   const router = useRouter();
   const [participants, setParticipants] = useState(initialParticipants);
   const [stats, setStats] = useState(initialStats);
@@ -470,17 +477,14 @@ export default function TripDetailsClient({
                   <div>
                     <p className="text-sm text-muted-foreground">Pricing</p>
                     <div className="mt-1 space-y-1">
-                      <p className="font-medium flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Normal: ${trip.price_normal}
+                      <p className="font-medium">
+                        Normal: {getCurrencySymbol()}{trip.price_normal}
                       </p>
-                      <p className="font-medium flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Mastor: ${trip.price_mastor}
+                      <p className="font-medium">
+                        Mastor: {getCurrencySymbol()}{trip.price_mastor}
                       </p>
-                      <p className="font-medium flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Botl: ${trip.price_botl}
+                      <p className="font-medium">
+                        Botl: {getCurrencySymbol()}{trip.price_botl}
                       </p>
                     </div>
                   </div>

@@ -346,7 +346,7 @@ export default function ClassesClient({
         </Button>
       </div>
 
-      {/* Filters */}
+          {/* Filters */}
       <Card>
         <CardHeader>
           <CardTitle>{t("common.filters")}</CardTitle>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,7 +48,13 @@ export default function TripsManagementClient({
 }: TripsManagementClientProps) {
   const t = useTranslations();
   const router = useRouter();
+  const locale = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Get currency symbol based on locale
+  const getCurrencySymbol = () => {
+    return locale === 'ar' ? 'ج.م' : 'E.L';
+  };
   const [statusFilter, setStatusFilter] = useState<TripStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<TripType | "all">("all");
   const [trips, setTrips] = useState(initialTrips);
@@ -336,8 +342,8 @@ export default function TripsManagementClient({
                   )}
                   <div className="flex items-center gap-2 col-span-2">
                     <span className="font-medium">
-                      Price: ${trip.price_normal} (normal), ${trip.price_mastor}{" "}
-                      (mastor), ${trip.price_botl} (botl)
+                      Price: {getCurrencySymbol()}{trip.price_normal} (normal), {getCurrencySymbol()}{trip.price_mastor}{" "}
+                      (mastor), {getCurrencySymbol()}{trip.price_botl} (botl)
                     </span>
                   </div>
                 </div>

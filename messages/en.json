@@ -286,7 +286,8 @@
     "churchLevel": "Church Level",
     "dioceseLevel": "Diocese Level",
     "assignedTo": "Assigned to",
-    "selectUsersToAssign": "Select users to assign to {className}"
+    "selectUsersToAssign": "Select users to assign to {className}",
+    "fromClass": "from class"
   },
   "settings": {
     "title": "Settings",
@@ -835,6 +836,38 @@
       "participantsUpdated": "{count} participants updated successfully",
       "participantsUpdateError": "Failed to update participants",
       "selected": "{count} selected"
+    },
+    "classDetails": {
+      "allTrips": "All Trips",
+      "selectTripToView": "Select a trip to view class students",
+      "loadingTrips": "Loading trips...",
+      "noTripsFound": "No trips found",
+      "exportCSV": "Export CSV",
+      "classStudentsStatus": "Class students and their subscription status",
+      "allStudents": "All Students",
+      "subscribed": "Subscribed",
+      "unsubscribed": "Unsubscribed",
+      "notSubscribed": "Not Subscribed",
+      "paid": "Paid",
+      "pendingPayment": "Pending Payment",
+      "selectTrip": "Select a Trip",
+      "loadingTripDetails": "Loading trip details...",
+      "noStudentsFound": "No students found",
+      "subscribe": "Subscribe",
+      "subscribing": "Subscribing...",
+      "processing": "Processing...",
+      "approve": "Approve",
+      "studentSubscribedSuccess": "Student subscribed successfully",
+      "approvedSuccess": "Student approved successfully",
+      "markedAsPaidSuccess": "Marked as paid successfully",
+      "failedToLoadTrips": "Failed to load trips",
+      "failedToLoadTripDetails": "Failed to load trip details",
+      "failedToSubscribeStudent": "Failed to subscribe student",
+      "failedToApprove": "Failed to approve student",
+      "failedToMarkAsPaid": "Failed to mark as paid",
+      "subscriptionStatus": "Subscription Status",
+      "csvExportedSuccess": "CSV exported successfully",
+      "payNow": "Pay Now"
     }
   }
 }

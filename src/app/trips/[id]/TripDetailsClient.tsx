@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,12 @@ export default function TripDetailsClient({
   userProfile,
 }: TripDetailsClientProps) {
   const router = useRouter();
+  const locale = useLocale();
+
+  // Get currency symbol based on locale
+  const getCurrencySymbol = () => {
+    return locale === 'ar' ? 'ج.م' : 'E.L';
+  };
   const [isSubscribeDialogOpen, setIsSubscribeDialogOpen] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribeForm, setSubscribeForm] = useState({
@@ -314,22 +321,21 @@ export default function TripDetailsClient({
                 <Separator />
 
                 <div>
-                  <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                    <DollarSign className="h-4 w-4" />
+                  <div className="text-sm font-medium mb-2">
                     Pricing
                   </div>
                   <div className="space-y-1 pl-6 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Normal:</span>
-                      <span className="font-medium">${trip.price_normal}</span>
+                      <span className="font-medium">{getCurrencySymbol()}{trip.price_normal}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Mastor:</span>
-                      <span className="font-medium">${trip.price_mastor}</span>
+                      <span className="font-medium">{getCurrencySymbol()}{trip.price_mastor}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Botl:</span>
-                      <span className="font-medium">${trip.price_botl}</span>
+                      <span className="font-medium">{getCurrencySymbol()}{trip.price_botl}</span>
                     </div>
                   </div>
                 </div>

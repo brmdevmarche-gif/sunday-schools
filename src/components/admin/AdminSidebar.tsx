@@ -16,7 +16,7 @@ import {
   CheckSquare,
   ClipboardList,
   PartyPopper,
-  Plane,
+  Bus,
   Store,
   Settings,
   LogOut,
@@ -46,7 +46,7 @@ const iconMap = {
   check: CheckSquare,
   task: ClipboardList,
   activity: PartyPopper,
-  trip: Plane,
+  trip: Bus,
   store: Store,
   settings: Settings,
 };

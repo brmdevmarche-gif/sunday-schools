@@ -120,11 +120,21 @@ export async function getBackupLogs(): Promise<BackupLog[]> {
   } = await supabase.auth.getUser()
   if (!user) return []
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
+
+  if (profileError) {
+    console.error('Error fetching user profile for backup logs:', {
+      message: profileError.message,
+      code: profileError.code,
+      details: profileError.details,
+      hint: profileError.hint,
+    })
+    return []
+  }
 
   if (!profile || profile.role !== 'super_admin') {
     return []
@@ -138,10 +148,11 @@ export async function getBackupLogs(): Promise<BackupLog[]> {
 
   if (error) {
     console.error('Error fetching backup logs:', {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
+      message: error.message || 'Unknown error',
+      code: error.code || 'UNKNOWN',
+      details: error.details || null,
+      hint: error.hint || null,
+      error: error,
     })
     return []
   }

@@ -50,6 +50,7 @@ export default function TripsClient({
   userProfile,
 }: TripsClientProps) {
   const router = useRouter();
+  const locale = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TripType | "all">("all");
   const [selectedTrip, setSelectedTrip] = useState<TripWithDetails | null>(

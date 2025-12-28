@@ -33,7 +33,39 @@ export interface AssignToClassInput {
 }
 
 export async function createStudentAction(input: CreateStudentInput) {
-  const supabase = await createClient()
+  // Validate required fields
+  if (!input.email || !input.password || !input.full_name || !input.diocese_id || !input.church_id) {
+    throw new Error('Missing required fields: email, password, full_name, diocese_id, and church_id are required')
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(input.email)) {
+    throw new Error('Invalid email format')
+  }
+
+  // Validate password length
+  if (input.password.length < 6) {
+    throw new Error('Password must be at least 6 characters long')
+  }
+
+  // Use admin client for admin operations
+  const supabase = createAdminClient()
+
+  // Validate that the church belongs to the diocese
+  const { data: church, error: churchError } = await supabase
+    .from('churches')
+    .select('id, diocese_id')
+    .eq('id', input.church_id)
+    .single()
+
+  if (churchError || !church) {
+    throw new Error('Invalid church selected')
+  }
+
+  if (church.diocese_id !== input.diocese_id) {
+    throw new Error('The selected church does not belong to the selected diocese')
+  }
 
   // Create auth user
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -46,7 +78,15 @@ export async function createStudentAction(input: CreateStudentInput) {
     throw new Error(`Failed to create student account: ${authError.message}`)
   }
 
+  if (!authData.user) {
+    throw new Error('Failed to create student account: No user data returned')
+  }
+
+  // Wait a moment for the trigger to create the profile
+  await new Promise((resolve) => setTimeout(resolve, 500))
+
   // Update user profile
+  // Convert empty strings to null for optional fields
   const { error: updateError } = await supabase
     .from('users')
     .update({
@@ -54,10 +94,10 @@ export async function createStudentAction(input: CreateStudentInput) {
       role: 'student',
       diocese_id: input.diocese_id,
       church_id: input.church_id,
-      date_of_birth: input.date_of_birth || null,
-      gender: input.gender || null,
-      phone: input.phone || null,
-      address: input.address || null,
+      date_of_birth: input.date_of_birth && input.date_of_birth.trim() ? input.date_of_birth : null,
+      gender: input.gender && (input.gender === 'male' || input.gender === 'female') ? input.gender : null,
+      phone: input.phone && input.phone.trim() ? input.phone : null,
+      address: input.address && input.address.trim() ? input.address : null,
       is_active: true,
     })
     .eq('id', authData.user.id)
@@ -87,7 +127,8 @@ export async function updateStudentAction(studentId: string, input: UpdateStuden
 }
 
 export async function deleteStudentAction(studentId: string) {
-  const supabase = await createClient()
+  // Use admin client for admin operations
+  const supabase = createAdminClient()
 
   const { error } = await supabase.auth.admin.deleteUser(studentId)
 

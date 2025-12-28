@@ -328,7 +328,7 @@ export async function getAllTripsAction(classId?: string) {
   const { data: trips, error } = await adminClient
     .from('trips')
     .select('*')
-    .order('start_datetime', { ascending: false, nullsLast: true })
+    .order('start_datetime', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -485,19 +485,26 @@ export async function getClassStudentsWithTripStatusAction(classId: string, trip
   }
 
   // Combine class students with subscription status
-  const studentsWithStatus = (classAssignments || []).map((assignment: any) => {
-    const user = assignment.user
-    const participation = participantsMap.get(user?.id)
+  const studentsWithStatus = (classAssignments || [])
+    .filter((assignment: any) => assignment.user) // Filter out assignments without users
+    .map((assignment: any) => {
+      const user = assignment.user
+      const participation = participantsMap.get(user?.id)
 
-    return {
-      ...user,
-      participant_id: participation?.participant_id || null,
-      isSubscribed: participation ? true : false,
-      approval_status: participation?.approval_status || null,
-      payment_status: participation?.payment_status || null,
-      registered_at: participation?.registered_at || null,
-    }
-  })
+      return {
+        id: user.id,
+        full_name: user.full_name || null,
+        email: user.email || null,
+        phone: user.phone || null,
+        address: user.address || null,
+        avatar_url: user.avatar_url || null,
+        participant_id: participation?.participant_id || null,
+        isSubscribed: participation ? true : false,
+        approval_status: participation?.approval_status || null,
+        payment_status: participation?.payment_status || null,
+        registered_at: participation?.registered_at || null,
+      }
+    })
 
   return studentsWithStatus
 }

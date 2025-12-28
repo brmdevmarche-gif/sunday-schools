@@ -44,7 +44,12 @@ export async function getCurrentUserSettings(): Promise<UserSettings | null> {
     .single()
 
   if (error) {
-    console.error('Error fetching user settings:', error)
+    console.error('Error fetching user settings:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    })
     return null
   }
 
@@ -76,7 +81,12 @@ export async function updateUserSettings(
       .eq('user_id', user.id)
 
     if (error) {
-      console.error('Error updating settings:', error)
+      console.error('Error updating settings:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      })
       throw new Error('Failed to update settings')
     }
   } else {
@@ -87,7 +97,12 @@ export async function updateUserSettings(
     })
 
     if (error) {
-      console.error('Error creating settings:', error)
+      console.error('Error creating settings:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      })
       throw new Error('Failed to create settings')
     }
   }
@@ -122,7 +137,12 @@ export async function getBackupLogs(): Promise<BackupLog[]> {
     .limit(50)
 
   if (error) {
-    console.error('Error fetching backup logs:', error)
+    console.error('Error fetching backup logs:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    })
     return []
   }
 
@@ -160,7 +180,12 @@ export async function createBackupLog(type: 'manual' | 'scheduled' | 'automatic'
     .single()
 
   if (error) {
-    console.error('Error creating backup log:', error)
+    console.error('Error creating backup log:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    })
     throw new Error('Failed to create backup log')
   }
 

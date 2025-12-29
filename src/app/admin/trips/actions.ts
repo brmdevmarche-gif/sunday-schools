@@ -13,6 +13,10 @@ import type {
   TripApprovalStatus,
   TripPaymentStatus,
   UpdateTripParticipantInput,
+  TripOrganizer,
+  TripOrganizerWithUser,
+  AddTripOrganizerInput,
+  UpdateTripOrganizerInput,
 } from '@/lib/types/sunday-school'
 
 /**
@@ -40,7 +44,7 @@ export async function createTripAction(input: CreateTripInput) {
   const adminClient = createAdminClient()
 
   // Extract associations from input
-  const { destinations, church_ids, diocese_ids, ...tripData } = input
+  const { destinations, church_ids, diocese_ids, class_ids, ...tripData } = input
 
   // Create the trip
   const { data: trip, error: tripError } = await adminClient
@@ -106,6 +110,22 @@ export async function createTripAction(input: CreateTripInput) {
     }
   }
 
+  // Create class associations if provided
+  if (class_ids && class_ids.length > 0) {
+    const classAssociations = class_ids.map(classId => ({
+      trip_id: trip.id,
+      class_id: classId,
+    }))
+
+    const { error: classError } = await adminClient
+      .from('trip_classes')
+      .insert(classAssociations)
+
+    if (classError) {
+      console.error('Failed to create class associations:', classError)
+    }
+  }
+
   revalidatePath('/admin/trips')
   return { success: true, data: trip }
 }
@@ -123,7 +143,7 @@ export async function updateTripAction(input: UpdateTripInput) {
 
   const adminClient = createAdminClient()
 
-  const { id, destinations, church_ids, diocese_ids, ...updateData } = input
+  const { id, destinations, church_ids, diocese_ids, class_ids, ...updateData } = input
 
   // Update the trip
   const { data: trip, error: tripError } = await adminClient
@@ -214,6 +234,31 @@ export async function updateTripAction(input: UpdateTripInput) {
     }
   }
 
+  // Update class associations if provided
+  if (class_ids !== undefined) {
+    // Delete existing associations
+    await adminClient
+      .from('trip_classes')
+      .delete()
+      .eq('trip_id', id)
+
+    // Insert new associations
+    if (class_ids.length > 0) {
+      const classAssociations = class_ids.map(classId => ({
+        trip_id: id,
+        class_id: classId,
+      }))
+
+      const { error: classError } = await adminClient
+        .from('trip_classes')
+        .insert(classAssociations)
+
+      if (classError) {
+        console.error('Failed to update class associations:', classError)
+      }
+    }
+  }
+
   revalidatePath('/admin/trips')
   revalidatePath(`/admin/trips/${id}`)
   return { success: true, data: trip }
@@ -262,6 +307,70 @@ export async function getTripByIdAction(tripId: string) {
     .select('*')
     .eq('trip_id', tripId)
 
+  // Get class associations (handle case where table doesn't exist yet)
+  let classes: any[] = []
+  const classesQuery = adminClient
+    .from('trip_classes')
+    .select('*')
+    .eq('trip_id', tripId)
+
+  const { data: classesData, error: classesError } = await classesQuery
+
+  // If table doesn't exist, silently return empty array
+  if (!classesError) {
+    classes = classesData || []
+  } else {
+    const errorMsg = classesError.message || ''
+    const errorCode = classesError.code || ''
+    if (errorMsg.includes('Could not find the table') || 
+        errorMsg.includes('does not exist') ||
+        errorCode === '42P01') {
+      // Table doesn't exist yet - migration not run, return empty array
+      classes = []
+    } else {
+      // Other error - log it but don't fail
+      console.warn('Error fetching classes:', classesError.message)
+      classes = []
+    }
+  }
+
+  // Get organizers (handle case where table doesn't exist yet)
+  let organizers: any[] = []
+  const organizersQuery = adminClient
+    .from('trip_organizers')
+    .select(`
+      *,
+      user:users!user_id(
+        id,
+        full_name,
+        email,
+        phone,
+        avatar_url
+      )
+    `)
+    .eq('trip_id', tripId)
+    .order('created_at', { ascending: true })
+
+  const { data: organizersData, error: organizersError } = await organizersQuery
+
+  // If table doesn't exist, silently return empty array
+  if (!organizersError) {
+    organizers = organizersData || []
+  } else {
+    const errorMsg = organizersError.message || ''
+    const errorCode = organizersError.code || ''
+    if (errorMsg.includes('Could not find the table') || 
+        errorMsg.includes('does not exist') ||
+        errorCode === '42P01') {
+      // Table doesn't exist yet - migration not run, return empty array
+      organizers = []
+    } else {
+      // Other error - log it but don't fail
+      console.warn('Error fetching organizers:', organizersError.message)
+      organizers = []
+    }
+  }
+
   return { 
     success: true, 
     data: { 
@@ -269,6 +378,8 @@ export async function getTripByIdAction(tripId: string) {
       destinations: destinations || [],
       churches: churches || [],
       dioceses: dioceses || [],
+      classes: classes || [],
+      organizers: organizers || [],
     } 
   }
 }
@@ -344,19 +455,35 @@ export async function getTripsAction(filters?: {
     throw new Error(`Failed to fetch trips: ${error.message}`)
   }
 
-  // Get destinations, churches, and dioceses for all trips
+  // Get destinations, churches, dioceses, and classes for all trips
   if (data && data.length > 0) {
     const tripIds = data.map(t => t.id)
     
-    const [destinationsResult, churchesResult, diocesesResult] = await Promise.all([
+    const [destinationsResult, churchesResult, diocesesResult, classesResult] = await Promise.all([
       adminClient.from('trip_destinations').select('*').in('trip_id', tripIds).order('visit_order', { ascending: true }),
       adminClient.from('trip_churches').select('*').in('trip_id', tripIds),
       adminClient.from('trip_dioceses').select('*').in('trip_id', tripIds),
+      (async () => {
+        // Handle case where trip_classes table doesn't exist yet
+        try {
+          return await adminClient.from('trip_classes').select('*').in('trip_id', tripIds)
+        } catch (error: any) {
+          const errorMsg = error?.message || ''
+          const errorCode = error?.code || ''
+          if (errorMsg.includes('Could not find the table') || 
+              errorMsg.includes('does not exist') ||
+              errorCode === '42P01') {
+            return { data: [], error: null }
+          }
+          throw error
+        }
+      })(),
     ])
 
     const destinations = destinationsResult.data || []
     const churches = churchesResult.data || []
     const dioceses = diocesesResult.data || []
+    const classes = classesResult.data || []
 
     // Group by trip_id
     const destinationsByTrip = destinations.reduce((acc: Record<string, any[]>, dest) => {
@@ -377,12 +504,19 @@ export async function getTripsAction(filters?: {
       return acc
     }, {})
 
+    const classesByTrip = classes.reduce((acc: Record<string, any[]>, classItem) => {
+      if (!acc[classItem.trip_id]) acc[classItem.trip_id] = []
+      acc[classItem.trip_id].push(classItem)
+      return acc
+    }, {})
+
     // Attach to trips
     const tripsWithDetails = data.map(trip => ({
       ...trip,
       destinations: destinationsByTrip[trip.id] || [],
       churches: churchesByTrip[trip.id] || [],
       dioceses: diocesesByTrip[trip.id] || [],
+      classes: classesByTrip[trip.id] || [],
     }))
 
     return { success: true, data: tripsWithDetails }
@@ -477,16 +611,70 @@ export async function getTripDetailsAction(tripId: string) {
     throw new Error(`Failed to fetch trip: ${tripError.message}`)
   }
 
-  // Get destinations, churches, and dioceses
-  const [destinationsResult, churchesResult, diocesesResult] = await Promise.all([
+  // Get destinations, churches, dioceses, classes
+  const [destinationsResult, churchesResult, diocesesResult, classesResult] = await Promise.all([
     adminClient.from('trip_destinations').select('*').eq('trip_id', tripId).order('visit_order', { ascending: true }),
     adminClient.from('trip_churches').select('*').eq('trip_id', tripId),
     adminClient.from('trip_dioceses').select('*').eq('trip_id', tripId),
+    (async () => {
+      // Handle case where trip_classes table doesn't exist yet
+      try {
+        const result = await adminClient.from('trip_classes').select('*').eq('trip_id', tripId)
+        return result
+      } catch (error: any) {
+        const errorMsg = error?.message || ''
+        const errorCode = error?.code || ''
+        if (errorMsg.includes('Could not find the table') || 
+            errorMsg.includes('does not exist') ||
+            errorCode === '42P01') {
+          return { data: [], error: null }
+        }
+        throw error
+      }
+    })(),
   ])
 
   const destinations = destinationsResult.data || []
   const churches = churchesResult.data || []
   const dioceses = diocesesResult.data || []
+  const classes = classesResult.data || []
+
+  // Get organizers (handle case where table doesn't exist yet)
+  let organizers: any[] = []
+  const organizersQuery = adminClient
+    .from('trip_organizers')
+    .select(`
+      *,
+      user:users!user_id(
+        id,
+        full_name,
+        email,
+        phone,
+        avatar_url
+      )
+    `)
+    .eq('trip_id', tripId)
+    .order('created_at', { ascending: true })
+
+  const organizersResult = await organizersQuery
+
+  // If table doesn't exist, silently return empty array
+  if (!organizersResult.error) {
+    organizers = organizersResult.data || []
+  } else {
+    const errorMsg = organizersResult.error.message || ''
+    const errorCode = organizersResult.error.code || ''
+    if (errorMsg.includes('Could not find the table') || 
+        errorMsg.includes('does not exist') ||
+        errorCode === '42P01') {
+      // Table doesn't exist yet - migration not run, return empty array
+      organizers = []
+    } else {
+      // Other error - log it but don't fail
+      console.warn('Error fetching organizers:', organizersResult.error.message)
+      organizers = []
+    }
+  }
 
   // Get participants count by status
   const { data: participants } = await adminClient
@@ -510,6 +698,8 @@ export async function getTripDetailsAction(tripId: string) {
       destinations,
       churches,
       dioceses,
+      classes,
+      organizers,
       participantsStats,
     }
   }
@@ -551,5 +741,284 @@ export async function getDiocesesForTrips() {
   }
 
   return data || []
+}
+
+/**
+ * Get classes for selected churches (used in create/edit forms)
+ */
+export async function getClassesForChurches(churchIds: string[]) {
+  const supabase = await createClient()
+
+  if (!churchIds || churchIds.length === 0) {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('classes')
+    .select('id, name, church_id')
+    .in('church_id', churchIds)
+    .eq('is_active', true)
+    .order('name', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching classes:', error)
+    return []
+  }
+
+  return data || []
+}
+
+/**
+ * Get teachers/staff from selected churches for trip organizers
+ */
+export async function getTeachersForTripsAction(churchIds: string[]) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  if (!churchIds || churchIds.length === 0) {
+    return { success: true, data: [] }
+  }
+
+  const adminClient = createAdminClient()
+
+  const { data, error } = await adminClient
+    .from('users')
+    .select('id, email, full_name, phone, avatar_url, church_id')
+    .in('church_id', churchIds)
+    .in('role', ['teacher', 'church_admin'])
+    .eq('is_active', true)
+    .order('full_name', { ascending: true })
+
+  if (error) {
+    throw new Error(`Failed to fetch teachers: ${error.message}`)
+  }
+
+  return { success: true, data: data || [] }
+}
+
+/**
+ * Get organizers for a trip
+ */
+export async function getTripOrganizersAction(tripId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const adminClient = createAdminClient()
+
+  const { data, error } = await adminClient
+    .from('trip_organizers')
+    .select(`
+      *,
+      user:users!user_id(
+        id,
+        full_name,
+        email,
+        phone,
+        avatar_url
+      )
+    `)
+    .eq('trip_id', tripId)
+    .order('created_at', { ascending: true })
+
+  // If table doesn't exist yet (migration not run), return empty array
+  if (error) {
+    if (error.message?.includes('Could not find the table') || 
+        error.message?.includes('does not exist') ||
+        error.code === '42P01') {
+      console.warn('trip_organizers table does not exist. Please run migration 24_add_trip_organizers.sql')
+      return { success: true, data: [] }
+    }
+    throw new Error(`Failed to fetch organizers: ${error.message}`)
+  }
+
+  return { success: true, data: data || [] }
+}
+
+/**
+ * Add organizer to trip
+ */
+export async function addTripOrganizerAction(input: AddTripOrganizerInput) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+    throw new Error('Unauthorized')
+  }
+
+  const adminClient = createAdminClient()
+
+  const { data, error } = await adminClient
+    .from('trip_organizers')
+    .insert({
+      trip_id: input.trip_id,
+      user_id: input.user_id,
+      can_approve: input.can_approve || false,
+      can_go: input.can_go || false,
+      can_take_attendance: input.can_take_attendance || false,
+      can_collect_payment: input.can_collect_payment || false,
+    })
+    .select(`
+      *,
+      user:users!user_id(
+        id,
+        full_name,
+        email,
+        phone,
+        avatar_url
+      )
+    `)
+    .single()
+
+  if (error) {
+    if (error.message?.includes('Could not find the table') || 
+        error.message?.includes('does not exist') ||
+        error.code === '42P01') {
+      throw new Error('Trip organizers table does not exist. Please run migration 24_add_trip_organizers.sql')
+    }
+    throw new Error(`Failed to add organizer: ${error.message}`)
+  }
+
+  revalidatePath(`/admin/trips/${input.trip_id}`)
+  return { success: true, data }
+}
+
+/**
+ * Update organizer roles
+ */
+export async function updateTripOrganizerAction(input: UpdateTripOrganizerInput) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+    throw new Error('Unauthorized')
+  }
+
+  const adminClient = createAdminClient()
+
+  const updateData: any = {}
+  if (input.can_approve !== undefined) updateData.can_approve = input.can_approve
+  if (input.can_go !== undefined) updateData.can_go = input.can_go
+  if (input.can_take_attendance !== undefined) updateData.can_take_attendance = input.can_take_attendance
+  if (input.can_collect_payment !== undefined) updateData.can_collect_payment = input.can_collect_payment
+
+  // Get trip_id for revalidation
+  const { data: organizer } = await adminClient
+    .from('trip_organizers')
+    .select('trip_id')
+    .eq('id', input.organizer_id)
+    .single()
+
+  const { data, error } = await adminClient
+    .from('trip_organizers')
+    .update(updateData)
+    .eq('id', input.organizer_id)
+    .select(`
+      *,
+      user:users!user_id(
+        id,
+        full_name,
+        email,
+        phone,
+        avatar_url
+      )
+    `)
+    .single()
+
+  if (error) {
+    if (error.message?.includes('Could not find the table') || 
+        error.message?.includes('does not exist') ||
+        error.code === '42P01') {
+      throw new Error('Trip organizers table does not exist. Please run migration 24_add_trip_organizers.sql')
+    }
+    throw new Error(`Failed to update organizer: ${error.message}`)
+  }
+
+  if (organizer) {
+    revalidatePath(`/admin/trips/${organizer.trip_id}`)
+  }
+
+  return { success: true, data }
+}
+
+/**
+ * Remove organizer from trip
+ */
+export async function removeTripOrganizerAction(organizerId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+    throw new Error('Unauthorized')
+  }
+
+  const adminClient = createAdminClient()
+
+  // Get trip_id for revalidation
+  const { data: organizer } = await adminClient
+    .from('trip_organizers')
+    .select('trip_id')
+    .eq('id', organizerId)
+    .single()
+
+  const { error } = await adminClient
+    .from('trip_organizers')
+    .delete()
+    .eq('id', organizerId)
+
+  if (error) {
+    if (error.message?.includes('Could not find the table') || 
+        error.message?.includes('does not exist') ||
+        error.code === '42P01') {
+      throw new Error('Trip organizers table does not exist. Please run migration 24_add_trip_organizers.sql')
+    }
+    throw new Error(`Failed to remove organizer: ${error.message}`)
+  }
+
+  if (organizer) {
+    revalidatePath(`/admin/trips/${organizer.trip_id}`)
+  }
+
+  return { success: true }
 }
 

@@ -72,6 +72,39 @@ export interface TripDiocese {
   created_at: string;
 }
 
+export interface TripClass {
+  id: string;
+  trip_id: string;
+  class_id: string;
+  created_at: string;
+}
+
+// =====================================================
+// TRIP ORGANIZERS
+// =====================================================
+
+export interface TripOrganizer {
+  id: string;
+  trip_id: string;
+  user_id: string;
+  can_approve: boolean;
+  can_go: boolean;
+  can_take_attendance: boolean;
+  can_collect_payment: boolean;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface TripOrganizerWithUser extends TripOrganizer {
+  user: {
+    id: string;
+    full_name: string | null;
+    email: string;
+    phone: string | null;
+    avatar_url: string | null;
+  };
+}
+
 // =====================================================
 // TRIP PARTICIPANTS
 // =====================================================
@@ -107,7 +140,9 @@ export interface TripWithDetails extends Trip {
   destinations?: TripDestination[];
   churches?: TripChurch[];
   dioceses?: TripDiocese[];
+  classes?: TripClass[];
   participants?: TripParticipantWithUser[];
+  organizers?: TripOrganizerWithUser[];
   participants_count?: number;
   my_participation?: TripParticipant;
 }
@@ -134,6 +169,7 @@ export interface CreateTripInput {
   what_to_bring?: string;
   church_ids?: string[];
   diocese_ids?: string[];
+  class_ids?: string[];
   destinations?: Array<{
     destination_name: string;
     description?: string;
@@ -145,6 +181,7 @@ export interface UpdateTripInput extends Partial<CreateTripInput> {
   id: string;
   church_ids?: string[];
   diocese_ids?: string[];
+  class_ids?: string[];
 }
 
 export interface SubscribeToTripInput {
@@ -157,4 +194,25 @@ export interface UpdateTripParticipantInput {
   participant_id: string;
   approval_status?: TripApprovalStatus;
   payment_status?: TripPaymentStatus;
+}
+
+// =====================================================
+// TRIP ORGANIZER INPUT TYPES
+// =====================================================
+
+export interface AddTripOrganizerInput {
+  trip_id: string;
+  user_id: string;
+  can_approve?: boolean;
+  can_go?: boolean;
+  can_take_attendance?: boolean;
+  can_collect_payment?: boolean;
+}
+
+export interface UpdateTripOrganizerInput {
+  organizer_id: string;
+  can_approve?: boolean;
+  can_go?: boolean;
+  can_take_attendance?: boolean;
+  can_collect_payment?: boolean;
 }

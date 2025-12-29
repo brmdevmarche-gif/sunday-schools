@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Plus, Trash2, MapPin } from "lucide-react";
-import { createTripAction } from "../actions";
+import { createTripAction, getClassesForChurches } from "../actions";
 import TripImageUpload from "@/components/trips/TripImageUpload";
 import type {
   CreateTripInput,
@@ -40,6 +40,12 @@ interface Destination {
   visit_order: number;
 }
 
+interface ClassItem {
+  id: string;
+  name: string;
+  church_id: string;
+}
+
 export default function CreateTripClient({
   userProfile,
   churches,
@@ -51,6 +57,9 @@ export default function CreateTripClient({
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [churchIds, setChurchIds] = useState<string[]>([]);
   const [dioceseIds, setDioceseIds] = useState<string[]>([]);
+  const [classIds, setClassIds] = useState<string[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<ClassItem[]>([]);
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
   // Filter churches based on selected dioceses
   const filteredChurches =
@@ -59,6 +68,34 @@ export default function CreateTripClient({
           dioceseIds.includes(church.diocese_id || "")
         )
       : churches;
+
+  // Fetch classes when churches are selected
+  useEffect(() => {
+    async function fetchClasses() {
+      if (churchIds.length === 0) {
+        setAvailableClasses([]);
+        setClassIds([]);
+        return;
+      }
+
+      setIsLoadingClasses(true);
+      try {
+        const classes = await getClassesForChurches(churchIds);
+        setAvailableClasses(classes);
+        // Remove class IDs that are no longer in available classes
+        setClassIds((prev) =>
+          prev.filter((id) => classes.some((c) => c.id === id))
+        );
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+        toast.error("Failed to fetch classes");
+      } finally {
+        setIsLoadingClasses(false);
+      }
+    }
+
+    fetchClasses();
+  }, [churchIds]);
 
   const [formData, setFormData] = useState<Partial<CreateTripInput>>({
     title: "",
@@ -87,6 +124,30 @@ export default function CreateTripClient({
       setChurchIds([...churchIds, churchId]);
     } else {
       setChurchIds(churchIds.filter((id) => id !== churchId));
+    }
+  }
+
+  function handleSelectAllChurches(checked: boolean) {
+    if (checked) {
+      setChurchIds(filteredChurches.map((c) => c.id));
+    } else {
+      setChurchIds([]);
+    }
+  }
+
+  function handleClassChange(classId: string, checked: boolean) {
+    if (checked) {
+      setClassIds([...classIds, classId]);
+    } else {
+      setClassIds(classIds.filter((id) => id !== classId));
+    }
+  }
+
+  function handleSelectAllClasses(checked: boolean) {
+    if (checked) {
+      setClassIds(availableClasses.map((c) => c.id));
+    } else {
+      setClassIds([]);
     }
   }
 
@@ -174,6 +235,7 @@ export default function CreateTripClient({
         ...formData,
         church_ids: churchIds.length > 0 ? churchIds : undefined,
         diocese_ids: dioceseIds.length > 0 ? dioceseIds : undefined,
+        class_ids: classIds.length > 0 ? classIds : undefined,
         destinations: destinations.map((d) => ({
           destination_name: d.destination_name,
           description: d.description || undefined,
@@ -616,6 +678,24 @@ export default function CreateTripClient({
                       <CardTitle>Available in Churches</CardTitle>
                     </CardHeader>
                     <CardContent>
+                      <div className="mb-2 pb-2 border-b">
+                        <label className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer font-medium">
+                          <input
+                            type="checkbox"
+                            checked={
+                              filteredChurches.length > 0 &&
+                              filteredChurches.every((c) =>
+                                churchIds.includes(c.id)
+                              )
+                            }
+                            onChange={(e) =>
+                              handleSelectAllChurches(e.target.checked)
+                            }
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">Select All Churches</span>
+                        </label>
+                      </div>
                       <div className="border rounded p-2 max-h-40 overflow-y-auto">
                         {filteredChurches.map((church) => (
                           <label
@@ -642,6 +722,76 @@ export default function CreateTripClient({
                           </label>
                         ))}
                       </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Class Selection */}
+                {churchIds.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Available in Classes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {isLoadingClasses ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Loading classes...
+                        </p>
+                      ) : availableClasses.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No classes found for selected churches
+                        </p>
+                      ) : (
+                        <>
+                          <div className="mb-2 pb-2 border-b">
+                            <label className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer font-medium">
+                              <input
+                                type="checkbox"
+                                checked={
+                                  availableClasses.length > 0 &&
+                                  availableClasses.every((c) =>
+                                    classIds.includes(c.id)
+                                  )
+                                }
+                                onChange={(e) =>
+                                  handleSelectAllClasses(e.target.checked)
+                                }
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm">Select All Classes</span>
+                            </label>
+                          </div>
+                          <div className="border rounded p-2 max-h-40 overflow-y-auto">
+                            {availableClasses.map((classItem) => {
+                              const church = churches.find(
+                                (c) => c.id === classItem.church_id
+                              );
+                              return (
+                                <label
+                                  key={classItem.id}
+                                  className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={classIds.includes(classItem.id)}
+                                    onChange={(e) =>
+                                      handleClassChange(
+                                        classItem.id,
+                                        e.target.checked
+                                      )
+                                    }
+                                    className="w-4 h-4"
+                                  />
+                                  <span className="text-sm">
+                                    {classItem.name}
+                                    {church && ` - ${church.name}`}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 )}

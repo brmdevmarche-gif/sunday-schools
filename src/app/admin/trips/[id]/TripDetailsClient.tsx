@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -41,19 +41,50 @@ import {
   MoreVertical,
   Mail,
   Phone,
+  Plus,
+  UserCog,
+  Trash2,
+  UserCheck,
+  ClipboardCheck,
+  CreditCard,
+  Loader2,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { updateTripParticipantAction } from "../actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
+  updateTripParticipantAction,
+  getTeachersForTripsAction,
+  addTripOrganizerAction,
+  removeTripOrganizerAction,
+  updateTripOrganizerAction,
+} from "../actions";
 import type {
   TripWithDetails,
   TripParticipantWithUser,
   TripApprovalStatus,
   TripPaymentStatus,
+  TripOrganizerWithUser,
 } from "@/lib/types";
 
 interface TripDetailsClientProps {
   trip: TripWithDetails;
   participants: TripParticipantWithUser[];
+  organizers: TripOrganizerWithUser[];
   stats: {
     total: number;
     pending: number;
@@ -68,6 +99,7 @@ interface TripDetailsClientProps {
 export default function TripDetailsClient({
   trip,
   participants: initialParticipants,
+  organizers: initialOrganizers,
   stats: initialStats,
   userProfile,
 }: TripDetailsClientProps) {
@@ -79,6 +111,7 @@ export default function TripDetailsClient({
   };
   const router = useRouter();
   const [participants, setParticipants] = useState(initialParticipants);
+  const [organizers, setOrganizers] = useState(initialOrganizers);
   const [stats, setStats] = useState(initialStats);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(
@@ -86,6 +119,20 @@ export default function TripDetailsClient({
   );
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  
+  // Organizers management state
+  const [isAddOrganizerOpen, setIsAddOrganizerOpen] = useState(false);
+  const [availableTeachers, setAvailableTeachers] = useState<any[]>([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>("");
+  const [organizerRoles, setOrganizerRoles] = useState({
+    can_approve: true,
+    can_go: true,
+    can_take_attendance: true,
+    can_collect_payment: true,
+  });
+  const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
+  const [isAddingOrganizer, setIsAddingOrganizer] = useState(false);
+  const [updatingPermission, setUpdatingPermission] = useState<string | null>(null); // Format: "organizerId-permission"
 
   function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
@@ -301,6 +348,135 @@ export default function TripDetailsClient({
     }
   }
 
+  // Load available teachers when dialog opens
+  async function loadAvailableTeachers() {
+    setIsLoadingTeachers(true);
+    try {
+      const churchIds = trip.churches?.map((c) => c.church_id) || [];
+      if (churchIds.length === 0) {
+        toast.error("No churches selected for this trip");
+        return;
+      }
+
+      const result = await getTeachersForTripsAction(churchIds);
+      if (result.success) {
+        // Filter out teachers who are already organizers
+        const organizerIds = new Set(organizers.map((o) => o.user_id));
+        const available = result.data.filter((t) => !organizerIds.has(t.id));
+        setAvailableTeachers(available);
+      }
+    } catch (error: any) {
+      console.error("Error loading teachers:", error);
+      toast.error(error.message || "Failed to load teachers");
+    } finally {
+      setIsLoadingTeachers(false);
+    }
+  }
+
+  function handleOpenAddOrganizer() {
+    // Reset form state before opening dialog
+    setSelectedTeacherId("");
+    setOrganizerRoles({
+      can_approve: true,
+      can_go: true,
+      can_take_attendance: true,
+      can_collect_payment: true,
+    });
+    setIsAddOrganizerOpen(true);
+    loadAvailableTeachers();
+  }
+
+  async function handleAddOrganizer() {
+    if (!selectedTeacherId) {
+      toast.error("Please select a teacher");
+      return;
+    }
+
+    setIsAddingOrganizer(true);
+    try {
+      const result = await addTripOrganizerAction({
+        trip_id: trip.id,
+        user_id: selectedTeacherId,
+        ...organizerRoles,
+      });
+
+      if (result.success && result.data) {
+        setOrganizers([...organizers, result.data]);
+        toast.success("Organizer added successfully");
+        setIsAddOrganizerOpen(false);
+        setSelectedTeacherId("");
+        setOrganizerRoles({
+          can_approve: true,
+          can_go: true,
+          can_take_attendance: true,
+          can_collect_payment: true,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error adding organizer:", error);
+      toast.error(error.message || "Failed to add organizer");
+    } finally {
+      setIsAddingOrganizer(false);
+    }
+  }
+
+  async function handleRemoveOrganizer(organizerId: string) {
+    if (!confirm("Are you sure you want to remove this organizer?")) {
+      return;
+    }
+
+    try {
+      const result = await removeTripOrganizerAction(organizerId);
+      if (result.success) {
+        setOrganizers(organizers.filter((o) => o.id !== organizerId));
+        toast.success("Organizer removed successfully");
+      }
+    } catch (error: any) {
+      console.error("Error removing organizer:", error);
+      toast.error(error.message || "Failed to remove organizer");
+    }
+  }
+
+  async function handleUpdateOrganizerRoles(
+    organizerId: string,
+    roles: {
+      can_approve?: boolean;
+      can_go?: boolean;
+      can_take_attendance?: boolean;
+      can_collect_payment?: boolean;
+    }
+  ) {
+    // Determine which permission is being updated
+    const permissionKey = Object.keys(roles)[0] as keyof typeof roles;
+    const permissionId = `${organizerId}-${permissionKey}`;
+    
+    setUpdatingPermission(permissionId);
+    try {
+      const result = await updateTripOrganizerAction({
+        organizer_id: organizerId,
+        ...roles,
+      });
+
+      if (result.success && result.data) {
+        setOrganizers(
+          organizers.map((o) => (o.id === organizerId ? result.data : o))
+        );
+        toast.success("Organizer roles updated successfully");
+      }
+    } catch (error: any) {
+      console.error("Error updating organizer:", error);
+      toast.error(error.message || "Failed to update organizer");
+    } finally {
+      setUpdatingPermission(null);
+    }
+  }
+
+  // Check if user can manage organizers (admins only)
+  const canManageOrganizers =
+    userProfile.role === "super_admin" ||
+    userProfile.role === "diocese_admin" ||
+    userProfile.role === "church_admin";
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -332,6 +508,10 @@ export default function TripDetailsClient({
           <TabsTrigger value="participants">
             <Users className="h-4 w-4 mr-2" />
             Participants ({stats.total})
+          </TabsTrigger>
+          <TabsTrigger value="organizers">
+            <UserCog className="h-4 w-4 mr-2" />
+            Organizers ({organizers.length})
           </TabsTrigger>
         </TabsList>
 
@@ -779,7 +959,370 @@ export default function TripDetailsClient({
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Organizers Tab */}
+        <TabsContent value="organizers">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Trip Organizers</CardTitle>
+                {canManageOrganizers && (
+                  <Button onClick={handleOpenAddOrganizer}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Organizer
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {organizers.length === 0 ? (
+                <div className="text-center py-12">
+                  <UserCog className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg font-medium">No organizers yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    {canManageOrganizers
+                      ? "Add organizers to manage this trip"
+                      : "Organizers will appear here"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {organizers.map((organizer) => (
+                    <div
+                      key={organizer.id}
+                      className="border rounded-lg p-4 space-y-4"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className="flex-shrink-0">
+                            {organizer.user?.avatar_url ? (
+                              <img
+                                src={organizer.user.avatar_url}
+                                alt={organizer.user.full_name || ""}
+                                className="w-12 h-12 rounded-full"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Users className="h-6 w-6 text-primary" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg">
+                              {organizer.user?.full_name ||
+                                organizer.user?.email}
+                            </h3>
+                            {organizer.user?.full_name && (
+                              <p className="text-sm text-muted-foreground">
+                                {organizer.user.email}
+                              </p>
+                            )}
+                            {organizer.user?.phone && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <Phone className="h-3 w-3" />
+                                {organizer.user.phone}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {canManageOrganizers && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveOrganizer(organizer.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="space-y-3 pt-3 border-t">
+                        <p className="text-sm font-medium">Permissions:</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2">
+                            {canManageOrganizers ? (
+                              <>
+                                <Checkbox
+                                  id={`approve-${organizer.id}`}
+                                  checked={organizer.can_approve}
+                                  loading={updatingPermission === `${organizer.id}-can_approve`}
+                                  onCheckedChange={(checked) =>
+                                    handleUpdateOrganizerRoles(organizer.id, {
+                                      can_approve: checked === true,
+                                    })
+                                  }
+                                />
+                                <UserCheck className="h-4 w-4 text-muted-foreground" />
+                                <Label htmlFor={`approve-${organizer.id}`} className="cursor-pointer">
+                                  Can Approve
+                                </Label>
+                              </>
+                            ) : (
+                              <>
+                                <Badge
+                                  variant={organizer.can_approve ? "default" : "outline"}
+                                  className="mr-2"
+                                >
+                                  {organizer.can_approve ? "Yes" : "No"}
+                                </Badge>
+                                <UserCheck className="h-4 w-4 text-muted-foreground" />
+                                <Label>Can Approve</Label>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {canManageOrganizers ? (
+                              <>
+                                <Checkbox
+                                  id={`go-${organizer.id}`}
+                                  checked={organizer.can_go}
+                                  loading={updatingPermission === `${organizer.id}-can_go`}
+                                  onCheckedChange={(checked) =>
+                                    handleUpdateOrganizerRoles(organizer.id, {
+                                      can_go: checked === true,
+                                    })
+                                  }
+                                />
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <Label htmlFor={`go-${organizer.id}`} className="cursor-pointer">
+                                  Can Go
+                                </Label>
+                              </>
+                            ) : (
+                              <>
+                                <Badge
+                                  variant={organizer.can_go ? "default" : "outline"}
+                                  className="mr-2"
+                                >
+                                  {organizer.can_go ? "Yes" : "No"}
+                                </Badge>
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <Label>Can Go</Label>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {canManageOrganizers ? (
+                              <>
+                                <Checkbox
+                                  id={`attendance-${organizer.id}`}
+                                  checked={organizer.can_take_attendance}
+                                  loading={updatingPermission === `${organizer.id}-can_take_attendance`}
+                                  onCheckedChange={(checked) =>
+                                    handleUpdateOrganizerRoles(organizer.id, {
+                                      can_take_attendance: checked === true,
+                                    })
+                                  }
+                                />
+                                <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+                                <Label htmlFor={`attendance-${organizer.id}`} className="cursor-pointer">
+                                  Can Take Attendance
+                                </Label>
+                              </>
+                            ) : (
+                              <>
+                                <Badge
+                                  variant={organizer.can_take_attendance ? "default" : "outline"}
+                                  className="mr-2"
+                                >
+                                  {organizer.can_take_attendance ? "Yes" : "No"}
+                                </Badge>
+                                <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+                                <Label>Can Take Attendance</Label>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {canManageOrganizers ? (
+                              <>
+                                <Checkbox
+                                  id={`payment-${organizer.id}`}
+                                  checked={organizer.can_collect_payment}
+                                  loading={updatingPermission === `${organizer.id}-can_collect_payment`}
+                                  onCheckedChange={(checked) =>
+                                    handleUpdateOrganizerRoles(organizer.id, {
+                                      can_collect_payment: checked === true,
+                                    })
+                                  }
+                                />
+                                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                <Label htmlFor={`payment-${organizer.id}`} className="cursor-pointer">
+                                  Can Collect Payment
+                                </Label>
+                              </>
+                            ) : (
+                              <>
+                                <Badge
+                                  variant={organizer.can_collect_payment ? "default" : "outline"}
+                                  className="mr-2"
+                                >
+                                  {organizer.can_collect_payment ? "Yes" : "No"}
+                                </Badge>
+                                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                <Label>Can Collect Payment</Label>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Add Organizer Dialog */}
+      <Dialog 
+        open={isAddOrganizerOpen} 
+        onOpenChange={(open) => {
+          setIsAddOrganizerOpen(open);
+          if (!open) {
+            // Reset form when dialog closes
+            setSelectedTeacherId("");
+            setOrganizerRoles({
+              can_approve: true,
+              can_go: true,
+              can_take_attendance: true,
+              can_collect_payment: true,
+            });
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden [&>div]:overflow-visible">
+          <DialogHeader>
+            <DialogTitle>Add Organizer</DialogTitle>
+            <DialogDescription>
+              Select a teacher/staff member from the selected churches and assign their permissions.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pr-1">
+            {/* Select Teacher */}
+            <div className="space-y-2">
+              <Label htmlFor="teacher">Teacher / Staff Member *</Label>
+              <Select
+                value={selectedTeacherId}
+                onValueChange={setSelectedTeacherId}
+                disabled={isLoadingTeachers || isAddingOrganizer}
+              >
+                <SelectTrigger id="teacher">
+                  <SelectValue placeholder="Select a teacher..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTeachers.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground text-center">
+                      {isLoadingTeachers
+                        ? "Loading teachers..."
+                        : "No available teachers"}
+                    </div>
+                  ) : (
+                    availableTeachers.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.full_name
+                          ? `${teacher.full_name} (${teacher.email})`
+                          : teacher.email}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Permissions */}
+            <div className="space-y-3">
+              <Label>Permissions</Label>
+              <div className="space-y-3 border rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="new-approve"
+                    checked={organizerRoles.can_approve === true}
+                    onCheckedChange={(checked) =>
+                      setOrganizerRoles((prev) => ({
+                        ...prev,
+                        can_approve: checked === true,
+                      }))
+                    }
+                  />
+                  <UserCheck className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="new-approve" className="cursor-pointer">
+                    Can Approve Participants
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="new-go"
+                    checked={organizerRoles.can_go === true}
+                    onCheckedChange={(checked) =>
+                      setOrganizerRoles((prev) => ({
+                        ...prev,
+                        can_go: checked === true,
+                      }))
+                    }
+                  />
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="new-go" className="cursor-pointer">
+                    Can Go on Trip
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="new-attendance"
+                    checked={organizerRoles.can_take_attendance === true}
+                    onCheckedChange={(checked) =>
+                      setOrganizerRoles((prev) => ({
+                        ...prev,
+                        can_take_attendance: checked === true,
+                      }))
+                    }
+                  />
+                  <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="new-attendance" className="cursor-pointer">
+                    Can Take Attendance
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="new-payment"
+                    checked={organizerRoles.can_collect_payment === true}
+                    onCheckedChange={(checked) =>
+                      setOrganizerRoles((prev) => ({
+                        ...prev,
+                        can_collect_payment: checked === true,
+                      }))
+                    }
+                  />
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="new-payment" className="cursor-pointer">
+                    Can Collect Payment
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddOrganizerOpen(false)}
+              disabled={isAddingOrganizer}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddOrganizer} disabled={isAddingOrganizer || !selectedTeacherId}>
+              {isAddingOrganizer ? "Adding..." : "Add Organizer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

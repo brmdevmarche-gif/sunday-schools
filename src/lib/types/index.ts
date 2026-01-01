@@ -14,6 +14,7 @@ export * from './modules/trips';
 export * from './modules/store';
 export * from './modules/activities';
 export * from './modules/attendance';
+export * from './modules/points';
 
 // =====================================================
 // USAGE EXAMPLES:

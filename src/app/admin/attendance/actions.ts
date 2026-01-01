@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import type { CreateAttendanceInput, UpdateAttendanceInput } from '@/lib/types/sunday-school'
+import { awardAttendancePointsAction } from '@/app/admin/points/actions'
 
 /**
  * Mark attendance for a student in a class
@@ -29,6 +30,8 @@ export async function markAttendanceAction(input: CreateAttendanceInput) {
     .eq('attendance_date', input.attendance_date)
     .single()
 
+  let attendanceId: string | undefined
+
   if (existing) {
     // Update existing attendance
     const { error } = await adminClient
@@ -44,9 +47,10 @@ export async function markAttendanceAction(input: CreateAttendanceInput) {
     if (error) {
       throw new Error(`Failed to update attendance: ${error.message}`)
     }
+    attendanceId = existing.id
   } else {
     // Create new attendance record
-    const { error } = await adminClient
+    const { data: newAttendance, error } = await adminClient
       .from('attendance')
       .insert({
         class_id: input.class_id,
@@ -57,9 +61,34 @@ export async function markAttendanceAction(input: CreateAttendanceInput) {
         lesson_id: input.lesson_id || null,
         marked_by: user.id,
       })
+      .select('id')
+      .single()
 
     if (error) {
       throw new Error(`Failed to mark attendance: ${error.message}`)
+    }
+    attendanceId = newAttendance?.id
+
+    // Award points only for new attendance records (not updates)
+    // Get the class's church ID
+    const { data: classData } = await adminClient
+      .from('classes')
+      .select('church_id')
+      .eq('id', input.class_id)
+      .single()
+
+    if (classData?.church_id) {
+      try {
+        await awardAttendancePointsAction(
+          input.user_id,
+          classData.church_id,
+          input.status as 'present' | 'late' | 'excused' | 'absent',
+          attendanceId
+        )
+      } catch (pointsError) {
+        console.error('Failed to award attendance points:', pointsError)
+        // Don't fail the attendance marking if points fail
+      }
     }
   }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getUserProfile,
@@ -22,9 +23,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 export default function ProfileEditPage() {
   const router = useRouter();
+  const t = useTranslations();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -54,7 +57,7 @@ export default function ProfileEditPage() {
         }
       } catch (error) {
         console.error("Error loading profile:", error);
-        toast.error("Failed to load profile");
+        toast.error(t("profile.loadFailed"));
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +75,7 @@ export default function ProfileEditPage() {
       if (username && username !== profile?.username) {
         const available = await isUsernameAvailable(username);
         if (!available) {
-          toast.error("Username is already taken");
+          toast.error(t("profile.usernameTaken"));
           setIsSaving(false);
           return;
         }
@@ -88,7 +91,7 @@ export default function ProfileEditPage() {
 
       const updatedProfile = await updateUserProfile(updates);
       setProfile(updatedProfile);
-      toast.success("Profile updated successfully!");
+      toast.success(t("profile.profileUpdated"));
 
       // Navigate back to dashboard after a short delay
       setTimeout(() => {
@@ -97,7 +100,7 @@ export default function ProfileEditPage() {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to update profile"
+        error instanceof Error ? error.message : t("profile.updateFailed")
       );
     } finally {
       setIsSaving(false);
@@ -107,7 +110,7 @@ export default function ProfileEditPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
+        <p>{t("profile.loading")}</p>
       </div>
     );
   }
@@ -117,19 +120,22 @@ export default function ProfileEditPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Button asChild variant="outline" size="sm">
-            <Link href="/dashboard">← Back to Dashboard</Link>
+            <Link href="/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              {t("profile.backToDashboard")}
+            </Link>
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Edit Profile</CardTitle>
-            <CardDescription>Update your profile information</CardDescription>
+            <CardTitle>{t("profile.editProfile")}</CardTitle>
+            <CardDescription>{t("profile.updateProfileInfo")}</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("profile.email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -138,12 +144,12 @@ export default function ProfileEditPage() {
                   className="bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Email cannot be changed from this page
+                  {t("profile.emailCannotChange")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">{t("profile.username")}</Label>
                 <div className="flex items-center">
                   <span className="text-muted-foreground mr-1">@</span>
                   <Input
@@ -161,13 +167,12 @@ export default function ProfileEditPage() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Your unique username (lowercase, numbers, and underscores
-                  only)
+                  {t("profile.usernameHint")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">{t("profile.fullName")}</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -180,7 +185,7 @@ export default function ProfileEditPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="avatarUrl">Avatar URL</Label>
+                <Label htmlFor="avatarUrl">{t("profile.avatarUrl")}</Label>
                 <Input
                   id="avatarUrl"
                   type="url"
@@ -190,13 +195,14 @@ export default function ProfileEditPage() {
                   disabled={isSaving}
                 />
                 <p className="text-xs text-muted-foreground">
-                  URL to your profile picture
+                  {t("profile.avatarUrlHint")}
                 </p>
                 {avatarUrl && (
                   <div className="mt-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={avatarUrl}
-                      alt="Avatar preview"
+                      alt={t("profile.avatarPreview")}
                       className="w-20 h-20 rounded-full object-cover border-2 border-border"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
@@ -207,10 +213,10 @@ export default function ProfileEditPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{t("profile.bio")}</Label>
                 <textarea
                   id="bio"
-                  placeholder="Tell us about yourself..."
+                  placeholder={t("profile.bioPlaceholder")}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   disabled={isSaving}
@@ -219,7 +225,7 @@ export default function ProfileEditPage() {
                   className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <p className="text-xs text-muted-foreground text-right">
-                  {bio.length}/500 characters
+                  {bio.length}/500 {t("profile.characters")}
                 </p>
               </div>
             </CardContent>
@@ -230,10 +236,10 @@ export default function ProfileEditPage() {
                 onClick={() => router.push("/dashboard")}
                 disabled={isSaving}
               >
-                Cancel
+                {t("profile.cancel")}
               </Button>
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Changes"}
+                {isSaving ? t("profile.saving") : t("profile.saveChanges")}
               </Button>
             </CardFooter>
           </form>

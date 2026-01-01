@@ -18,6 +18,7 @@ import type {
   AddTripOrganizerInput,
   UpdateTripOrganizerInput,
 } from '@/lib/types/sunday-school'
+import { awardTripPointsAction } from '@/app/admin/points/actions'
 
 /**
  * Create a new trip
@@ -565,6 +566,13 @@ export async function updateTripParticipantAction(input: UpdateTripParticipantIn
 
   const adminClient = createAdminClient()
 
+  // Get the current participant data before updating (for points awarding)
+  const { data: currentParticipant } = await adminClient
+    .from('trip_participants')
+    .select('user_id, trip_id, approval_status')
+    .eq('id', input.participant_id)
+    .single()
+
   const updateData: any = {}
 
   if (input.approval_status !== undefined) {
@@ -588,6 +596,24 @@ export async function updateTripParticipantAction(input: UpdateTripParticipantIn
 
   if (error) {
     throw new Error(`Failed to update participant: ${error.message}`)
+  }
+
+  // Award trip points when participant is approved (and wasn't already approved)
+  if (
+    input.approval_status === 'approved' &&
+    currentParticipant &&
+    currentParticipant.approval_status !== 'approved'
+  ) {
+    try {
+      await awardTripPointsAction(
+        currentParticipant.user_id,
+        currentParticipant.trip_id,
+        `Trip participation - approved`
+      )
+    } catch (pointsError) {
+      // Log error but don't fail the participant update
+      console.error('Failed to award trip points:', pointsError)
+    }
   }
 
   revalidatePath('/admin/trips')

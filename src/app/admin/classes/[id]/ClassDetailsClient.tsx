@@ -52,7 +52,10 @@ import {
   Download,
   Loader2,
   Bus,
+  Cake,
+  Coins,
 } from "lucide-react";
+import ClassPointsOverview from "@/components/ClassPointsOverview";
 import { toast } from "sonner";
 import type { ExtendedUser } from "@/lib/types";
 import {
@@ -462,6 +465,15 @@ export default function ClassDetailsClient({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => router.push(`/admin/classes/${classData.id}/birthdays`)}
+            className="gap-2"
+          >
+            <Cake className="h-4 w-4" />
+            {t("birthdays.title")}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => handleOpenAssignDialog("student")}
             className="gap-2"
           >
@@ -591,6 +603,10 @@ export default function ClassDetailsClient({
           >
             <Bus className="h-4 w-4 mr-2" />
             {t("trips.title")}{trips.length > 0 && ` (${trips.length})`}
+          </TabsTrigger>
+          <TabsTrigger value="points">
+            <Coins className="h-4 w-4 mr-2" />
+            {t("points.classPoints")}
           </TabsTrigger>
         </TabsList>
 
@@ -1207,6 +1223,11 @@ export default function ClassDetailsClient({
               </Card>
             </div>
           )}
+        </TabsContent>
+
+        {/* Points Tab */}
+        <TabsContent value="points" className="space-y-4">
+          <ClassPointsOverview classId={classData.id} />
         </TabsContent>
       </Tabs>
 

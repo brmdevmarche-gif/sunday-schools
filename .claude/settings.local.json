@@ -25,7 +25,14 @@
       "Bash(npx tsx:*)",
       "Bash(psql:*)",
       "Bash(echo:*)",
-      "Bash(npm run db:migrate:*)"
+      "Bash(npm run db:migrate:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npx supabase:*)",
+      "Bash(for v in 10 11 12 13 14 15 16 17 18 19 21 22 23)",
+      "Bash(do npx supabase migration repair $v --status applied)",
+      "Bash(while read f)",
+      "Bash(do if ! grep -q \"useTranslations\" \"$f\")"
     ],
     "deny": [],
     "ask": []

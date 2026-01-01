@@ -57,8 +57,10 @@ export interface AvailableActivity {
 
 export interface PointsSummary {
   total_points: number;
-  pending_points: number;
-  revoked_points: number;
+  available_points: number;
+  suspended_points: number;
+  used_points: number;
+  total_earned: number;
   activities_completed: number;
   activities_pending: number;
 }
@@ -309,26 +311,29 @@ export async function getStudentPointsAction(
 ): Promise<PointsSummary> {
   const supabase = createAdminClient();
 
-  // Get all completions
+  // Get points balance from student_points_balance table
+  let balance = {
+    available_points: 0,
+    suspended_points: 0,
+    used_points: 0,
+    total_earned: 0,
+  };
+
+  const { data: balanceData, error: balanceError } = await supabase
+    .from("student_points_balance")
+    .select("available_points, suspended_points, used_points, total_earned")
+    .eq("user_id", studentId)
+    .single();
+
+  if (!balanceError && balanceData) {
+    balance = balanceData;
+  }
+
+  // Get activity completions for activity-specific stats
   const { data: completions } = await supabase
     .from("activity_completions")
-    .select("status, points_awarded, is_revoked")
+    .select("status, is_revoked")
     .eq("user_id", studentId);
-
-  const total_points =
-    completions
-      ?.filter((c) => c.status === "approved" && !c.is_revoked)
-      .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0;
-
-  const pending_points =
-    completions
-      ?.filter((c) => c.status === "pending")
-      .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0;
-
-  const revoked_points =
-    completions
-      ?.filter((c) => c.is_revoked)
-      .reduce((sum, c) => sum + (c.points_awarded || 0), 0) || 0;
 
   const activities_completed =
     completions?.filter((c) => c.status === "approved" && !c.is_revoked)
@@ -338,9 +343,11 @@ export async function getStudentPointsAction(
     completions?.filter((c) => c.status === "pending").length || 0;
 
   return {
-    total_points,
-    pending_points,
-    revoked_points,
+    total_points: balance.available_points,
+    available_points: balance.available_points,
+    suspended_points: balance.suspended_points,
+    used_points: balance.used_points,
+    total_earned: balance.total_earned,
     activities_completed,
     activities_pending,
   };

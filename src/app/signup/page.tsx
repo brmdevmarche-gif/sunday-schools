@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { signUp } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const t = useTranslations();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,12 +30,12 @@ export default function SignUpPage() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("auth.passwordMismatch"));
       return;
     }
 
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t("auth.passwordTooShort"));
       return;
     }
 
@@ -41,13 +43,11 @@ export default function SignUpPage() {
 
     try {
       await signUp(email, password);
-      toast.success(
-        "Account created! Please check your email to verify your account."
-      );
+      toast.success(t("auth.signUpSuccess"));
       router.push("/login");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to create account"
+        error instanceof Error ? error.message : t("auth.signUpFailed")
       );
     } finally {
       setIsLoading(false);
@@ -58,13 +58,13 @@ export default function SignUpPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Sign Up</CardTitle>
-          <CardDescription>Create a new account to get started</CardDescription>
+          <CardTitle>{t("auth.signUpTitle")}</CardTitle>
+          <CardDescription>{t("auth.signUpDescription")}</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -76,7 +76,7 @@ export default function SignUpPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -88,7 +88,7 @@ export default function SignUpPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">{t("auth.confirmPassword")}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -102,12 +102,12 @@ export default function SignUpPage() {
           </CardContent>
           <CardFooter className="mt-6 flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Sign up"}
+              {isLoading ? t("auth.creatingAccount") : t("auth.signUp")}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
-              Already have an account?{" "}
+              {t("auth.hasAccount")}{" "}
               <Link href="/login" className="text-primary hover:underline">
-                Log in
+                {t("auth.logIn")}
               </Link>
             </p>
           </CardFooter>

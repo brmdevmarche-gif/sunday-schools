@@ -35,9 +35,11 @@ import {
   Database,
   Download,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Coins
 } from 'lucide-react'
 import { updateUserSettings, createBackupLog, type UserSettings, type BackupLog } from './actions'
+import ChurchPointsConfig from '@/components/ChurchPointsConfig'
 
 interface SettingsClientProps {
   initialSettings: UserSettings | null
@@ -50,6 +52,9 @@ interface SettingsClientProps {
     lastBackup: string | null
   } | null
   isSuperAdmin: boolean
+  isChurchAdmin: boolean
+  churchId?: string
+  churchName?: string
 }
 
 export default function SettingsClient({
@@ -57,6 +62,9 @@ export default function SettingsClient({
   backupLogs,
   databaseStats,
   isSuperAdmin,
+  isChurchAdmin,
+  churchId,
+  churchName,
 }: SettingsClientProps) {
   const router = useRouter()
   const t = useTranslations()
@@ -334,6 +342,11 @@ export default function SettingsClient({
           {t('common.save')}
         </Button>
       </div>
+
+      {/* Church Points Configuration (Church Admins Only) */}
+      {(isChurchAdmin || isSuperAdmin) && churchId && (
+        <ChurchPointsConfig churchId={churchId} churchName={churchName} />
+      )}
 
       {/* Data Backup Section (Super Admin Only) */}
       {isSuperAdmin && (

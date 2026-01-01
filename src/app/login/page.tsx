@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { signIn } from "@/lib/auth";
 import { logLoginAttempt } from "@/lib/login-history";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -36,12 +38,13 @@ export default function LoginPage() {
         await logLoginAttempt(user.id, true);
       }
 
-      toast.success("Logged in successfully!");
+      toast.success(t("auth.loginSuccess"));
+      router.refresh();
       router.push("/dashboard");
     } catch (error) {
       // Log failed login attempt
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to log in";
+        error instanceof Error ? error.message : t("auth.loginFailed");
       await logLoginAttempt(null, false, errorMessage);
 
       toast.error(errorMessage);
@@ -54,15 +57,15 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
+          <CardTitle>{t("auth.login")}</CardTitle>
           <CardDescription>
-            Enter your credentials to access your account
+            {t("auth.loginDescription")}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -74,7 +77,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -88,12 +91,12 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="mt-6 flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Log in"}
+              {isLoading ? t("auth.loggingIn") : t("auth.logIn")}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
-              Don&apos;t have an account?{" "}
+              {t("auth.noAccount")}{" "}
               <Link href="/signup" className="text-primary hover:underline">
-                Sign up
+                {t("auth.signUp")}
               </Link>
             </p>
           </CardFooter>

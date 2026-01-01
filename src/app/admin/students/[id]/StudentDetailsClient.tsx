@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +36,9 @@ import {
   User,
   GraduationCap,
   Activity as ActivityIcon,
+  Coins,
 } from "lucide-react";
+import PointsAdjustmentDialog from "@/components/PointsAdjustmentDialog";
 import type {
   StudentDetails,
   ActivityParticipation,
@@ -58,6 +61,7 @@ export default function StudentDetailsClient({
   points,
 }: StudentDetailsClientProps) {
   const router = useRouter();
+  const t = useTranslations();
   const [activeTab, setActiveTab] = useState("participated");
 
   const getInitials = (name: string | null) => {
@@ -75,21 +79,21 @@ export default function StudentDetailsClient({
       string,
       {
         variant: "default" | "secondary" | "destructive" | "outline";
-        label: string;
+        labelKey: string;
       }
     > = {
-      pending: { variant: "outline", label: "Pending" },
-      approved: { variant: "default", label: "Approved" },
-      rejected: { variant: "destructive", label: "Rejected" },
-      active: { variant: "default", label: "Active" },
-      withdrawn: { variant: "secondary", label: "Withdrawn" },
+      pending: { variant: "outline", labelKey: "studentDetails.status.pending" },
+      approved: { variant: "default", labelKey: "studentDetails.status.approved" },
+      rejected: { variant: "destructive", labelKey: "studentDetails.status.rejected" },
+      active: { variant: "default", labelKey: "studentDetails.status.active" },
+      withdrawn: { variant: "secondary", labelKey: "studentDetails.status.withdrawn" },
     };
 
     const config = statusConfig[status] || {
       variant: "outline" as const,
-      label: status,
+      labelKey: status,
     };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge variant={config.variant}>{t(config.labelKey)}</Badge>;
   };
 
   const getCompletionBadge = (
@@ -100,7 +104,7 @@ export default function StudentDetailsClient({
       return (
         <Badge variant="destructive" className="flex items-center gap-1">
           <XCircle className="h-3 w-3" />
-          Revoked
+          {t("studentDetails.completion.revoked")}
         </Badge>
       );
     }
@@ -110,37 +114,37 @@ export default function StudentDetailsClient({
       string,
       {
         variant: "default" | "secondary" | "destructive" | "outline";
-        label: string;
+        labelKey: string;
         icon?: typeof Clock;
       }
     > = {
       pending: {
         variant: "outline",
-        label: "Pending Review",
+        labelKey: "studentDetails.completion.pendingReview",
         icon: Clock,
       },
       approved: {
         variant: "default",
-        label: "Completed",
+        labelKey: "studentDetails.completion.completed",
         icon: CheckCircle2,
       },
       rejected: {
         variant: "destructive",
-        label: "Rejected",
+        labelKey: "studentDetails.completion.rejected",
         icon: XCircle,
       },
     };
 
     const item = config[completionStatus] || {
       variant: "outline" as const,
-      label: completionStatus,
+      labelKey: completionStatus,
     };
     const Icon = item.icon;
 
     return (
       <Badge variant={item.variant} className="flex items-center gap-1">
         {Icon && <Icon className="h-3 w-3" />}
-        {item.label}
+        {t(item.labelKey)}
       </Badge>
     );
   };
@@ -166,9 +170,9 @@ export default function StudentDetailsClient({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Student Details</h1>
+          <h1 className="text-2xl font-bold">{t("studentDetails.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            View student information, activities, and points
+            {t("studentDetails.subtitle")}
           </p>
         </div>
       </div>
@@ -198,7 +202,7 @@ export default function StudentDetailsClient({
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Email</p>
+                <p className="text-sm font-medium">{t("studentDetails.email")}</p>
                 <p className="text-sm text-muted-foreground">{student.email}</p>
               </div>
             </div>
@@ -207,7 +211,7 @@ export default function StudentDetailsClient({
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Phone</p>
+                  <p className="text-sm font-medium">{t("studentDetails.phone")}</p>
                   <p className="text-sm text-muted-foreground">
                     {student.phone}
                   </p>
@@ -215,13 +219,13 @@ export default function StudentDetailsClient({
               </div>
             )}
 
-            {student.date_of_birth && (
+            {student.date_of_birth && age !== null && (
               <div className="flex items-center gap-3">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Age</p>
+                  <p className="text-sm font-medium">{t("studentDetails.age")}</p>
                   <p className="text-sm text-muted-foreground">
-                    {age} years ({formatDate(student.date_of_birth)})
+                    {t("studentDetails.yearsOld", { age })} ({formatDate(student.date_of_birth)})
                   </p>
                 </div>
               </div>
@@ -231,9 +235,9 @@ export default function StudentDetailsClient({
               <div className="flex items-center gap-3">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Gender</p>
+                  <p className="text-sm font-medium">{t("studentDetails.gender")}</p>
                   <p className="text-sm text-muted-foreground capitalize">
-                    {student.gender}
+                    {t(`studentDetails.genders.${student.gender}`)}
                   </p>
                 </div>
               </div>
@@ -243,7 +247,7 @@ export default function StudentDetailsClient({
               <div className="flex items-center gap-3 md:col-span-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Address</p>
+                  <p className="text-sm font-medium">{t("studentDetails.address")}</p>
                   <p className="text-sm text-muted-foreground">
                     {student.address}
                   </p>
@@ -255,7 +259,7 @@ export default function StudentDetailsClient({
               <div className="flex items-center gap-3">
                 <GraduationCap className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Diocese</p>
+                  <p className="text-sm font-medium">{t("studentDetails.diocese")}</p>
                   <p className="text-sm text-muted-foreground">
                     {student.diocese_name}
                   </p>
@@ -267,7 +271,7 @@ export default function StudentDetailsClient({
               <div className="flex items-center gap-3">
                 <GraduationCap className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Church</p>
+                  <p className="text-sm font-medium">{t("studentDetails.church")}</p>
                   <p className="text-sm text-muted-foreground">
                     {student.church_name}
                   </p>
@@ -280,7 +284,7 @@ export default function StudentDetailsClient({
                 <div className="flex items-center gap-3 md:col-span-2">
                   <GraduationCap className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Classes</p>
+                    <p className="text-sm font-medium">{t("studentDetails.classes")}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {student.class_assignments.map((assignment) => (
                         <Badge key={assignment.class_id} variant="secondary">
@@ -301,10 +305,24 @@ export default function StudentDetailsClient({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Points</p>
-                <p className="text-3xl font-bold">{points.total_points}</p>
+                <p className="text-sm text-muted-foreground">{t("studentDetails.points.available")}</p>
+                <p className="text-3xl font-bold">{points.available_points}</p>
               </div>
               <Trophy className="h-8 w-8 text-amber-500" />
+            </div>
+            <div className="mt-4">
+              <PointsAdjustmentDialog
+                studentId={student.id}
+                studentName={student.full_name || student.email}
+                currentPoints={points.available_points}
+                onSuccess={() => router.refresh()}
+                trigger={
+                  <Button variant="outline" size="sm" className="w-full gap-2">
+                    <Coins className="h-4 w-4" />
+                    {t("studentDetails.points.adjust")}
+                  </Button>
+                }
+              />
             </div>
           </CardContent>
         </Card>
@@ -313,8 +331,8 @@ export default function StudentDetailsClient({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-3xl font-bold">{points.pending_points}</p>
+                <p className="text-sm text-muted-foreground">{t("studentDetails.points.suspended")}</p>
+                <p className="text-3xl font-bold">{points.suspended_points}</p>
               </div>
               <Clock className="h-8 w-8 text-blue-500" />
             </div>
@@ -325,22 +343,8 @@ export default function StudentDetailsClient({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Revoked</p>
-                <p className="text-3xl font-bold">{points.revoked_points}</p>
-              </div>
-              <XCircle className="h-8 w-8 text-red-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-3xl font-bold">
-                  {points.activities_completed}
-                </p>
+                <p className="text-sm text-muted-foreground">{t("studentDetails.points.totalEarned")}</p>
+                <p className="text-3xl font-bold">{points.total_earned}</p>
               </div>
               <CheckCircle2 className="h-8 w-8 text-green-500" />
             </div>
@@ -351,12 +355,26 @@ export default function StudentDetailsClient({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">In Progress</p>
+                <p className="text-sm text-muted-foreground">{t("studentDetails.points.activitiesDone")}</p>
                 <p className="text-3xl font-bold">
-                  {points.activities_pending}
+                  {points.activities_completed}
                 </p>
               </div>
               <ActivityIcon className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">{t("studentDetails.points.used")}</p>
+                <p className="text-3xl font-bold">
+                  {points.used_points}
+                </p>
+              </div>
+              <XCircle className="h-8 w-8 text-red-500" />
             </div>
           </CardContent>
         </Card>
@@ -365,20 +383,19 @@ export default function StudentDetailsClient({
       {/* Activities */}
       <Card>
         <CardHeader>
-          <CardTitle>Activities</CardTitle>
+          <CardTitle>{t("studentDetails.activities.title")}</CardTitle>
           <CardDescription>
-            View activities this student has participated in and available
-            activities
+            {t("studentDetails.activities.description")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="participated">
-                Participated ({activities.participated.length})
+                {t("studentDetails.activities.participated")} ({activities.participated.length})
               </TabsTrigger>
               <TabsTrigger value="available">
-                Available ({activities.available.length})
+                {t("studentDetails.activities.available")} ({activities.available.length})
               </TabsTrigger>
             </TabsList>
 
@@ -387,19 +404,19 @@ export default function StudentDetailsClient({
                 <div className="text-center py-12">
                   <ActivityIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="text-muted-foreground">
-                    No activities participated yet
+                    {t("studentDetails.activities.noParticipated")}
                   </p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Activity</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Completion</TableHead>
-                      <TableHead>Requested</TableHead>
-                      <TableHead>Completed</TableHead>
+                      <TableHead>{t("studentDetails.table.activity")}</TableHead>
+                      <TableHead>{t("studentDetails.table.points")}</TableHead>
+                      <TableHead>{t("studentDetails.table.status")}</TableHead>
+                      <TableHead>{t("studentDetails.table.completion")}</TableHead>
+                      <TableHead>{t("studentDetails.table.requested")}</TableHead>
+                      <TableHead>{t("studentDetails.table.completed")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -452,7 +469,7 @@ export default function StudentDetailsClient({
                 <div className="text-center py-12">
                   <ActivityIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="text-muted-foreground">
-                    No available activities at the moment
+                    {t("studentDetails.activities.noAvailable")}
                   </p>
                 </div>
               ) : (
@@ -480,7 +497,7 @@ export default function StudentDetailsClient({
                           <div className="flex items-center gap-1">
                             <Trophy className="h-4 w-4 text-amber-500" />
                             <span className="font-medium">
-                              {activity.points} pts
+                              {activity.points} {t("studentDetails.activities.pts")}
                             </span>
                           </div>
                           {activity.deadline && (
@@ -492,7 +509,7 @@ export default function StudentDetailsClient({
                         </div>
                         {activity.max_participants && (
                           <p className="text-xs text-muted-foreground mt-2">
-                            Max: {activity.max_participants} participants
+                            {t("studentDetails.activities.maxParticipants", { count: activity.max_participants })}
                           </p>
                         )}
                       </CardContent>

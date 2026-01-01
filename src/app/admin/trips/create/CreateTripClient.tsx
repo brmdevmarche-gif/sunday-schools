@@ -579,7 +579,7 @@ export default function CreateTripClient({
                 <CardTitle>Pricing</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="price_normal">Normal Price *</Label>
                   <Input
                     id="price_normal"
@@ -597,7 +597,7 @@ export default function CreateTripClient({
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="price_mastor">Mastor Price *</Label>
                   <Input
                     id="price_mastor"
@@ -615,7 +615,7 @@ export default function CreateTripClient({
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="price_botl">Botl Price *</Label>
                   <Input
                     id="price_botl"

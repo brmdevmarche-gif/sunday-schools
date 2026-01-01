@@ -3,6 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import {
+  suspendPointsForOrderAction,
+  confirmOrderPointsDeductionAction,
+  returnSuspendedPointsAction,
+  getStudentPointsBalanceAction,
+} from '@/app/admin/points/actions'
 
 export type OrderStatus = 'pending' | 'approved' | 'fulfilled' | 'cancelled' | 'rejected'
 export type PriceTier = 'normal' | 'mastor' | 'botl'
@@ -82,6 +88,12 @@ export async function createOrderAction(input: CreateOrderInput) {
     }
   })
 
+  // Check if user has enough points
+  const balance = await getStudentPointsBalanceAction(user.id)
+  if (!balance || balance.available_points < totalPoints) {
+    throw new Error(`Insufficient points. Available: ${balance?.available_points || 0}, Required: ${totalPoints}`)
+  }
+
   // Create the order
   const { data: order, error: orderError } = await adminClient
     .from('orders')
@@ -113,6 +125,15 @@ export async function createOrderAction(input: CreateOrderInput) {
     // Rollback: delete the order
     await adminClient.from('orders').delete().eq('id', order.id)
     throw new Error(`Failed to create order items: ${itemsInsertError.message}`)
+  }
+
+  // Suspend points for this order
+  try {
+    await suspendPointsForOrderAction(user.id, totalPoints, order.id)
+  } catch (pointsError) {
+    // Rollback: delete the order and items
+    await adminClient.from('orders').delete().eq('id', order.id)
+    throw new Error(`Failed to suspend points: ${pointsError instanceof Error ? pointsError.message : 'Unknown error'}`)
   }
 
   revalidatePath('/store')
@@ -305,6 +326,10 @@ export async function updateOrderStatusAction(input: UpdateOrderStatusInput) {
     throw new Error('Unauthorized: Order is from a different diocese')
   }
 
+  // Handle points based on status change
+  const previousStatus = order.status
+  const newStatus = input.status
+
   // Update the order
   const { error } = await adminClient
     .from('orders')
@@ -318,6 +343,25 @@ export async function updateOrderStatusAction(input: UpdateOrderStatusInput) {
 
   if (error) {
     throw new Error(`Failed to update order status: ${error.message}`)
+  }
+
+  // Handle points based on status transition
+  try {
+    if (previousStatus === 'pending') {
+      if (newStatus === 'approved' || newStatus === 'fulfilled') {
+        // Confirm points deduction (move from suspended to used)
+        await confirmOrderPointsDeductionAction(order.user_id, order.total_points, order.id)
+      } else if (newStatus === 'rejected') {
+        // Return suspended points
+        await returnSuspendedPointsAction(order.user_id, order.total_points, order.id, 'rejected')
+      } else if (newStatus === 'cancelled') {
+        // Return suspended points
+        await returnSuspendedPointsAction(order.user_id, order.total_points, order.id, 'cancelled')
+      }
+    }
+  } catch (pointsError) {
+    console.error('Points operation failed:', pointsError)
+    // Don't fail the order update, but log the error
   }
 
   revalidatePath('/admin/store/orders')
@@ -405,6 +449,14 @@ export async function cancelOrderAction(order_id: string) {
 
   if (error) {
     throw new Error(`Failed to cancel order: ${error.message}`)
+  }
+
+  // Return suspended points
+  try {
+    await returnSuspendedPointsAction(user.id, order.total_points, order_id, 'cancelled')
+  } catch (pointsError) {
+    console.error('Failed to return points:', pointsError)
+    // Don't fail the cancellation, but log the error
   }
 
   revalidatePath('/store')

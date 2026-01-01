@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -110,10 +110,11 @@ export default function TripDetailsClient({
   userProfile,
 }: TripDetailsClientProps) {
   const locale = useLocale();
+  const t = useTranslations();
 
   // Get currency symbol based on locale
   const getCurrencySymbol = () => {
-    return locale === 'ar' ? 'ج.م' : 'E.L';
+    return locale === "ar" ? "ج.م" : "E.L";
   };
   const router = useRouter();
   const [participants, setParticipants] = useState(initialParticipants);
@@ -125,7 +126,7 @@ export default function TripDetailsClient({
   );
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
-  
+
   // Organizers management state
   const [isAddOrganizerOpen, setIsAddOrganizerOpen] = useState(false);
   const [availableTeachers, setAvailableTeachers] = useState<any[]>([]);
@@ -138,13 +139,17 @@ export default function TripDetailsClient({
   });
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
   const [isAddingOrganizer, setIsAddingOrganizer] = useState(false);
-  const [updatingPermission, setUpdatingPermission] = useState<string | null>(null); // Format: "organizerId-permission"
+  const [updatingPermission, setUpdatingPermission] = useState<string | null>(
+    null
+  ); // Format: "organizerId-permission"
 
   // Add Participants state
   const [isAddParticipantsOpen, setIsAddParticipantsOpen] = useState(false);
   const [availableStudents, setAvailableStudents] = useState<any[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
-  const [subscribingStudentId, setSubscribingStudentId] = useState<string | null>(null);
+  const [subscribingStudentId, setSubscribingStudentId] = useState<
+    string | null
+  >(null);
 
   // Attendance state
   const [attendanceRecords, setAttendanceRecords] = useState<
@@ -273,11 +278,13 @@ export default function TripDetailsClient({
 
       setSelectedParticipants(new Set());
       toast.success(
-        `${selectedParticipants.size} participants updated successfully`
+        t("trips.messages.participantsUpdated", {
+          count: selectedParticipants.size,
+        })
       );
     } catch (error: any) {
       console.error("Error updating participants:", error);
-      toast.error(error.message || "Failed to update participants");
+      toast.error(error.message || t("trips.messages.participantsUpdateError"));
     } finally {
       setIsBulkUpdating(false);
     }
@@ -357,10 +364,10 @@ export default function TripDetailsClient({
         return newStats;
       });
 
-      toast.success("Participant updated successfully");
+      toast.success(t("trips.messages.participantUpdated"));
     } catch (error: any) {
       console.error("Error updating participant:", error);
-      toast.error(error.message || "Failed to update participant");
+      toast.error(error.message || t("trips.messages.participantUpdateError"));
     } finally {
       setIsUpdating(null);
     }
@@ -467,7 +474,7 @@ export default function TripDetailsClient({
     // Determine which permission is being updated
     const permissionKey = Object.keys(roles)[0] as keyof typeof roles;
     const permissionId = `${organizerId}-${permissionKey}`;
-    
+
     setUpdatingPermission(permissionId);
     try {
       const result = await updateTripOrganizerAction({
@@ -508,14 +515,14 @@ export default function TripDetailsClient({
 
   // Check if user can take attendance (admins or organizers with can_take_attendance)
   const canTakeAttendance =
-    canManageOrganizers || (currentUserOrganizer?.can_take_attendance === true);
+    canManageOrganizers || currentUserOrganizer?.can_take_attendance === true;
 
   // Check if today is the trip start date
   function isTripStartDate(): boolean {
     if (!trip.start_datetime) return false;
     const startDate = new Date(trip.start_datetime);
     const today = new Date();
-    
+
     // Compare dates (ignore time)
     return (
       startDate.getFullYear() === today.getFullYear() &&
@@ -573,11 +580,16 @@ export default function TripDetailsClient({
 
   // Initialize attendance records from participants
   function initializeAttendance() {
-    const records = new Map<string, { status: AttendanceStatus; notes?: string }>();
+    const records = new Map<
+      string,
+      { status: AttendanceStatus; notes?: string }
+    >();
     participants.forEach((participant) => {
       // Default to present if already marked, otherwise present
       records.set(participant.id, {
-        status: ((participant as any).attendance_status as AttendanceStatus) || "present",
+        status:
+          ((participant as any).attendance_status as AttendanceStatus) ||
+          "present",
         notes: (participant as any).attendance_notes || "",
       });
     });
@@ -585,10 +597,15 @@ export default function TripDetailsClient({
     setActiveTab("attendance");
   }
 
-  function updateAttendanceStatus(participantId: string, status: AttendanceStatus) {
+  function updateAttendanceStatus(
+    participantId: string,
+    status: AttendanceStatus
+  ) {
     setAttendanceRecords((prev) => {
       const newMap = new Map(prev);
-      const existing = newMap.get(participantId) || { status: "present" as const };
+      const existing = newMap.get(participantId) || {
+        status: "present" as const,
+      };
       newMap.set(participantId, { ...existing, status });
       return newMap;
     });
@@ -597,7 +614,9 @@ export default function TripDetailsClient({
   function updateAttendanceNotes(participantId: string, notes: string) {
     setAttendanceRecords((prev) => {
       const newMap = new Map(prev);
-      const existing = newMap.get(participantId) || { status: "present" as const };
+      const existing = newMap.get(participantId) || {
+        status: "present" as const,
+      };
       newMap.set(participantId, { ...existing, notes });
       return newMap;
     });
@@ -611,14 +630,16 @@ export default function TripDetailsClient({
 
     setIsSavingAttendance(true);
     try {
-      const records = Array.from(attendanceRecords.entries()).map(([participantId, record]) => ({
-        participant_id: participantId,
-        attendance_status: record.status,
-        notes: record.notes,
-      }));
+      const records = Array.from(attendanceRecords.entries()).map(
+        ([participantId, record]) => ({
+          participant_id: participantId,
+          attendance_status: record.status,
+          notes: record.notes,
+        })
+      );
 
       await bulkMarkTripAttendanceAction(trip.id, records);
-      
+
       // Update local participants state
       setParticipants((prev) =>
         prev.map((p) => {
@@ -654,7 +675,7 @@ export default function TripDetailsClient({
           <div>
             <h1 className="text-3xl font-bold">{trip.title}</h1>
             <p className="text-muted-foreground mt-1">
-              Trip Details & Participant Management
+              {t("trips.participantManagement")}
             </p>
           </div>
         </div>
@@ -667,7 +688,7 @@ export default function TripDetailsClient({
           )}
           <Button onClick={() => router.push(`/admin/trips/${trip.id}/edit`)}>
             <Edit className="mr-2 h-4 w-4" />
-            Edit Trip
+            {t("trips.editTrip")}
           </Button>
         </div>
       </div>
@@ -678,10 +699,10 @@ export default function TripDetailsClient({
         className="space-y-6"
       >
         <TabsList>
-          <TabsTrigger value="details">Trip Details</TabsTrigger>
+          <TabsTrigger value="details">{t("trips.tripDetails")}</TabsTrigger>
           <TabsTrigger value="participants">
             <Users className="h-4 w-4 mr-2" />
-            Participants ({stats.total})
+            {t("trips.participants")} ({stats.total})
           </TabsTrigger>
           <TabsTrigger
             value="attendance"
@@ -709,30 +730,39 @@ export default function TripDetailsClient({
               {/* Basic Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Basic Information</CardTitle>
+                  <CardTitle>{t("trips.basicInformation")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Description</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("trips.fields.description")}
+                    </p>
                     <p className="mt-1">
-                      {trip.description || "No description"}
+                      {trip.description || t("trips.messages.noDescription")}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Trip Type</p>
-                      <Badge className="mt-1">{trip.trip_type}</Badge>
+                      <p className="text-sm text-muted-foreground">
+                        {t("trips.tripType")}
+                      </p>
+                      <Badge className="mt-1">
+                        {t(`trips.types.${trip.trip_type}`)}
+                      </Badge>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t("trips.fields.status")}
+                      </p>
                       <div className="flex gap-2 mt-1">
                         <Badge className={getStatusColor(trip.status)}>
-                          {trip.status.charAt(0).toUpperCase() +
-                            trip.status.slice(1)}
+                          {t(`trips.statuses.${trip.status}`)}
                         </Badge>
                         {!trip.available && (
-                          <Badge variant="outline">Unavailable</Badge>
+                          <Badge variant="outline">
+                            {t("trips.fields.unavailable")}
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -743,7 +773,7 @@ export default function TripDetailsClient({
               {/* Date & Time */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Date & Time</CardTitle>
+                  <CardTitle>{t("trips.dateTime")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
@@ -751,7 +781,7 @@ export default function TripDetailsClient({
                       <div>
                         <p className="text-sm text-muted-foreground flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
-                          Start Date & Time
+                          {t("trips.fields.startDateTime")}
                         </p>
                         <p className="mt-1 font-medium">
                           {formatDateTime(trip.start_datetime)}
@@ -762,7 +792,7 @@ export default function TripDetailsClient({
                       <div>
                         <p className="text-sm text-muted-foreground flex items-center gap-2">
                           <Clock className="h-4 w-4" />
-                          End Date & Time
+                          {t("trips.fields.endDateTime")}
                         </p>
                         <p className="mt-1 font-medium">
                           {formatDateTime(trip.end_datetime)}
@@ -779,7 +809,7 @@ export default function TripDetailsClient({
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
-                      Destinations
+                      {t("trips.destinations")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -810,13 +840,13 @@ export default function TripDetailsClient({
               {(trip.transportation_details || trip.what_to_bring) && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Additional Information</CardTitle>
+                    <CardTitle>{t("trips.additionalInformation")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {trip.transportation_details && (
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Transportation Details
+                          {t("trips.fields.transportationDetails")}
                         </p>
                         <p className="mt-1">{trip.transportation_details}</p>
                       </div>
@@ -824,7 +854,7 @@ export default function TripDetailsClient({
                     {trip.what_to_bring && (
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          What to Bring
+                          {t("trips.fields.whatToBring")}
                         </p>
                         <p className="mt-1">{trip.what_to_bring}</p>
                       </div>
@@ -838,27 +868,32 @@ export default function TripDetailsClient({
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Statistics</CardTitle>
+                  <CardTitle>{t("trips.statistics")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Pricing</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("trips.pricing")}
+                    </p>
                     <div className="mt-1 space-y-1">
                       <p className="font-medium">
-                        Normal: {getCurrencySymbol()}{trip.price_normal}
+                        {t("studentTrips.normal")}: {getCurrencySymbol()}
+                        {trip.price_normal}
                       </p>
                       <p className="font-medium">
-                        Mastor: {getCurrencySymbol()}{trip.price_mastor}
+                        {t("studentTrips.mastor")}: {getCurrencySymbol()}
+                        {trip.price_mastor}
                       </p>
                       <p className="font-medium">
-                        Botl: {getCurrencySymbol()}{trip.price_botl}
+                        {t("studentTrips.botl")}: {getCurrencySymbol()}
+                        {trip.price_botl}
                       </p>
                     </div>
                   </div>
                   {trip.max_participants && (
                     <div>
                       <p className="text-sm text-muted-foreground">
-                        Max Participants
+                        {t("trips.fields.maxParticipants")}
                       </p>
                       <p className="mt-1 text-xl font-semibold">
                         {trip.max_participants}
@@ -870,16 +905,18 @@ export default function TripDetailsClient({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Participant Stats</CardTitle>
+                  <CardTitle>{t("trips.participantStats")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Total</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("trips.stats.total")}
+                    </span>
                     <span className="font-semibold">{stats.total}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">
-                      Pending Approval
+                      {t("trips.stats.pendingApproval")}
                     </span>
                     <Badge
                       variant="outline"
@@ -890,7 +927,7 @@ export default function TripDetailsClient({
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">
-                      Approved
+                      {t("trips.stats.approved")}
                     </span>
                     <Badge
                       variant="outline"
@@ -900,14 +937,16 @@ export default function TripDetailsClient({
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Paid</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("trips.stats.paid")}
+                    </span>
                     <Badge variant="outline" className={getStatusColor("paid")}>
                       {stats.paid}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">
-                      Unpaid
+                      {t("trips.stats.unpaid")}
                     </span>
                     <Badge
                       variant="outline"
@@ -923,7 +962,7 @@ export default function TripDetailsClient({
                     size="sm"
                     onClick={() => setActiveTab("participants")}
                   >
-                    View Participants
+                    {t("trips.actions.viewDetailedStats")}
                   </Button>
                 </CardFooter>
               </Card>
@@ -936,11 +975,13 @@ export default function TripDetailsClient({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Participants</CardTitle>
+                <CardTitle>{t("trips.participants")}</CardTitle>
                 {selectedParticipants.size > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                      {selectedParticipants.size} selected
+                      {t("trips.messages.selected", {
+                        count: selectedParticipants.size,
+                      })}
                     </span>
                     <Button
                       size="sm"
@@ -950,7 +991,7 @@ export default function TripDetailsClient({
                       disabled={isBulkUpdating}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Approve Selected
+                      {t("trips.actions.approveSelected")}
                     </Button>
                     <Button
                       size="sm"
@@ -961,7 +1002,7 @@ export default function TripDetailsClient({
                       disabled={isBulkUpdating}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Reject Selected
+                      {t("trips.actions.rejectSelected")}
                     </Button>
                     <Button
                       size="sm"
@@ -969,7 +1010,7 @@ export default function TripDetailsClient({
                       onClick={() => setSelectedParticipants(new Set())}
                       disabled={isBulkUpdating}
                     >
-                      Clear Selection
+                      {t("trips.actions.clearSelection")}
                     </Button>
                   </div>
                 )}
@@ -979,9 +1020,11 @@ export default function TripDetailsClient({
               {participants.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">No participants yet</p>
+                  <p className="text-lg font-medium">
+                    {t("trips.messages.noParticipants")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Participants will appear here when they register
+                    {t("trips.messages.participantsWillAppear")}
                   </p>
                 </div>
               ) : (
@@ -997,12 +1040,12 @@ export default function TripDetailsClient({
                           onCheckedChange={toggleAll}
                         />
                       </TableHead>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Approval Status</TableHead>
-                      <TableHead>Payment Status</TableHead>
-                      <TableHead>Registered</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t("trips.table.student")}</TableHead>
+                      <TableHead>{t("trips.table.contact")}</TableHead>
+                      <TableHead>{t("trips.table.approvalStatus")}</TableHead>
+                      <TableHead>{t("trips.table.paymentStatus")}</TableHead>
+                      <TableHead>{t("trips.table.registered")}</TableHead>
+                      <TableHead>{t("trips.table.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1039,7 +1082,8 @@ export default function TripDetailsClient({
                             )}
                             {participant.emergency_contact && (
                               <div className="text-xs text-muted-foreground">
-                                Emergency: {participant.emergency_contact}
+                                {t("trips.table.emergency")}:{" "}
+                                {participant.emergency_contact}
                               </div>
                             )}
                           </div>
@@ -1083,7 +1127,7 @@ export default function TripDetailsClient({
                                 disabled={isUpdating === participant.id}
                               >
                                 <CheckCircle2 className="h-4 w-4 mr-1" />
-                                Approve
+                                {t("trips.actions.approve")}
                               </Button>
                             )}
                             <DropdownMenu>
@@ -1107,7 +1151,7 @@ export default function TripDetailsClient({
                                     className="text-destructive"
                                   >
                                     <XCircle className="h-4 w-4 mr-2" />
-                                    Reject
+                                    {t("trips.actions.reject")}
                                   </DropdownMenuItem>
                                 )}
                                 {participant.payment_status !== "paid" && (
@@ -1119,7 +1163,7 @@ export default function TripDetailsClient({
                                     }
                                   >
                                     <DollarSign className="h-4 w-4 mr-2" />
-                                    Mark as Paid
+                                    {t("trips.actions.markAsPaid")}
                                   </DropdownMenuItem>
                                 )}
                                 {participant.payment_status === "paid" && (
@@ -1131,7 +1175,7 @@ export default function TripDetailsClient({
                                     }
                                   >
                                     <XCircle className="h-4 w-4 mr-2" />
-                                    Mark as Unpaid
+                                    {t("trips.actions.markAsUnpaid")}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -1155,7 +1199,8 @@ export default function TripDetailsClient({
                 <div>
                   <CardTitle>Attendance</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Mark attendance for trip participants. Today is the trip start date.
+                    Mark attendance for trip participants. Today is the trip
+                    start date.
                   </p>
                 </div>
                 <Button
@@ -1198,11 +1243,10 @@ export default function TripDetailsClient({
                   </TableHeader>
                   <TableBody>
                     {participants.map((participant) => {
-                      const record =
-                        attendanceRecords.get(participant.id) || {
-                          status: "present" as const,
-                          notes: "",
-                        };
+                      const record = attendanceRecords.get(participant.id) || {
+                        status: "present" as const,
+                        notes: "",
+                      };
 
                       return (
                         <TableRow key={participant.id}>
@@ -1211,7 +1255,10 @@ export default function TripDetailsClient({
                               {(participant.user as any)?.avatar_url ? (
                                 <img
                                   src={(participant.user as any).avatar_url}
-                                  alt={participant.user?.full_name || participant.user?.email}
+                                  alt={
+                                    participant.user?.full_name ||
+                                    participant.user?.email
+                                  }
                                   className="h-9 w-9 rounded-full"
                                 />
                               ) : (
@@ -1221,7 +1268,8 @@ export default function TripDetailsClient({
                               )}
                               <div className="min-w-0">
                                 <p className="font-medium truncate">
-                                  {participant.user?.full_name || participant.user?.email}
+                                  {participant.user?.full_name ||
+                                    participant.user?.email}
                                 </p>
                                 {participant.user?.full_name && (
                                   <p className="text-xs text-muted-foreground truncate">
@@ -1238,8 +1286,13 @@ export default function TripDetailsClient({
                             <Input
                               placeholder="Notes (optional)"
                               value={record.notes || ""}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                updateAttendanceNotes(participant.id, e.target.value)
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) =>
+                                updateAttendanceNotes(
+                                  participant.id,
+                                  e.target.value
+                                )
                               }
                               className="min-w-[260px]"
                             />
@@ -1350,7 +1403,10 @@ export default function TripDetailsClient({
                                 <Checkbox
                                   id={`approve-${organizer.id}`}
                                   checked={organizer.can_approve}
-                                  loading={updatingPermission === `${organizer.id}-can_approve`}
+                                  loading={
+                                    updatingPermission ===
+                                    `${organizer.id}-can_approve`
+                                  }
                                   onCheckedChange={(checked) =>
                                     handleUpdateOrganizerRoles(organizer.id, {
                                       can_approve: checked === true,
@@ -1358,14 +1414,21 @@ export default function TripDetailsClient({
                                   }
                                 />
                                 <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                <Label htmlFor={`approve-${organizer.id}`} className="cursor-pointer">
+                                <Label
+                                  htmlFor={`approve-${organizer.id}`}
+                                  className="cursor-pointer"
+                                >
                                   Can Approve
                                 </Label>
                               </>
                             ) : (
                               <>
                                 <Badge
-                                  variant={organizer.can_approve ? "default" : "outline"}
+                                  variant={
+                                    organizer.can_approve
+                                      ? "default"
+                                      : "outline"
+                                  }
                                   className="mr-2"
                                 >
                                   {organizer.can_approve ? "Yes" : "No"}
@@ -1382,7 +1445,10 @@ export default function TripDetailsClient({
                                 <Checkbox
                                   id={`go-${organizer.id}`}
                                   checked={organizer.can_go}
-                                  loading={updatingPermission === `${organizer.id}-can_go`}
+                                  loading={
+                                    updatingPermission ===
+                                    `${organizer.id}-can_go`
+                                  }
                                   onCheckedChange={(checked) =>
                                     handleUpdateOrganizerRoles(organizer.id, {
                                       can_go: checked === true,
@@ -1390,14 +1456,19 @@ export default function TripDetailsClient({
                                   }
                                 />
                                 <Users className="h-4 w-4 text-muted-foreground" />
-                                <Label htmlFor={`go-${organizer.id}`} className="cursor-pointer">
+                                <Label
+                                  htmlFor={`go-${organizer.id}`}
+                                  className="cursor-pointer"
+                                >
                                   Can Go
                                 </Label>
                               </>
                             ) : (
                               <>
                                 <Badge
-                                  variant={organizer.can_go ? "default" : "outline"}
+                                  variant={
+                                    organizer.can_go ? "default" : "outline"
+                                  }
                                   className="mr-2"
                                 >
                                   {organizer.can_go ? "Yes" : "No"}
@@ -1414,7 +1485,10 @@ export default function TripDetailsClient({
                                 <Checkbox
                                   id={`attendance-${organizer.id}`}
                                   checked={organizer.can_take_attendance}
-                                  loading={updatingPermission === `${organizer.id}-can_take_attendance`}
+                                  loading={
+                                    updatingPermission ===
+                                    `${organizer.id}-can_take_attendance`
+                                  }
                                   onCheckedChange={(checked) =>
                                     handleUpdateOrganizerRoles(organizer.id, {
                                       can_take_attendance: checked === true,
@@ -1422,14 +1496,21 @@ export default function TripDetailsClient({
                                   }
                                 />
                                 <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
-                                <Label htmlFor={`attendance-${organizer.id}`} className="cursor-pointer">
+                                <Label
+                                  htmlFor={`attendance-${organizer.id}`}
+                                  className="cursor-pointer"
+                                >
                                   Can Take Attendance
                                 </Label>
                               </>
                             ) : (
                               <>
                                 <Badge
-                                  variant={organizer.can_take_attendance ? "default" : "outline"}
+                                  variant={
+                                    organizer.can_take_attendance
+                                      ? "default"
+                                      : "outline"
+                                  }
                                   className="mr-2"
                                 >
                                   {organizer.can_take_attendance ? "Yes" : "No"}
@@ -1446,7 +1527,10 @@ export default function TripDetailsClient({
                                 <Checkbox
                                   id={`payment-${organizer.id}`}
                                   checked={organizer.can_collect_payment}
-                                  loading={updatingPermission === `${organizer.id}-can_collect_payment`}
+                                  loading={
+                                    updatingPermission ===
+                                    `${organizer.id}-can_collect_payment`
+                                  }
                                   onCheckedChange={(checked) =>
                                     handleUpdateOrganizerRoles(organizer.id, {
                                       can_collect_payment: checked === true,
@@ -1454,14 +1538,21 @@ export default function TripDetailsClient({
                                   }
                                 />
                                 <CreditCard className="h-4 w-4 text-muted-foreground" />
-                                <Label htmlFor={`payment-${organizer.id}`} className="cursor-pointer">
+                                <Label
+                                  htmlFor={`payment-${organizer.id}`}
+                                  className="cursor-pointer"
+                                >
                                   Can Collect Payment
                                 </Label>
                               </>
                             ) : (
                               <>
                                 <Badge
-                                  variant={organizer.can_collect_payment ? "default" : "outline"}
+                                  variant={
+                                    organizer.can_collect_payment
+                                      ? "default"
+                                      : "outline"
+                                  }
                                   className="mr-2"
                                 >
                                   {organizer.can_collect_payment ? "Yes" : "No"}
@@ -1483,8 +1574,8 @@ export default function TripDetailsClient({
       </Tabs>
 
       {/* Add Organizer Dialog */}
-      <Dialog 
-        open={isAddOrganizerOpen} 
+      <Dialog
+        open={isAddOrganizerOpen}
         onOpenChange={(open) => {
           setIsAddOrganizerOpen(open);
           if (!open) {
@@ -1503,7 +1594,8 @@ export default function TripDetailsClient({
           <DialogHeader>
             <DialogTitle>Add Organizer</DialogTitle>
             <DialogDescription>
-              Select a teacher/staff member from the selected churches and assign their permissions.
+              Select a teacher/staff member from the selected churches and
+              assign their permissions.
             </DialogDescription>
           </DialogHeader>
 
@@ -1622,7 +1714,10 @@ export default function TripDetailsClient({
             >
               Cancel
             </Button>
-            <Button onClick={handleAddOrganizer} disabled={isAddingOrganizer || !selectedTeacherId}>
+            <Button
+              onClick={handleAddOrganizer}
+              disabled={isAddingOrganizer || !selectedTeacherId}
+            >
               {isAddingOrganizer ? "Adding..." : "Add Organizer"}
             </Button>
           </DialogFooter>
@@ -1630,8 +1725,8 @@ export default function TripDetailsClient({
       </Dialog>
 
       {/* Add Participants Dialog */}
-      <Dialog 
-        open={isAddParticipantsOpen} 
+      <Dialog
+        open={isAddParticipantsOpen}
         onOpenChange={(open) => {
           setIsAddParticipantsOpen(open);
           if (!open) {
@@ -1643,7 +1738,8 @@ export default function TripDetailsClient({
           <DialogHeader>
             <DialogTitle>Add Participants</DialogTitle>
             <DialogDescription>
-              Select students from the trip's classes to subscribe them to this trip.
+              Select students from the trip's classes to subscribe them to this
+              trip.
             </DialogDescription>
           </DialogHeader>
 
@@ -1651,7 +1747,9 @@ export default function TripDetailsClient({
             {isLoadingStudents ? (
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Loading students...</p>
+                <p className="text-sm text-muted-foreground">
+                  Loading students...
+                </p>
               </div>
             ) : availableStudents.length === 0 ? (
               <div className="text-center py-8">

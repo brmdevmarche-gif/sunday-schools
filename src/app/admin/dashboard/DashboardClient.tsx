@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import AdminLayout from "@/components/admin/AdminLayout";
 import {
   Card,
@@ -25,14 +26,16 @@ export default function DashboardClient({
   userProfile,
   stats,
 }: DashboardClientProps) {
+  const t = useTranslations();
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t("adminDashboard.title")}</h1>
           <p className="text-muted-foreground mt-2">
-            Welcome back, {userProfile?.full_name || "Admin"}!
+            {t("adminDashboard.welcome", { name: userProfile?.full_name || t("adminDashboard.admin") })}
           </p>
         </div>
 
@@ -42,14 +45,14 @@ export default function DashboardClient({
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Dioceses
+                  {t("adminDashboard.stats.totalDioceses")}
                 </CardTitle>
                 <Building2 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.dioceses}</div>
                 <p className="text-xs text-muted-foreground">
-                  Across the system
+                  {t("adminDashboard.stats.acrossSystem")}
                 </p>
               </CardContent>
             </Card>
@@ -61,14 +64,14 @@ export default function DashboardClient({
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {userProfile.role === "super_admin"
-                    ? "Total Churches"
-                    : "Churches in Diocese"}
+                    ? t("adminDashboard.stats.totalChurches")
+                    : t("adminDashboard.stats.churchesInDiocese")}
                 </CardTitle>
                 <Church className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.churches}</div>
-                <p className="text-xs text-muted-foreground">Active churches</p>
+                <p className="text-xs text-muted-foreground">{t("adminDashboard.stats.activeChurches")}</p>
               </CardContent>
             </Card>
           )}
@@ -77,15 +80,15 @@ export default function DashboardClient({
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {userProfile.role === "teacher"
-                  ? "My Classes"
-                  : "Total Classes"}
+                  ? t("adminDashboard.stats.myClasses")
+                  : t("adminDashboard.stats.totalClasses")}
               </CardTitle>
               <School className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.classes}</div>
               <p className="text-xs text-muted-foreground">
-                Sunday school classes
+                {t("adminDashboard.stats.sundaySchoolClasses")}
               </p>
             </CardContent>
           </Card>
@@ -94,14 +97,14 @@ export default function DashboardClient({
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Users
+                  {t("adminDashboard.stats.totalUsers")}
                 </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.users}</div>
                 <p className="text-xs text-muted-foreground">
-                  Students, teachers, parents
+                  {t("adminDashboard.stats.usersDescription")}
                 </p>
               </CardContent>
             </Card>
@@ -111,9 +114,9 @@ export default function DashboardClient({
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>{t("adminDashboard.quickActions.title")}</CardTitle>
             <CardDescription>
-              Common tasks and management options
+              {t("adminDashboard.quickActions.description")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -121,11 +124,11 @@ export default function DashboardClient({
               {userProfile?.role === "super_admin" && (
                 <Card className="cursor-pointer hover:bg-muted transition-colors">
                   <CardHeader>
-                    <CardTitle className="text-base">Manage Dioceses</CardTitle>
+                    <CardTitle className="text-base">{t("adminDashboard.quickActions.manageDioceses")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Add or edit dioceses
+                      {t("adminDashboard.quickActions.addEditDioceses")}
                     </p>
                   </CardContent>
                 </Card>
@@ -135,11 +138,11 @@ export default function DashboardClient({
                 userProfile?.role === "diocese_admin") && (
                 <Card className="cursor-pointer hover:bg-muted transition-colors">
                   <CardHeader>
-                    <CardTitle className="text-base">Manage Churches</CardTitle>
+                    <CardTitle className="text-base">{t("adminDashboard.quickActions.manageChurches")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Add or edit churches
+                      {t("adminDashboard.quickActions.addEditChurches")}
                     </p>
                   </CardContent>
                 </Card>
@@ -147,22 +150,22 @@ export default function DashboardClient({
 
               <Card className="cursor-pointer hover:bg-muted transition-colors">
                 <CardHeader>
-                  <CardTitle className="text-base">Manage Classes</CardTitle>
+                  <CardTitle className="text-base">{t("adminDashboard.quickActions.manageClasses")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Create and organize classes
+                    {t("adminDashboard.quickActions.createOrganizeClasses")}
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="cursor-pointer hover:bg-muted transition-colors">
                 <CardHeader>
-                  <CardTitle className="text-base">Manage Users</CardTitle>
+                  <CardTitle className="text-base">{t("adminDashboard.quickActions.manageUsers")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Add teachers, students, parents
+                    {t("adminDashboard.quickActions.addUsers")}
                   </p>
                 </CardContent>
               </Card>
@@ -171,11 +174,11 @@ export default function DashboardClient({
                 <>
                   <Card className="cursor-pointer hover:bg-muted transition-colors">
                     <CardHeader>
-                      <CardTitle className="text-base">My Classes</CardTitle>
+                      <CardTitle className="text-base">{t("adminDashboard.quickActions.myClasses")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        View assigned classes
+                        {t("adminDashboard.quickActions.viewAssignedClasses")}
                       </p>
                     </CardContent>
                   </Card>
@@ -183,12 +186,12 @@ export default function DashboardClient({
                   <Card className="cursor-pointer hover:bg-muted transition-colors">
                     <CardHeader>
                       <CardTitle className="text-base">
-                        Take Attendance
+                        {t("adminDashboard.quickActions.takeAttendance")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        Mark student attendance
+                        {t("adminDashboard.quickActions.markAttendance")}
                       </p>
                     </CardContent>
                   </Card>
@@ -201,12 +204,12 @@ export default function DashboardClient({
         {/* Recent Activity */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates and changes</CardDescription>
+            <CardTitle>{t("adminDashboard.recentActivity.title")}</CardTitle>
+            <CardDescription>{t("adminDashboard.recentActivity.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              No recent activity to display.
+              {t("adminDashboard.recentActivity.noActivity")}
             </p>
           </CardContent>
         </Card>

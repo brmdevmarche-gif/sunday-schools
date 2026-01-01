@@ -971,6 +971,202 @@ export async function updateTripOrganizerAction(input: UpdateTripOrganizerInput)
 }
 
 /**
+ * Get students from trip classes (for adding participants)
+ */
+export async function getStudentsFromTripClassesAction(tripId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const adminClient = createAdminClient()
+
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = profile && ['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)
+
+  // If not admin, check if user is an organizer with can_approve permission
+  if (!isAdmin) {
+    const { data: organizer } = await adminClient
+      .from('trip_organizers')
+      .select('can_approve')
+      .eq('trip_id', tripId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!organizer || !organizer.can_approve) {
+      throw new Error('Unauthorized: Only admins or organizers with approval permission can view students')
+    }
+  }
+
+  // Get trip classes
+  const { data: tripClasses, error: classesError } = await adminClient
+    .from('trip_classes')
+    .select('class_id')
+    .eq('trip_id', tripId)
+
+  if (classesError) {
+    // If table doesn't exist yet, return empty array
+    const errorMsg = classesError.message || ''
+    const errorCode = classesError.code || ''
+    if (errorMsg.includes('Could not find the table') || 
+        errorMsg.includes('does not exist') ||
+        errorCode === '42P01') {
+      return { success: true, data: [] }
+    }
+    throw new Error(`Failed to fetch trip classes: ${classesError.message}`)
+  }
+
+  if (!tripClasses || tripClasses.length === 0) {
+    return { success: true, data: [] }
+  }
+
+  const classIds = tripClasses.map(tc => tc.class_id)
+
+  // Get all students from these classes
+  const { data: classAssignments, error: assignmentsError } = await adminClient
+    .from('class_assignments')
+    .select(`
+      user_id,
+      class_id,
+      user:users!class_assignments_user_id_fkey(
+        id,
+        full_name,
+        email,
+        phone,
+        avatar_url
+      ),
+      classes:classes!class_assignments_class_id_fkey(
+        id,
+        name
+      )
+    `)
+    .in('class_id', classIds)
+    .eq('assignment_type', 'student')
+    .eq('is_active', true)
+
+  if (assignmentsError) {
+    throw new Error(`Failed to fetch students: ${assignmentsError.message}`)
+  }
+
+  // Get existing participants to filter them out
+  const { data: participants } = await adminClient
+    .from('trip_participants')
+    .select('user_id')
+    .eq('trip_id', tripId)
+
+  const participantIds = new Set(participants?.map(p => p.user_id) || [])
+
+  // Format and filter students
+  const students = (classAssignments || [])
+    .map((assignment: any) => ({
+      id: assignment.user?.id,
+      full_name: assignment.user?.full_name,
+      email: assignment.user?.email,
+      phone: assignment.user?.phone,
+      avatar_url: assignment.user?.avatar_url,
+      class_id: assignment.class_id,
+      class_name: assignment.classes?.name || 'Unknown',
+    }))
+    .filter((student: any) => student.id && !participantIds.has(student.id))
+    // Remove duplicates (students might be in multiple classes)
+    .filter((student: any, index: number, self: any[]) => 
+      index === self.findIndex((s: any) => s.id === student.id)
+    )
+    .sort((a: any, b: any) => {
+      const nameA = a.full_name || a.email || ''
+      const nameB = b.full_name || b.email || ''
+      return nameA.localeCompare(nameB)
+    })
+
+  return { success: true, data: students }
+}
+
+/**
+ * Subscribe a student to a trip (admin or organizer with can_approve action)
+ */
+export async function subscribeStudentToTripAction(tripId: string, userId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const adminClient = createAdminClient()
+
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = profile && ['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)
+
+  // If not admin, check if user is an organizer with can_approve permission
+  if (!isAdmin) {
+    const { data: organizer } = await adminClient
+      .from('trip_organizers')
+      .select('can_approve')
+      .eq('trip_id', tripId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!organizer || !organizer.can_approve) {
+      throw new Error('Unauthorized: Only admins or organizers with approval permission can add participants')
+    }
+  }
+
+  // Check if already subscribed
+  const { data: existing } = await adminClient
+    .from('trip_participants')
+    .select('id')
+    .eq('trip_id', tripId)
+    .eq('user_id', userId)
+    .single()
+
+  if (existing) {
+    throw new Error('Student is already subscribed to this trip')
+  }
+
+  // Create participation
+  const { data, error } = await adminClient
+    .from('trip_participants')
+    .insert({
+      trip_id: tripId,
+      user_id: userId,
+      approval_status: 'pending',
+      payment_status: 'pending',
+    })
+    .select(`
+      *,
+      user:users!user_id(
+        id,
+        full_name,
+        email,
+        phone
+      )
+    `)
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to subscribe student: ${error.message}`)
+  }
+
+  revalidatePath('/admin/trips')
+  revalidatePath(`/admin/trips/${tripId}`)
+  return { success: true, data }
+}
+
+/**
  * Remove organizer from trip
  */
 export async function removeTripOrganizerAction(organizerId: string) {
@@ -1019,6 +1215,156 @@ export async function removeTripOrganizerAction(organizerId: string) {
     revalidatePath(`/admin/trips/${organizer.trip_id}`)
   }
 
+  return { success: true }
+}
+
+/**
+ * Mark attendance for trip participants
+ */
+export async function markTripAttendanceAction(
+  tripId: string,
+  participantId: string,
+  attendanceStatus: 'present' | 'absent' | 'excused' | 'late',
+  notes?: string
+) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const adminClient = createAdminClient()
+
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = profile && ['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)
+
+  // If not admin, check if user is an organizer with can_take_attendance permission
+  if (!isAdmin) {
+    const { data: organizer } = await adminClient
+      .from('trip_organizers')
+      .select('can_take_attendance')
+      .eq('trip_id', tripId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!organizer || !organizer.can_take_attendance) {
+      throw new Error('Unauthorized: Only admins or organizers with attendance permission can mark attendance')
+    }
+  }
+
+  // Verify participant belongs to this trip
+  const { data: participant } = await adminClient
+    .from('trip_participants')
+    .select('trip_id')
+    .eq('id', participantId)
+    .single()
+
+  if (!participant || participant.trip_id !== tripId) {
+    throw new Error('Participant not found for this trip')
+  }
+
+  // Update attendance
+  const { data, error } = await adminClient
+    .from('trip_participants')
+    .update({
+      attendance_status: attendanceStatus,
+      attendance_marked_at: new Date().toISOString(),
+      attendance_marked_by: user.id,
+      attendance_notes: notes || null,
+    })
+    .eq('id', participantId)
+    .select(`
+      *,
+      user:users!user_id(
+        id,
+        full_name,
+        email,
+        phone
+      )
+    `)
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to mark attendance: ${error.message}`)
+  }
+
+  revalidatePath('/admin/trips')
+  revalidatePath(`/admin/trips/${tripId}`)
+  return { success: true, data }
+}
+
+/**
+ * Bulk mark attendance for multiple trip participants
+ */
+export async function bulkMarkTripAttendanceAction(
+  tripId: string,
+  attendanceRecords: Array<{
+    participant_id: string
+    attendance_status: 'present' | 'absent' | 'excused' | 'late'
+    notes?: string
+  }>
+) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const adminClient = createAdminClient()
+
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = profile && ['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)
+
+  // If not admin, check if user is an organizer with can_take_attendance permission
+  if (!isAdmin) {
+    const { data: organizer } = await adminClient
+      .from('trip_organizers')
+      .select('can_take_attendance')
+      .eq('trip_id', tripId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!organizer || !organizer.can_take_attendance) {
+      throw new Error('Unauthorized: Only admins or organizers with attendance permission can mark attendance')
+    }
+  }
+
+  // Update all attendance records
+  const updates = attendanceRecords.map(async (record) => {
+    const { error } = await adminClient
+      .from('trip_participants')
+      .update({
+        attendance_status: record.attendance_status,
+        attendance_marked_at: new Date().toISOString(),
+        attendance_marked_by: user.id,
+        attendance_notes: record.notes || null,
+      })
+      .eq('id', record.participant_id)
+      .eq('trip_id', tripId)
+
+    if (error) {
+      console.error(`Failed to mark attendance for participant ${record.participant_id}:`, error)
+    }
+  })
+
+  await Promise.all(updates)
+
+  revalidatePath('/admin/trips')
+  revalidatePath(`/admin/trips/${tripId}`)
   return { success: true }
 }
 

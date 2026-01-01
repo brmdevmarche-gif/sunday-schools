@@ -66,12 +66,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { AttendanceStatusButtons } from "@/components/attendance/AttendanceStatusButtons";
 import {
   updateTripParticipantAction,
   getTeachersForTripsAction,
   addTripOrganizerAction,
   removeTripOrganizerAction,
   updateTripOrganizerAction,
+  getStudentsFromTripClassesAction,
+  subscribeStudentToTripAction,
+  bulkMarkTripAttendanceAction,
 } from "../actions";
 import type {
   TripWithDetails,
@@ -79,6 +84,7 @@ import type {
   TripApprovalStatus,
   TripPaymentStatus,
   TripOrganizerWithUser,
+  AttendanceStatus,
 } from "@/lib/types";
 
 interface TripDetailsClientProps {
@@ -133,6 +139,18 @@ export default function TripDetailsClient({
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
   const [isAddingOrganizer, setIsAddingOrganizer] = useState(false);
   const [updatingPermission, setUpdatingPermission] = useState<string | null>(null); // Format: "organizerId-permission"
+
+  // Add Participants state
+  const [isAddParticipantsOpen, setIsAddParticipantsOpen] = useState(false);
+  const [availableStudents, setAvailableStudents] = useState<any[]>([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const [subscribingStudentId, setSubscribingStudentId] = useState<string | null>(null);
+
+  // Attendance state
+  const [attendanceRecords, setAttendanceRecords] = useState<
+    Map<string, { status: AttendanceStatus; notes?: string }>
+  >(new Map());
+  const [isSavingAttendance, setIsSavingAttendance] = useState(false);
 
   function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
@@ -477,6 +495,154 @@ export default function TripDetailsClient({
     userProfile.role === "diocese_admin" ||
     userProfile.role === "church_admin";
 
+  // Check if user is an organizer with can_approve permission
+  const currentUserOrganizer = organizers.find(
+    (o) => o.user_id === userProfile.id
+  );
+  const canAddParticipantsAsOrganizer =
+    currentUserOrganizer?.can_approve === true;
+
+  // Check if user can add participants (admins or organizers with can_approve)
+  const canAddParticipants =
+    canManageOrganizers || canAddParticipantsAsOrganizer;
+
+  // Check if user can take attendance (admins or organizers with can_take_attendance)
+  const canTakeAttendance =
+    canManageOrganizers || (currentUserOrganizer?.can_take_attendance === true);
+
+  // Check if today is the trip start date
+  function isTripStartDate(): boolean {
+    if (!trip.start_datetime) return false;
+    const startDate = new Date(trip.start_datetime);
+    const today = new Date();
+    
+    // Compare dates (ignore time)
+    return (
+      startDate.getFullYear() === today.getFullYear() &&
+      startDate.getMonth() === today.getMonth() &&
+      startDate.getDate() === today.getDate()
+    );
+  }
+
+  // Load available students when dialog opens
+  async function loadAvailableStudents() {
+    setIsLoadingStudents(true);
+    try {
+      const result = await getStudentsFromTripClassesAction(trip.id);
+      if (result.success) {
+        setAvailableStudents(result.data);
+      }
+    } catch (error: any) {
+      console.error("Error loading students:", error);
+      toast.error(error.message || "Failed to load students");
+    } finally {
+      setIsLoadingStudents(false);
+    }
+  }
+
+  function handleOpenAddParticipants() {
+    setIsAddParticipantsOpen(true);
+    loadAvailableStudents();
+  }
+
+  async function handleSubscribeStudent(studentId: string) {
+    setSubscribingStudentId(studentId);
+    try {
+      const result = await subscribeStudentToTripAction(trip.id, studentId);
+      if (result.success && result.data) {
+        // Add to participants list
+        setParticipants([...participants, result.data]);
+        // Update stats
+        setStats((prev) => ({
+          ...prev,
+          total: prev.total + 1,
+          pending: prev.pending + 1,
+          unpaid: prev.unpaid + 1,
+        }));
+        // Remove from available students
+        setAvailableStudents((prev) => prev.filter((s) => s.id !== studentId));
+        toast.success("Student subscribed successfully");
+      }
+    } catch (error: any) {
+      console.error("Error subscribing student:", error);
+      toast.error(error.message || "Failed to subscribe student");
+    } finally {
+      setSubscribingStudentId(null);
+    }
+  }
+
+  // Initialize attendance records from participants
+  function initializeAttendance() {
+    const records = new Map<string, { status: AttendanceStatus; notes?: string }>();
+    participants.forEach((participant) => {
+      // Default to present if already marked, otherwise present
+      records.set(participant.id, {
+        status: ((participant as any).attendance_status as AttendanceStatus) || "present",
+        notes: (participant as any).attendance_notes || "",
+      });
+    });
+    setAttendanceRecords(records);
+    setActiveTab("attendance");
+  }
+
+  function updateAttendanceStatus(participantId: string, status: AttendanceStatus) {
+    setAttendanceRecords((prev) => {
+      const newMap = new Map(prev);
+      const existing = newMap.get(participantId) || { status: "present" as const };
+      newMap.set(participantId, { ...existing, status });
+      return newMap;
+    });
+  }
+
+  function updateAttendanceNotes(participantId: string, notes: string) {
+    setAttendanceRecords((prev) => {
+      const newMap = new Map(prev);
+      const existing = newMap.get(participantId) || { status: "present" as const };
+      newMap.set(participantId, { ...existing, notes });
+      return newMap;
+    });
+  }
+
+  async function handleSaveAttendance() {
+    if (attendanceRecords.size === 0) {
+      toast.error("No attendance records to save");
+      return;
+    }
+
+    setIsSavingAttendance(true);
+    try {
+      const records = Array.from(attendanceRecords.entries()).map(([participantId, record]) => ({
+        participant_id: participantId,
+        attendance_status: record.status,
+        notes: record.notes,
+      }));
+
+      await bulkMarkTripAttendanceAction(trip.id, records);
+      
+      // Update local participants state
+      setParticipants((prev) =>
+        prev.map((p) => {
+          const record = attendanceRecords.get(p.id);
+          if (record) {
+            return {
+              ...p,
+              attendance_status: record.status as any,
+              attendance_notes: record.notes as any,
+            } as any;
+          }
+          return p;
+        })
+      );
+
+      toast.success("Attendance saved successfully");
+    } catch (error: any) {
+      console.error("Error saving attendance:", error);
+      toast.error(error.message || "Failed to save attendance");
+    } finally {
+      setIsSavingAttendance(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -492,10 +658,18 @@ export default function TripDetailsClient({
             </p>
           </div>
         </div>
-        <Button onClick={() => router.push(`/admin/trips/${trip.id}/edit`)}>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Trip
-        </Button>
+        <div className="flex items-center gap-2">
+          {canTakeAttendance && isTripStartDate() && (
+            <Button onClick={initializeAttendance} variant="default">
+              <ClipboardCheck className="mr-2 h-4 w-4" />
+              Attendance
+            </Button>
+          )}
+          <Button onClick={() => router.push(`/admin/trips/${trip.id}/edit`)}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Trip
+          </Button>
+        </div>
       </div>
 
       <Tabs
@@ -508,6 +682,19 @@ export default function TripDetailsClient({
           <TabsTrigger value="participants">
             <Users className="h-4 w-4 mr-2" />
             Participants ({stats.total})
+          </TabsTrigger>
+          <TabsTrigger
+            value="attendance"
+            disabled={!(canTakeAttendance && isTripStartDate())}
+            onClick={() => {
+              // Ensure records exist when switching to the tab
+              if (attendanceRecords.size === 0 && participants.length > 0) {
+                initializeAttendance();
+              }
+            }}
+          >
+            <ClipboardCheck className="h-4 w-4 mr-2" />
+            Attendance
           </TabsTrigger>
           <TabsTrigger value="organizers">
             <UserCog className="h-4 w-4 mr-2" />
@@ -960,6 +1147,124 @@ export default function TripDetailsClient({
           </Card>
         </TabsContent>
 
+        {/* Attendance Tab */}
+        <TabsContent value="attendance">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Attendance</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Mark attendance for trip participants. Today is the trip start date.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleSaveAttendance}
+                  disabled={isSavingAttendance || participants.length === 0}
+                  className="gap-2"
+                >
+                  {isSavingAttendance ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <ClipboardCheck className="h-4 w-4" />
+                      Save Attendance
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {participants.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg font-medium">No participants</p>
+                  <p className="text-sm text-muted-foreground">
+                    Add participants to the trip first.
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {participants.map((participant) => {
+                      const record =
+                        attendanceRecords.get(participant.id) || {
+                          status: "present" as const,
+                          notes: "",
+                        };
+
+                      return (
+                        <TableRow key={participant.id}>
+                          <TableCell className="whitespace-normal">
+                            <div className="flex items-center gap-3 min-w-[220px]">
+                              {(participant.user as any)?.avatar_url ? (
+                                <img
+                                  src={(participant.user as any).avatar_url}
+                                  alt={participant.user?.full_name || participant.user?.email}
+                                  className="h-9 w-9 rounded-full"
+                                />
+                              ) : (
+                                <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
+                                  <Users className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">
+                                  {participant.user?.full_name || participant.user?.email}
+                                </p>
+                                {participant.user?.full_name && (
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {participant.user?.email}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {participant.user?.email}
+                          </TableCell>
+                          <TableCell className="whitespace-normal">
+                            <Input
+                              placeholder="Notes (optional)"
+                              value={record.notes || ""}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                updateAttendanceNotes(participant.id, e.target.value)
+                              }
+                              className="min-w-[260px]"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end">
+                              <AttendanceStatusButtons
+                                status={record.status}
+                                onStatusChange={(status) =>
+                                  updateAttendanceStatus(participant.id, status)
+                                }
+                                disabled={isSavingAttendance}
+                              />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Organizers Tab */}
         <TabsContent value="organizers">
           <Card>
@@ -1323,6 +1628,110 @@ export default function TripDetailsClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Participants Dialog */}
+      <Dialog 
+        open={isAddParticipantsOpen} 
+        onOpenChange={(open) => {
+          setIsAddParticipantsOpen(open);
+          if (!open) {
+            setAvailableStudents([]);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden [&>div]:overflow-visible">
+          <DialogHeader>
+            <DialogTitle>Add Participants</DialogTitle>
+            <DialogDescription>
+              Select students from the trip's classes to subscribe them to this trip.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pr-1">
+            {isLoadingStudents ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Loading students...</p>
+              </div>
+            ) : availableStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-medium">No students available</p>
+                <p className="text-sm text-muted-foreground">
+                  {trip.classes && trip.classes.length > 0
+                    ? "All students from selected classes are already subscribed"
+                    : "No classes are selected for this trip. Please add classes to the trip first."}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {availableStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      {student.avatar_url ? (
+                        <img
+                          src={student.avatar_url}
+                          alt={student.full_name || student.email}
+                          className="h-10 w-10 rounded-full"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <Users className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {student.full_name || student.email}
+                        </p>
+                        {student.full_name && (
+                          <p className="text-sm text-muted-foreground truncate">
+                            {student.email}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Class: {student.class_name}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleSubscribeStudent(student.id)}
+                      disabled={subscribingStudentId === student.id}
+                    >
+                      {subscribingStudentId === student.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddParticipantsOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Take Attendance Dialog */}
+      {/* Attendance is now handled in the Attendance tab (no popup). */}
     </div>
   );
 }

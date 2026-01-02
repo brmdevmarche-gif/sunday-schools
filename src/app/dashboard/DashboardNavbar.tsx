@@ -200,7 +200,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                       </span>
                     )}
                     {!item.disabled && (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                     )}
                   </Link>
                 ))}
@@ -221,7 +221,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="flex-1">{item.title}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                   </Link>
                 ))}
               </div>

@@ -258,7 +258,7 @@ export default function CreateTripClient({
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Create Trip</h1>

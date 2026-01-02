@@ -163,7 +163,7 @@ export default function TripsClient({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">{t("studentTrips.title")}</h1>

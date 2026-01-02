@@ -308,7 +308,7 @@ export default function ChurchesClient({
                           }}
                           title="View details"
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
                         </Button>
                       </div>
                     </TableCell>

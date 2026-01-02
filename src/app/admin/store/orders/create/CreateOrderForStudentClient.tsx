@@ -241,7 +241,7 @@ export default function CreateOrderForStudentClient({
               size="icon"
               onClick={() => router.push("/admin/store/orders")}
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
             </Button>
             <div>
               <h1 className="text-2xl font-bold">

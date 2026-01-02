@@ -67,7 +67,7 @@ export default function SettingsPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
             </Button>
             <div>
               <h1 className="text-2xl font-bold">{t('nav.settings')}</h1>

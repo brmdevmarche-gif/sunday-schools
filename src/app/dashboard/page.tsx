@@ -349,7 +349,7 @@ export default async function DashboardPage() {
                     {card.available && (
                       <div className="flex items-center gap-1 text-sm text-primary mt-3">
                         <span>{t("studentHome.viewMore")}</span>
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4 rtl:rotate-180" />
                       </div>
                     )}
                   </CardContent>

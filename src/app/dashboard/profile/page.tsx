@@ -121,7 +121,7 @@ export default function ProfileEditPage() {
         <div className="flex items-center gap-4">
           <Button asChild variant="outline" size="sm">
             <Link href="/dashboard">
-              <ArrowLeft className="h-4 w-4 mr-1" />
+              <ArrowLeft className="h-4 w-4 me-1 rtl:rotate-180" />
               {t("profile.backToDashboard")}
             </Link>
           </Button>

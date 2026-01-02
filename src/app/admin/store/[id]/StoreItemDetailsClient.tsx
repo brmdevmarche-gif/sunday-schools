@@ -164,7 +164,7 @@ export default function StoreItemDetailsClient({
               size="icon"
               onClick={() => router.push("/admin/store")}
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
             </Button>
             <div className="flex-1 flex items-center gap-4">
               {item.image_url && (

@@ -94,7 +94,7 @@ export default function AdminSidebar({
   const sidebarContent = (
     <div
       className={cn(
-        "flex h-full flex-col border-r bg-card transition-all duration-300",
+        "flex h-full flex-col ltr:border-r rtl:border-l bg-card transition-all duration-300",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
@@ -119,7 +119,7 @@ export default function AdminSidebar({
           <Button
             variant="ghost"
             size="icon"
-            className="ml-auto"
+            className="ms-auto"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
@@ -137,9 +137,9 @@ export default function AdminSidebar({
             className="h-8 w-8"
           >
             {isCollapsed ? (
-              <PanelLeft className="h-4 w-4" />
+              <PanelLeft className="h-4 w-4 rtl:rotate-180" />
             ) : (
-              <PanelLeftClose className="h-4 w-4" />
+              <PanelLeftClose className="h-4 w-4 rtl:rotate-180" />
             )}
           </Button>
         </div>
@@ -240,7 +240,7 @@ export default function AdminSidebar({
             <>
               <Link href="/admin/settings" onClick={isMobile ? onClose : undefined}>
                 <Button variant="ghost" className="w-full justify-start" size="sm">
-                  <Settings className="mr-2 h-4 w-4" />
+                  <Settings className="me-2 h-4 w-4" />
                   Settings
                 </Button>
               </Link>
@@ -251,7 +251,7 @@ export default function AdminSidebar({
                   size="sm"
                   onClick={onLogout}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="me-2 h-4 w-4" />
                   Logout
                 </Button>
               )}

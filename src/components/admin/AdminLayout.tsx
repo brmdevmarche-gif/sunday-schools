@@ -211,7 +211,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Mobile Header with Burger Menu */}
-      <div className="fixed top-0 left-0 right-0 z-40 flex h-14 items-center border-b bg-card px-4 lg:hidden">
+      <div className="fixed top-0 inset-x-0 z-40 flex h-14 items-center border-b bg-card px-4 lg:hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -219,7 +219,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         >
           <Menu className="h-6 w-6" />
         </Button>
-        <span className="ml-3 text-lg font-semibold">Knesty</span>
+        <span className="ms-3 text-lg font-semibold">Knesty</span>
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -233,8 +233,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 lg:hidden",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 ltr:left-0 rtl:right-0 z-50 transform transition-transform duration-300 lg:hidden",
+          isMobileOpen ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"
         )}
       >
         <AdminSidebar

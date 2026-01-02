@@ -216,6 +216,7 @@ export async function getAllOrdersAction(filters?: {
         id,
         full_name,
         email,
+        user_code,
         church_id,
         diocese_id
       ),
@@ -477,7 +478,8 @@ export async function getOrderDetailsAction(order_id: string) {
         id,
         full_name,
         email,
-        phone
+        phone,
+        user_code
       ),
       order_items (
         *,
@@ -497,4 +499,219 @@ export async function getOrderDetailsAction(order_id: string) {
   }
 
   return { success: true, data: order }
+}
+
+/**
+ * Create order for a student (admin action)
+ */
+export interface CreateOrderForStudentInput {
+  student_id: string
+  items: {
+    store_item_id: string
+    quantity: number
+  }[]
+  notes?: string
+}
+
+export async function createOrderForStudentAction(input: CreateOrderForStudentInput) {
+  const supabase = await createClient()
+
+  // Get current admin user
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  // Check if user is admin
+  const { data: adminProfile } = await supabase
+    .from('users')
+    .select('role, church_id, diocese_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!adminProfile || !['super_admin', 'diocese_admin', 'church_admin'].includes(adminProfile.role)) {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  // Use admin client
+  const adminClient = createAdminClient()
+
+  // Get the student's profile to determine their price tier
+  const { data: studentProfile, error: studentError } = await adminClient
+    .from('users')
+    .select('id, full_name, email, price_tier, church_id, diocese_id')
+    .eq('id', input.student_id)
+    .single()
+
+  if (studentError || !studentProfile) {
+    throw new Error('Student not found')
+  }
+
+  // Verify admin has permission for this student
+  if (adminProfile.role === 'church_admin' && studentProfile.church_id !== adminProfile.church_id) {
+    throw new Error('Unauthorized: Student is from a different church')
+  }
+  if (adminProfile.role === 'diocese_admin' && studentProfile.diocese_id !== adminProfile.diocese_id) {
+    throw new Error('Unauthorized: Student is from a different diocese')
+  }
+
+  // Fetch store items to get prices and validate
+  const storeItemIds = input.items.map(item => item.store_item_id)
+  const { data: storeItems, error: itemsError } = await adminClient
+    .from('store_items')
+    .select('*')
+    .in('id', storeItemIds)
+
+  if (itemsError || !storeItems || storeItems.length !== input.items.length) {
+    throw new Error('Some store items not found')
+  }
+
+  // Determine price tier for the student
+  const priceTier = studentProfile.price_tier || 'normal'
+
+  // Calculate total and prepare order items
+  let totalPoints = 0
+  const orderItems = input.items.map(item => {
+    const storeItem = storeItems.find(si => si.id === item.store_item_id)!
+
+    // Get price based on student's tier
+    let unitPrice: number
+    switch (priceTier) {
+      case 'mastor':
+        unitPrice = storeItem.price_mastor
+        break
+      case 'botl':
+        unitPrice = storeItem.price_botl
+        break
+      default:
+        unitPrice = storeItem.price_normal
+    }
+
+    const totalPrice = unitPrice * item.quantity
+    totalPoints += totalPrice
+
+    return {
+      store_item_id: storeItem.id,
+      item_name: storeItem.name,
+      item_description: storeItem.description,
+      item_image_url: storeItem.image_url,
+      quantity: item.quantity,
+      price_tier: priceTier,
+      unit_price: unitPrice,
+      total_price: totalPrice,
+    }
+  })
+
+  // Check if student has enough points
+  const balance = await getStudentPointsBalanceAction(input.student_id)
+  if (!balance || balance.available_points < totalPoints) {
+    throw new Error(`Insufficient points. Available: ${balance?.available_points || 0}, Required: ${totalPoints}`)
+  }
+
+  // Get student's class assignment (if any)
+  const { data: classAssignment } = await adminClient
+    .from('class_assignments')
+    .select('class_id')
+    .eq('user_id', input.student_id)
+    .eq('assignment_type', 'student')
+    .eq('is_active', true)
+    .limit(1)
+    .single()
+
+  // Create the order
+  const { data: order, error: orderError } = await adminClient
+    .from('orders')
+    .insert({
+      user_id: input.student_id,
+      class_id: classAssignment?.class_id || null,
+      status: 'pending',
+      total_points: totalPoints,
+      notes: input.notes ? `[Created by admin] ${input.notes}` : '[Created by admin]',
+    })
+    .select()
+    .single()
+
+  if (orderError) {
+    throw new Error(`Failed to create order: ${orderError.message}`)
+  }
+
+  // Add order items
+  const orderItemsWithOrderId = orderItems.map(item => ({
+    ...item,
+    order_id: order.id,
+  }))
+
+  const { error: itemsInsertError } = await adminClient
+    .from('order_items')
+    .insert(orderItemsWithOrderId)
+
+  if (itemsInsertError) {
+    // Rollback: delete the order
+    await adminClient.from('orders').delete().eq('id', order.id)
+    throw new Error(`Failed to create order items: ${itemsInsertError.message}`)
+  }
+
+  // Suspend points for this order
+  try {
+    await suspendPointsForOrderAction(input.student_id, totalPoints, order.id)
+  } catch (pointsError) {
+    // Rollback: delete the order and items
+    await adminClient.from('orders').delete().eq('id', order.id)
+    throw new Error(`Failed to suspend points: ${pointsError instanceof Error ? pointsError.message : 'Unknown error'}`)
+  }
+
+  revalidatePath('/admin/store/orders')
+  return { success: true, order_id: order.id, total_points: totalPoints }
+}
+
+/**
+ * Search students for creating orders
+ */
+export async function searchStudentsForOrderAction(query: string) {
+  const supabase = await createClient()
+
+  // Get current admin user
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  // Check if user is admin
+  const { data: adminProfile } = await supabase
+    .from('users')
+    .select('role, church_id, diocese_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!adminProfile || !['super_admin', 'diocese_admin', 'church_admin'].includes(adminProfile.role)) {
+    throw new Error('Unauthorized')
+  }
+
+  const adminClient = createAdminClient()
+
+  let studentsQuery = adminClient
+    .from('users')
+    .select('id, full_name, email, user_code, price_tier, church_id, diocese_id')
+    .eq('role', 'student')
+    .limit(20)
+
+  // Apply scope restrictions
+  if (adminProfile.role === 'church_admin' && adminProfile.church_id) {
+    studentsQuery = studentsQuery.eq('church_id', adminProfile.church_id)
+  } else if (adminProfile.role === 'diocese_admin' && adminProfile.diocese_id) {
+    studentsQuery = studentsQuery.eq('diocese_id', adminProfile.diocese_id)
+  }
+
+  // Apply search filter
+  if (query) {
+    studentsQuery = studentsQuery.or(`full_name.ilike.%${query}%,email.ilike.%${query}%,user_code.ilike.%${query}%`)
+  }
+
+  const { data: students, error } = await studentsQuery.order('full_name')
+
+  if (error) {
+    throw new Error(`Failed to search students: ${error.message}`)
+  }
+
+  return { success: true, data: students || [] }
 }

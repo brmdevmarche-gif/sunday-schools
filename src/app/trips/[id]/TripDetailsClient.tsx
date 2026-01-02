@@ -62,7 +62,13 @@ export default function TripDetailsClient({
   const isSubscribed = !!trip.my_participation;
   const isApproved = trip.my_participation?.approval_status === "approved";
   const isPending = trip.my_participation?.approval_status === "pending";
-  const isRejected = trip.my_participation?.approval_status === "rejected";
+
+  // Get the price based on user's tier
+  function getUserPrice() {
+    if (userProfile.price_tier === "mastor") return trip.price_mastor;
+    if (userProfile.price_tier === "botl") return trip.price_botl;
+    return trip.price_normal;
+  }
 
   function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
@@ -126,9 +132,9 @@ export default function TripDetailsClient({
       setIsSubscribeDialogOpen(false);
       setSubscribeForm({ emergency_contact: "", medical_info: "" });
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error subscribing to trip:", error);
-      toast.error(error.message || t("studentTrips.subscribeFailed"));
+      toast.error(error instanceof Error ? error.message : t("studentTrips.subscribeFailed"));
     } finally {
       setIsSubscribing(false);
     }
@@ -322,23 +328,13 @@ export default function TripDetailsClient({
                 <Separator />
 
                 <div>
-                  <div className="text-sm font-medium mb-2">
-                    {t("studentTrips.pricing")}
+                  <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                    <DollarSign className="h-4 w-4 text-green-500" />
+                    {t("studentTrips.price")}
                   </div>
-                  <div className="space-y-1 pl-6 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("studentTrips.normal")}:</span>
-                      <span className="font-medium">{getCurrencySymbol()}{trip.price_normal}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("studentTrips.mastor")}:</span>
-                      <span className="font-medium">{getCurrencySymbol()}{trip.price_mastor}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("studentTrips.botl")}:</span>
-                      <span className="font-medium">{getCurrencySymbol()}{trip.price_botl}</span>
-                    </div>
-                  </div>
+                  <p className="text-2xl font-bold text-primary pl-6">
+                    {getCurrencySymbol()}{getUserPrice()}
+                  </p>
                 </div>
 
                 {trip.requires_parent_approval && (

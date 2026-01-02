@@ -360,8 +360,7 @@ export default function StoreClient({
   };
 
   const openViewDialog = (item: StoreItem) => {
-    setSelectedItem(item);
-    setIsViewDialogOpen(true);
+    router.push(`/admin/store/${item.id}`);
   };
 
   const loadDemandStats = async () => {

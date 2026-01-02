@@ -468,10 +468,11 @@ export async function getTripsAction(filters?: {
         // Handle case where trip_classes table doesn't exist yet
         try {
           return await adminClient.from('trip_classes').select('*').in('trip_id', tripIds)
-        } catch (error: any) {
-          const errorMsg = error?.message || ''
-          const errorCode = error?.code || ''
-          if (errorMsg.includes('Could not find the table') || 
+        } catch (error) {
+          const errorObj = error as { message?: string; code?: string }
+          const errorMsg = errorObj?.message || ''
+          const errorCode = errorObj?.code || ''
+          if (errorMsg.includes('Could not find the table') ||
               errorMsg.includes('does not exist') ||
               errorCode === '42P01') {
             return { data: [], error: null }
@@ -540,7 +541,8 @@ export async function getTripParticipantsAction(tripId: string) {
         id,
         full_name,
         email,
-        phone
+        phone,
+        user_code
       )
     `)
     .eq('trip_id', tripId)
@@ -647,10 +649,11 @@ export async function getTripDetailsAction(tripId: string) {
       try {
         const result = await adminClient.from('trip_classes').select('*').eq('trip_id', tripId)
         return result
-      } catch (error: any) {
-        const errorMsg = error?.message || ''
-        const errorCode = error?.code || ''
-        if (errorMsg.includes('Could not find the table') || 
+      } catch (error) {
+        const errorObj = error as { message?: string; code?: string }
+        const errorMsg = errorObj?.message || ''
+        const errorCode = errorObj?.code || ''
+        if (errorMsg.includes('Could not find the table') ||
             errorMsg.includes('does not exist') ||
             errorCode === '42P01') {
           return { data: [], error: null }
@@ -1067,7 +1070,8 @@ export async function getStudentsFromTripClassesAction(tripId: string) {
         full_name,
         email,
         phone,
-        avatar_url
+        avatar_url,
+        user_code
       ),
       classes:classes!class_assignments_class_id_fkey(
         id,
@@ -1098,6 +1102,7 @@ export async function getStudentsFromTripClassesAction(tripId: string) {
       email: assignment.user?.email,
       phone: assignment.user?.phone,
       avatar_url: assignment.user?.avatar_url,
+      user_code: assignment.user?.user_code,
       class_id: assignment.class_id,
       class_name: assignment.classes?.name || 'Unknown',
     }))

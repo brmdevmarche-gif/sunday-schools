@@ -456,6 +456,14 @@ export default function UserDetailsClient({
                 )}
               </CardHeader>
               <CardContent className="space-y-4">
+                {user.user_code && (
+                  <div>
+                    <div className="text-sm text-muted-foreground">
+                      {t('users.userCode')}
+                    </div>
+                    <div className="font-mono text-lg font-bold">{user.user_code}</div>
+                  </div>
+                )}
                 <div>
                   <div className="text-sm text-muted-foreground">
                     {t('userDetails.userId')}

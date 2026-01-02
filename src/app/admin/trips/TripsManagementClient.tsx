@@ -35,11 +35,11 @@ import {
   Clock,
 } from "lucide-react";
 import { deleteTripAction } from "./actions";
-import type { TripWithDetails, TripStatus, TripType } from "@/lib/types";
+import type { TripWithDetails, TripStatus, TripType, ExtendedUser } from "@/lib/types";
 
 interface TripsManagementClientProps {
   trips: TripWithDetails[];
-  userProfile: any;
+  userProfile: ExtendedUser;
 }
 
 export default function TripsManagementClient({
@@ -136,9 +136,9 @@ export default function TripsManagementClient({
       await deleteTripAction(tripId);
       setTrips(trips.filter((t) => t.id !== tripId));
       toast.success("Trip deleted successfully");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting trip:", error);
-      toast.error(error.message || "Failed to delete trip");
+      toast.error(error instanceof Error ? error.message : "Failed to delete trip");
     }
   }
 

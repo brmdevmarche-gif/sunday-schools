@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
+import AdminLayout from "@/components/admin/AdminLayout";
 import DashboardClient from "./DashboardClient";
 
 export default async function AdminDashboard() {
@@ -112,5 +113,9 @@ export default async function AdminDashboard() {
     console.error("Error fetching dashboard stats:", error);
   }
 
-  return <DashboardClient userProfile={profile} stats={stats} />;
+  return (
+    <AdminLayout>
+      <DashboardClient userProfile={profile} stats={stats} />
+    </AdminLayout>
+  );
 }

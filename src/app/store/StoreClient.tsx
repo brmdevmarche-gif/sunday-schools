@@ -31,6 +31,7 @@ import {
   Trash2,
   Package,
   ArrowLeft,
+  Search,
 } from "lucide-react";
 import type { StoreItem, PriceTier } from "@/lib/types";
 import { createOrderAction } from "../admin/store/orders/actions";
@@ -41,9 +42,18 @@ interface CartItem {
   priceTier: PriceTier;
 }
 
+interface UserProfile {
+  id: string;
+  role: string;
+  full_name?: string | null;
+  email?: string;
+  church_id?: string | null;
+  diocese_id?: string | null;
+}
+
 interface StoreClientProps {
   items: StoreItem[];
-  userProfile: any;
+  userProfile: UserProfile;
   userClassIds: string[];
 }
 
@@ -58,6 +68,7 @@ export default function StoreClient({
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Determine user's price tier based on their profile
   // This should ideally come from a user property, but for now we'll default to normal
@@ -147,9 +158,9 @@ export default function StoreClient({
       setOrderNotes("");
       setIsCheckoutOpen(false);
       router.push("/store/orders");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating order:", error);
-      toast.error(error.message || t("store.orderFailed"));
+      toast.error(error instanceof Error ? error.message : t("store.orderFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -157,6 +168,15 @@ export default function StoreClient({
 
   const cartItems = Array.from(cart.values());
   const totalPoints = calculateTotal();
+
+  // Filter items based on search query
+  const filteredItems = items.filter((item) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      item.name.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <>
@@ -195,9 +215,22 @@ export default function StoreClient({
         </div>
       </div>
 
-      {/* Store Items Grid */}
+      {/* Search and Store Items Grid */}
       <div className="container mx-auto px-4 py-8">
-        {items.length === 0 ? (
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={t("store.searchItems")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+
+        {filteredItems.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="h-16 w-16 text-muted-foreground mb-4" />
@@ -209,7 +242,7 @@ export default function StoreClient({
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((item) => {
+            {filteredItems.map((item) => {
               const price = getItemPrice(item, userPriceTier);
               const inCart = cart.has(item.id);
               const cartQuantity = cart.get(item.id)?.quantity || 0;

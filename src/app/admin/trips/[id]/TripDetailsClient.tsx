@@ -21,12 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -38,7 +32,6 @@ import {
   DollarSign,
   CheckCircle2,
   XCircle,
-  MoreVertical,
   Mail,
   Phone,
   Plus,
@@ -85,6 +78,7 @@ import type {
   TripPaymentStatus,
   TripOrganizerWithUser,
   AttendanceStatus,
+  ExtendedUser,
 } from "@/lib/types";
 
 interface TripDetailsClientProps {
@@ -99,7 +93,7 @@ interface TripDetailsClientProps {
     paid: number;
     unpaid: number;
   };
-  userProfile: any;
+  userProfile: ExtendedUser;
 }
 
 export default function TripDetailsClient({
@@ -142,6 +136,7 @@ export default function TripDetailsClient({
   const [updatingPermission, setUpdatingPermission] = useState<string | null>(
     null
   ); // Format: "organizerId-permission"
+  const [organizerSearchQuery, setOrganizerSearchQuery] = useState("");
 
   // Add Participants state
   const [isAddParticipantsOpen, setIsAddParticipantsOpen] = useState(false);
@@ -150,6 +145,7 @@ export default function TripDetailsClient({
   const [subscribingStudentId, setSubscribingStudentId] = useState<
     string | null
   >(null);
+  const [studentSearchQuery, setStudentSearchQuery] = useState("");
 
   // Attendance state
   const [attendanceRecords, setAttendanceRecords] = useState<
@@ -282,9 +278,9 @@ export default function TripDetailsClient({
           count: selectedParticipants.size,
         })
       );
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating participants:", error);
-      toast.error(error.message || t("trips.messages.participantsUpdateError"));
+      toast.error(error instanceof Error ? error.message : t("trips.messages.participantsUpdateError"));
     } finally {
       setIsBulkUpdating(false);
     }
@@ -365,9 +361,9 @@ export default function TripDetailsClient({
       });
 
       toast.success(t("trips.messages.participantUpdated"));
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating participant:", error);
-      toast.error(error.message || t("trips.messages.participantUpdateError"));
+      toast.error(error instanceof Error ? error.message : t("trips.messages.participantUpdateError"));
     } finally {
       setIsUpdating(null);
     }
@@ -390,9 +386,9 @@ export default function TripDetailsClient({
         const available = result.data.filter((t) => !organizerIds.has(t.id));
         setAvailableTeachers(available);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error loading teachers:", error);
-      toast.error(error.message || "Failed to load teachers");
+      toast.error(error instanceof Error ? error.message : "Failed to load teachers");
     } finally {
       setIsLoadingTeachers(false);
     }
@@ -401,6 +397,7 @@ export default function TripDetailsClient({
   function handleOpenAddOrganizer() {
     // Reset form state before opening dialog
     setSelectedTeacherId("");
+    setOrganizerSearchQuery("");
     setOrganizerRoles({
       can_approve: true,
       can_go: true,
@@ -410,6 +407,17 @@ export default function TripDetailsClient({
     setIsAddOrganizerOpen(true);
     loadAvailableTeachers();
   }
+
+  // Filter teachers by search query (name or phone)
+  const filteredTeachers = availableTeachers.filter((teacher) => {
+    if (!organizerSearchQuery) return true;
+    const query = organizerSearchQuery.toLowerCase();
+    return (
+      teacher.full_name?.toLowerCase().includes(query) ||
+      teacher.email?.toLowerCase().includes(query) ||
+      teacher.phone?.toLowerCase().includes(query)
+    );
+  });
 
   async function handleAddOrganizer() {
     if (!selectedTeacherId) {
@@ -437,9 +445,9 @@ export default function TripDetailsClient({
           can_collect_payment: true,
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error adding organizer:", error);
-      toast.error(error.message || "Failed to add organizer");
+      toast.error(error instanceof Error ? error.message : "Failed to add organizer");
     } finally {
       setIsAddingOrganizer(false);
     }
@@ -456,9 +464,9 @@ export default function TripDetailsClient({
         setOrganizers(organizers.filter((o) => o.id !== organizerId));
         toast.success("Organizer removed successfully");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error removing organizer:", error);
-      toast.error(error.message || "Failed to remove organizer");
+      toast.error(error instanceof Error ? error.message : "Failed to remove organizer");
     }
   }
 
@@ -488,9 +496,9 @@ export default function TripDetailsClient({
         );
         toast.success("Organizer roles updated successfully");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating organizer:", error);
-      toast.error(error.message || "Failed to update organizer");
+      toast.error(error instanceof Error ? error.message : "Failed to update organizer");
     } finally {
       setUpdatingPermission(null);
     }
@@ -539,18 +547,31 @@ export default function TripDetailsClient({
       if (result.success) {
         setAvailableStudents(result.data);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error loading students:", error);
-      toast.error(error.message || "Failed to load students");
+      toast.error(error instanceof Error ? error.message : "Failed to load students");
     } finally {
       setIsLoadingStudents(false);
     }
   }
 
   function handleOpenAddParticipants() {
+    setStudentSearchQuery("");
     setIsAddParticipantsOpen(true);
     loadAvailableStudents();
   }
+
+  // Filter students by search query
+  const filteredStudents = availableStudents.filter((student) => {
+    if (!studentSearchQuery) return true;
+    const query = studentSearchQuery.toLowerCase();
+    return (
+      student.full_name?.toLowerCase().includes(query) ||
+      student.email?.toLowerCase().includes(query) ||
+      student.user_code?.toLowerCase().includes(query) ||
+      student.class_name?.toLowerCase().includes(query)
+    );
+  });
 
   async function handleSubscribeStudent(studentId: string) {
     setSubscribingStudentId(studentId);
@@ -570,9 +591,9 @@ export default function TripDetailsClient({
         setAvailableStudents((prev) => prev.filter((s) => s.id !== studentId));
         toast.success("Student subscribed successfully");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error subscribing student:", error);
-      toast.error(error.message || "Failed to subscribe student");
+      toast.error(error instanceof Error ? error.message : "Failed to subscribe student");
     } finally {
       setSubscribingStudentId(null);
     }
@@ -656,9 +677,9 @@ export default function TripDetailsClient({
       );
 
       toast.success("Attendance saved successfully");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving attendance:", error);
-      toast.error(error.message || "Failed to save attendance");
+      toast.error(error instanceof Error ? error.message : "Failed to save attendance");
     } finally {
       setIsSavingAttendance(false);
     }
@@ -976,44 +997,52 @@ export default function TripDetailsClient({
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>{t("trips.participants")}</CardTitle>
-                {selectedParticipants.size > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {t("trips.messages.selected", {
-                        count: selectedParticipants.size,
-                      })}
-                    </span>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        handleBulkUpdate({ approval_status: "approved" })
-                      }
-                      disabled={isBulkUpdating}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {t("trips.actions.approveSelected")}
+                <div className="flex items-center gap-2">
+                  {selectedParticipants.size > 0 && (
+                    <>
+                      <span className="text-sm text-muted-foreground">
+                        {t("trips.messages.selected", {
+                          count: selectedParticipants.size,
+                        })}
+                      </span>
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          handleBulkUpdate({ approval_status: "approved" })
+                        }
+                        disabled={isBulkUpdating}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        {t("trips.actions.approveSelected")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          handleBulkUpdate({ approval_status: "rejected" })
+                        }
+                        disabled={isBulkUpdating}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        {t("trips.actions.rejectSelected")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedParticipants(new Set())}
+                        disabled={isBulkUpdating}
+                      >
+                        {t("trips.actions.clearSelection")}
+                      </Button>
+                    </>
+                  )}
+                  {canAddParticipants && (
+                    <Button onClick={handleOpenAddParticipants}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("trips.addStudents")}
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() =>
-                        handleBulkUpdate({ approval_status: "rejected" })
-                      }
-                      disabled={isBulkUpdating}
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      {t("trips.actions.rejectSelected")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedParticipants(new Set())}
-                      disabled={isBulkUpdating}
-                    >
-                      {t("trips.actions.clearSelection")}
-                    </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -1065,11 +1094,12 @@ export default function TripDetailsClient({
                               {participant.user?.full_name ||
                                 participant.user?.email}
                             </p>
-                            {participant.user?.full_name && (
-                              <p className="text-sm text-muted-foreground">
-                                {participant.user.email}
-                              </p>
-                            )}
+                            <p className="text-sm text-muted-foreground">
+                              {(participant.user as any)?.user_code && (
+                                <span className="font-mono mr-2">ID: {(participant.user as any).user_code}</span>
+                              )}
+                              {participant.user?.email}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -1114,7 +1144,7 @@ export default function TripDetailsClient({
                           </span>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-start gap-1">
                             {participant.approval_status !== "approved" && (
                               <Button
                                 size="sm"
@@ -1130,56 +1160,52 @@ export default function TripDetailsClient({
                                 {t("trips.actions.approve")}
                               </Button>
                             )}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  disabled={isUpdating === participant.id}
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {participant.approval_status !== "rejected" && (
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleUpdateParticipant(participant.id, {
-                                        approval_status: "rejected",
-                                      })
-                                    }
-                                    className="text-destructive"
-                                  >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    {t("trips.actions.reject")}
-                                  </DropdownMenuItem>
-                                )}
-                                {participant.payment_status !== "paid" && (
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleUpdateParticipant(participant.id, {
-                                        payment_status: "paid",
-                                      })
-                                    }
-                                  >
-                                    <DollarSign className="h-4 w-4 mr-2" />
-                                    {t("trips.actions.markAsPaid")}
-                                  </DropdownMenuItem>
-                                )}
-                                {participant.payment_status === "paid" && (
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleUpdateParticipant(participant.id, {
-                                        payment_status: "pending",
-                                      })
-                                    }
-                                  >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    {t("trips.actions.markAsUnpaid")}
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            {participant.approval_status !== "rejected" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() =>
+                                  handleUpdateParticipant(participant.id, {
+                                    approval_status: "rejected",
+                                  })
+                                }
+                                disabled={isUpdating === participant.id}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                {t("trips.actions.reject")}
+                              </Button>
+                            )}
+                            {participant.payment_status !== "paid" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() =>
+                                  handleUpdateParticipant(participant.id, {
+                                    payment_status: "paid",
+                                  })
+                                }
+                                disabled={isUpdating === participant.id}
+                              >
+                                <DollarSign className="h-4 w-4 mr-1" />
+                                {t("trips.actions.markAsPaid")}
+                              </Button>
+                            )}
+                            {participant.payment_status === "paid" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() =>
+                                  handleUpdateParticipant(participant.id, {
+                                    payment_status: "pending",
+                                  })
+                                }
+                                disabled={isUpdating === participant.id}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                {t("trips.actions.markAsUnpaid")}
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1197,10 +1223,9 @@ export default function TripDetailsClient({
             <CardHeader>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Attendance</CardTitle>
+                  <CardTitle>{t("trips.tripAttendance.title")}</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Mark attendance for trip participants. Today is the trip
-                    start date.
+                    {t("trips.tripAttendance.description")}
                   </p>
                 </div>
                 <Button
@@ -1211,12 +1236,12 @@ export default function TripDetailsClient({
                   {isSavingAttendance ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Saving...
+                      {t("trips.tripAttendance.saving")}
                     </>
                   ) : (
                     <>
                       <ClipboardCheck className="h-4 w-4" />
-                      Save Attendance
+                      {t("trips.tripAttendance.saveAttendance")}
                     </>
                   )}
                 </Button>
@@ -1226,19 +1251,19 @@ export default function TripDetailsClient({
               {participants.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">No participants</p>
+                  <p className="text-lg font-medium">{t("trips.tripAttendance.noParticipants")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Add participants to the trip first.
+                    {t("trips.tripAttendance.addParticipantsFirst")}
                   </p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Notes</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t("trips.tripAttendance.student")}</TableHead>
+                      <TableHead>{t("trips.tripAttendance.email")}</TableHead>
+                      <TableHead>{t("trips.tripAttendance.notes")}</TableHead>
+                      <TableHead className="text-right">{t("common.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1284,7 +1309,7 @@ export default function TripDetailsClient({
                           </TableCell>
                           <TableCell className="whitespace-normal">
                             <Input
-                              placeholder="Notes (optional)"
+                              placeholder={t("trips.tripAttendance.notesPlaceholder")}
                               value={record.notes || ""}
                               onChange={(
                                 e: React.ChangeEvent<HTMLInputElement>
@@ -1323,11 +1348,11 @@ export default function TripDetailsClient({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Trip Organizers</CardTitle>
+                <CardTitle>{t("trips.organizers.title")}</CardTitle>
                 {canManageOrganizers && (
                   <Button onClick={handleOpenAddOrganizer}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Organizer
+                    {t("trips.organizers.addOrganizer")}
                   </Button>
                 )}
               </div>
@@ -1336,11 +1361,11 @@ export default function TripDetailsClient({
               {organizers.length === 0 ? (
                 <div className="text-center py-12">
                   <UserCog className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">No organizers yet</p>
+                  <p className="text-lg font-medium">{t("trips.organizers.noOrganizers")}</p>
                   <p className="text-sm text-muted-foreground">
                     {canManageOrganizers
-                      ? "Add organizers to manage this trip"
-                      : "Organizers will appear here"}
+                      ? t("trips.organizers.addOrganizersToManage")
+                      : t("trips.organizers.organizersWillAppear")}
                   </p>
                 </div>
               ) : (
@@ -1395,7 +1420,7 @@ export default function TripDetailsClient({
                       </div>
 
                       <div className="space-y-3 pt-3 border-t">
-                        <p className="text-sm font-medium">Permissions:</p>
+                        <p className="text-sm font-medium">{t("trips.organizers.permissions")}:</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div className="flex items-center gap-2">
                             {canManageOrganizers ? (
@@ -1418,7 +1443,7 @@ export default function TripDetailsClient({
                                   htmlFor={`approve-${organizer.id}`}
                                   className="cursor-pointer"
                                 >
-                                  Can Approve
+                                  {t("trips.organizers.canApprove")}
                                 </Label>
                               </>
                             ) : (
@@ -1431,10 +1456,10 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_approve ? "Yes" : "No"}
+                                  {organizer.can_approve ? t("common.yes") : t("common.no")}
                                 </Badge>
                                 <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                <Label>Can Approve</Label>
+                                <Label>{t("trips.organizers.canApprove")}</Label>
                               </>
                             )}
                           </div>
@@ -1460,7 +1485,7 @@ export default function TripDetailsClient({
                                   htmlFor={`go-${organizer.id}`}
                                   className="cursor-pointer"
                                 >
-                                  Can Go
+                                  {t("trips.organizers.canGo")}
                                 </Label>
                               </>
                             ) : (
@@ -1471,10 +1496,10 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_go ? "Yes" : "No"}
+                                  {organizer.can_go ? t("common.yes") : t("common.no")}
                                 </Badge>
                                 <Users className="h-4 w-4 text-muted-foreground" />
-                                <Label>Can Go</Label>
+                                <Label>{t("trips.organizers.canGo")}</Label>
                               </>
                             )}
                           </div>
@@ -1500,7 +1525,7 @@ export default function TripDetailsClient({
                                   htmlFor={`attendance-${organizer.id}`}
                                   className="cursor-pointer"
                                 >
-                                  Can Take Attendance
+                                  {t("trips.organizers.canTakeAttendance")}
                                 </Label>
                               </>
                             ) : (
@@ -1513,10 +1538,10 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_take_attendance ? "Yes" : "No"}
+                                  {organizer.can_take_attendance ? t("common.yes") : t("common.no")}
                                 </Badge>
                                 <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
-                                <Label>Can Take Attendance</Label>
+                                <Label>{t("trips.organizers.canTakeAttendance")}</Label>
                               </>
                             )}
                           </div>
@@ -1542,7 +1567,7 @@ export default function TripDetailsClient({
                                   htmlFor={`payment-${organizer.id}`}
                                   className="cursor-pointer"
                                 >
-                                  Can Collect Payment
+                                  {t("trips.organizers.canCollectPayment")}
                                 </Label>
                               </>
                             ) : (
@@ -1555,10 +1580,10 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_collect_payment ? "Yes" : "No"}
+                                  {organizer.can_collect_payment ? t("common.yes") : t("common.no")}
                                 </Badge>
                                 <CreditCard className="h-4 w-4 text-muted-foreground" />
-                                <Label>Can Collect Payment</Label>
+                                <Label>{t("trips.organizers.canCollectPayment")}</Label>
                               </>
                             )}
                           </div>
@@ -1581,6 +1606,7 @@ export default function TripDetailsClient({
           if (!open) {
             // Reset form when dialog closes
             setSelectedTeacherId("");
+            setOrganizerSearchQuery("");
             setOrganizerRoles({
               can_approve: true,
               can_go: true,
@@ -1592,37 +1618,49 @@ export default function TripDetailsClient({
       >
         <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden [&>div]:overflow-visible">
           <DialogHeader>
-            <DialogTitle>Add Organizer</DialogTitle>
+            <DialogTitle>{t("trips.organizers.addOrganizer")}</DialogTitle>
             <DialogDescription>
-              Select a teacher/staff member from the selected churches and
-              assign their permissions.
+              {t("trips.organizers.addOrganizerDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pr-1">
+            {/* Search Teacher */}
+            <div className="space-y-2">
+              <Label>{t("common.search")}</Label>
+              <Input
+                placeholder={t("users.searchPlaceholder")}
+                value={organizerSearchQuery}
+                onChange={(e) => setOrganizerSearchQuery(e.target.value)}
+                disabled={isLoadingTeachers || isAddingOrganizer}
+              />
+            </div>
+
             {/* Select Teacher */}
             <div className="space-y-2">
-              <Label htmlFor="teacher">Teacher / Staff Member *</Label>
+              <Label htmlFor="teacher">{t("trips.organizers.selectTeacher")} *</Label>
               <Select
                 value={selectedTeacherId}
                 onValueChange={setSelectedTeacherId}
                 disabled={isLoadingTeachers || isAddingOrganizer}
               >
                 <SelectTrigger id="teacher">
-                  <SelectValue placeholder="Select a teacher..." />
+                  <SelectValue placeholder={t("trips.organizers.selectTeacherPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableTeachers.length === 0 ? (
+                  {filteredTeachers.length === 0 ? (
                     <div className="p-2 text-sm text-muted-foreground text-center">
                       {isLoadingTeachers
-                        ? "Loading teachers..."
-                        : "No available teachers"}
+                        ? t("trips.organizers.loadingTeachers")
+                        : organizerSearchQuery
+                        ? t("trips.organizers.noTeachersMatch")
+                        : t("trips.organizers.noAvailableTeachers")}
                     </div>
                   ) : (
-                    availableTeachers.map((teacher) => (
+                    filteredTeachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
                         {teacher.full_name
-                          ? `${teacher.full_name} (${teacher.email})`
+                          ? `${teacher.full_name}${teacher.phone ? ` - ${teacher.phone}` : ""} (${teacher.email})`
                           : teacher.email}
                       </SelectItem>
                     ))
@@ -1633,7 +1671,7 @@ export default function TripDetailsClient({
 
             {/* Permissions */}
             <div className="space-y-3">
-              <Label>Permissions</Label>
+              <Label>{t("trips.organizers.permissions")}</Label>
               <div className="space-y-3 border rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -1648,7 +1686,7 @@ export default function TripDetailsClient({
                   />
                   <UserCheck className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="new-approve" className="cursor-pointer">
-                    Can Approve Participants
+                    {t("trips.organizers.canApprove")}
                   </Label>
                 </div>
 
@@ -1665,7 +1703,7 @@ export default function TripDetailsClient({
                   />
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="new-go" className="cursor-pointer">
-                    Can Go on Trip
+                    {t("trips.organizers.canGo")}
                   </Label>
                 </div>
 
@@ -1682,7 +1720,7 @@ export default function TripDetailsClient({
                   />
                   <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="new-attendance" className="cursor-pointer">
-                    Can Take Attendance
+                    {t("trips.organizers.canTakeAttendance")}
                   </Label>
                 </div>
 
@@ -1699,7 +1737,7 @@ export default function TripDetailsClient({
                   />
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="new-payment" className="cursor-pointer">
-                    Can Collect Payment
+                    {t("trips.organizers.canCollectPayment")}
                   </Label>
                 </div>
               </div>
@@ -1712,13 +1750,13 @@ export default function TripDetailsClient({
               onClick={() => setIsAddOrganizerOpen(false)}
               disabled={isAddingOrganizer}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleAddOrganizer}
               disabled={isAddingOrganizer || !selectedTeacherId}
             >
-              {isAddingOrganizer ? "Adding..." : "Add Organizer"}
+              {isAddingOrganizer ? t("trips.organizers.adding") : t("trips.organizers.addOrganizer")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1731,39 +1769,59 @@ export default function TripDetailsClient({
           setIsAddParticipantsOpen(open);
           if (!open) {
             setAvailableStudents([]);
+            setStudentSearchQuery("");
           }
         }}
       >
         <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden [&>div]:overflow-visible">
           <DialogHeader>
-            <DialogTitle>Add Participants</DialogTitle>
+            <DialogTitle>{t("trips.addStudents")}</DialogTitle>
             <DialogDescription>
-              Select students from the trip's classes to subscribe them to this
-              trip.
+              {t("trips.addStudentsDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pr-1">
+            {/* Search Input */}
+            {!isLoadingStudents && availableStudents.length > 0 && (
+              <div className="relative">
+                <Input
+                  placeholder={t("trips.searchStudentsPlaceholder")}
+                  value={studentSearchQuery}
+                  onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  className="pr-8"
+                />
+              </div>
+            )}
+
             {isLoadingStudents ? (
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">
-                  Loading students...
+                  {t("common.loading")}
                 </p>
               </div>
             ) : availableStudents.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium">No students available</p>
+                <p className="text-lg font-medium">{t("trips.noStudentsAvailable")}</p>
                 <p className="text-sm text-muted-foreground">
                   {trip.classes && trip.classes.length > 0
-                    ? "All students from selected classes are already subscribed"
-                    : "No classes are selected for this trip. Please add classes to the trip first."}
+                    ? t("trips.allStudentsSubscribed")
+                    : t("trips.noClassesSelected")}
+                </p>
+              </div>
+            ) : filteredStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-medium">{t("common.noResults")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("trips.noStudentsMatchSearch")}
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
-                {availableStudents.map((student) => (
+                {filteredStudents.map((student) => (
                   <div
                     key={student.id}
                     className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -1784,13 +1842,12 @@ export default function TripDetailsClient({
                         <p className="font-medium truncate">
                           {student.full_name || student.email}
                         </p>
-                        {student.full_name && (
-                          <p className="text-sm text-muted-foreground truncate">
-                            {student.email}
-                          </p>
-                        )}
+                        <p className="text-sm text-muted-foreground truncate">
+                          {student.user_code && `ID: ${student.user_code} • `}
+                          {student.email}
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Class: {student.class_name}
+                          {t("trips.class")}: {student.class_name}
                         </p>
                       </div>
                     </div>
@@ -1802,12 +1859,12 @@ export default function TripDetailsClient({
                       {subscribingStudentId === student.id ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Adding...
+                          {t("trips.adding")}
                         </>
                       ) : (
                         <>
                           <Plus className="h-4 w-4 mr-2" />
-                          Add
+                          {t("trips.add")}
                         </>
                       )}
                     </Button>
@@ -1822,7 +1879,7 @@ export default function TripDetailsClient({
               variant="outline"
               onClick={() => setIsAddParticipantsOpen(false)}
             >
-              Close
+              {t("common.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { signIn } from "@/lib/auth";
 import { logLoginAttempt } from "@/lib/login-history";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,7 @@ import { toast } from "sonner";
 export default function LoginPage() {
   const router = useRouter();
   const t = useTranslations();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,7 +32,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { user } = await signIn(email, password);
+      const { user } = await signIn(identifier, password);
 
       // Log successful login
       if (user?.id) {
@@ -40,7 +41,26 @@ export default function LoginPage() {
 
       toast.success(t("auth.loginSuccess"));
       router.refresh();
-      router.push("/dashboard");
+
+      // Fetch user's role to determine redirect
+      if (user?.id) {
+        const supabase = createClient();
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        // Redirect admins to /admin, students/parents to /dashboard
+        const adminRoles = ["super_admin", "diocese_admin", "church_admin", "teacher"];
+        if (profile?.role && adminRoles.includes(profile.role)) {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
       // Log failed login attempt
       const errorMessage =
@@ -65,13 +85,13 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("auth.email")}</Label>
+              <Label htmlFor="identifier">{t("auth.emailOrUserCode")}</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="identifier"
+                type="text"
+                placeholder={t("auth.emailOrUserCodePlaceholder")}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 disabled={isLoading}
               />

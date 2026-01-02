@@ -35,11 +35,11 @@ import {
   Trash2,
 } from "lucide-react";
 import { deleteActivityAction } from "./actions";
-import type { Activity, ActivityStatus } from "@/lib/types";
+import type { Activity, ActivityStatus, ExtendedUser } from "@/lib/types";
 
 interface ActivitiesManagementClientProps {
   activities: Activity[];
-  userProfile: any;
+  userProfile: ExtendedUser;
 }
 
 export default function ActivitiesManagementClient({
@@ -101,9 +101,9 @@ export default function ActivitiesManagementClient({
       await deleteActivityAction(activityId);
       setActivities(activities.filter((a) => a.id !== activityId));
       toast.success(t("activities.activityDeleted"));
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting activity:", error);
-      toast.error(error.message || t("activities.deleteFailed"));
+      toast.error(error instanceof Error ? error.message : t("activities.deleteFailed"));
     }
   }
 

@@ -375,9 +375,9 @@ export default function ClassDetailsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error subscribing student:", error);
-      toast.error(error.message || t("trips.classDetails.failedToSubscribeStudent"));
+      toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToSubscribeStudent"));
     } finally {
       setSubscribingStudentId(null);
     }
@@ -395,9 +395,9 @@ export default function ClassDetailsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error approving participant:", error);
-      toast.error(error.message || t("trips.classDetails.failedToApprove"));
+      toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToApprove"));
     } finally {
       setApprovingParticipantId(null);
     }
@@ -415,9 +415,9 @@ export default function ClassDetailsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error marking as paid:", error);
-      toast.error(error.message || t("trips.classDetails.failedToMarkAsPaid"));
+      toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToMarkAsPaid"));
     } finally {
       setMarkingPaidParticipantId(null);
     }
@@ -987,7 +987,7 @@ export default function ClassDetailsClient({
                         <Filter className="h-4 w-4 text-muted-foreground" />
                         <Select
                           value={subscriptionFilter}
-                          onValueChange={(value: any) =>
+                          onValueChange={(value: "all" | "subscribed" | "unsubscribed") =>
                             setSubscriptionFilter(value)
                           }
                         >

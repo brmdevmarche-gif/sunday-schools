@@ -40,9 +40,18 @@ import {
 import { subscribeToTripAction } from "./actions";
 import type { TripWithDetails, TripType } from "@/lib/types";
 
+interface UserProfile {
+  id: string;
+  role: string;
+  full_name?: string | null;
+  email?: string;
+  church_id?: string | null;
+  diocese_id?: string | null;
+}
+
 interface TripsClientProps {
   trips: TripWithDetails[];
-  userProfile: any;
+  userProfile: UserProfile;
 }
 
 export default function TripsClient({
@@ -138,9 +147,9 @@ export default function TripsClient({
       setIsSubscribeDialogOpen(false);
       setSubscribeForm({ emergency_contact: "", medical_info: "" });
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error subscribing to trip:", error);
-      toast.error(error.message || t("studentTrips.subscribeFailed"));
+      toast.error(error instanceof Error ? error.message : t("studentTrips.subscribeFailed"));
     } finally {
       setIsSubscribing(false);
     }

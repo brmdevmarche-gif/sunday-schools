@@ -55,17 +55,17 @@ export default async function StorePage() {
     }
 
     // Item assigned to user's classes
-    if (item.store_item_classes?.some((sic: any) => classIds.includes(sic.class_id))) {
+    if (item.store_item_classes?.some((sic: { class_id: string }) => classIds.includes(sic.class_id))) {
       return true;
     }
 
     // Item assigned to user's church
-    if (item.store_item_churches?.some((sic: any) => sic.church_id === profile.church_id)) {
+    if (item.store_item_churches?.some((sic: { church_id: string }) => sic.church_id === profile.church_id)) {
       return true;
     }
 
     // Item assigned to user's diocese
-    if (item.store_item_dioceses?.some((sid: any) => sid.diocese_id === profile.diocese_id)) {
+    if (item.store_item_dioceses?.some((sid: { diocese_id: string }) => sid.diocese_id === profile.diocese_id)) {
       return true;
     }
 

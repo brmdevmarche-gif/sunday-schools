@@ -54,6 +54,7 @@ interface AttendanceRecord {
     id: string;
     full_name: string | null;
     email: string;
+    user_code: string | null;
   };
 }
 
@@ -114,11 +115,11 @@ export default function AttendanceHistoryClient({
   }
 
   const filteredRecords = records.filter((record) => {
+    const query = searchTerm.toLowerCase();
     const matchesSearch = searchTerm
-      ? record.user.full_name
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        record.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      ? record.user.full_name?.toLowerCase().includes(query) ||
+        record.user.email.toLowerCase().includes(query) ||
+        record.user.user_code?.toLowerCase().includes(query)
       : true;
 
     const matchesStatus =
@@ -337,6 +338,7 @@ export default function AttendanceHistoryClient({
                               {record.user.full_name || record.user.email}
                             </p>
                             <p className="text-sm text-muted-foreground">
+                              {record.user.user_code && <span className="font-mono mr-2">ID: {record.user.user_code}</span>}
                               {record.user.email}
                             </p>
                           </div>

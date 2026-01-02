@@ -207,9 +207,9 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       startTransition(() => {
         router.refresh()
       })
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating user:', error)
-      toast.error(error.message || t('users.createFailed'))
+      toast.error(error instanceof Error ? error.message : t('users.createFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -236,13 +236,15 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
     // Diocese filter
     if (dioceseFilter !== 'all' && user.diocese_id !== dioceseFilter) return false
 
-    // Search query
+    // Search query (name, email, username, phone, or user_code)
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       return (
         user.full_name?.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query) ||
-        user.username?.toLowerCase().includes(query)
+        user.username?.toLowerCase().includes(query) ||
+        user.phone?.toLowerCase().includes(query) ||
+        user.user_code?.toLowerCase().includes(query)
       )
     }
 
@@ -404,6 +406,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                         <Table>
                           <TableHeader>
                             <TableRow>
+                              <TableHead>{t('users.userCode')}</TableHead>
                               <TableHead>{t('common.name')}</TableHead>
                               <TableHead>{t('common.email')}</TableHead>
                               <TableHead>{t('users.diocese')}</TableHead>
@@ -419,6 +422,9 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                                 className="cursor-pointer hover:bg-muted/50"
                                 onClick={() => router.push(`/admin/users/${user.id}`)}
                               >
+                                <TableCell className="font-mono text-sm">
+                                  {user.user_code || '-'}
+                                </TableCell>
                                 <TableCell className="font-medium">
                                   {user.full_name || user.username || '-'}
                                 </TableCell>

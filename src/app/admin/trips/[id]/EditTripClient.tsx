@@ -26,11 +26,12 @@ import type {
   TripType,
   TripStatus,
   Church,
+  ExtendedUser,
 } from "@/lib/types";
 
 interface EditTripClientProps {
   trip: TripWithDetails;
-  userProfile: any;
+  userProfile: ExtendedUser;
   churches: Church[];
   dioceses: Array<{ id: string; name: string }>;
 }
@@ -112,7 +113,7 @@ export default function EditTripClient({
     }
   }, [trip]);
 
-  function handleInputChange(field: string, value: any) {
+  function handleInputChange(field: string, value: string | number | boolean | undefined) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -201,9 +202,9 @@ export default function EditTripClient({
       } as UpdateTripInput);
       toast.success("Trip updated successfully");
       router.push("/admin/trips");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating trip:", error);
-      toast.error(error.message || "Failed to update trip");
+      toast.error(error instanceof Error ? error.message : "Failed to update trip");
     } finally {
       setIsLoading(false);
     }

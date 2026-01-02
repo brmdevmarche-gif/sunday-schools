@@ -11,17 +11,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Check, X, AlertCircle, Clock, Save, Calendar } from "lucide-react";
+import { Check, X, AlertCircle, Clock, Save, Calendar, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { AttendanceStatus } from "@/lib/types";
 import {
   markAttendanceAction,
@@ -46,6 +53,7 @@ interface Student {
   id: string;
   full_name: string | null;
   email: string;
+  user_code: string | null;
 }
 
 interface AttendanceRecord {
@@ -60,6 +68,7 @@ export default function AttendanceClient({
 }: AttendanceClientProps) {
   const t = useTranslations();
   const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [classPopoverOpen, setClassPopoverOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -232,21 +241,52 @@ export default function AttendanceClient({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t("classes.class")}</Label>
-              <Select
-                value={selectedClassId}
-                onValueChange={setSelectedClassId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("attendance.selectClass")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes.map((cls) => (
-                    <SelectItem key={cls.id} value={cls.id}>
-                      {cls.name} {cls.churches && `- ${cls.churches.name}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={classPopoverOpen} onOpenChange={setClassPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={classPopoverOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {selectedClassId
+                      ? classes.find((cls) => cls.id === selectedClassId)?.name +
+                        (classes.find((cls) => cls.id === selectedClassId)?.churches
+                          ? ` - ${classes.find((cls) => cls.id === selectedClassId)?.churches?.name}`
+                          : "")
+                      : t("attendance.selectClass")}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder={t("common.search")} />
+                    <CommandList>
+                      <CommandEmpty>{t("common.noResults")}</CommandEmpty>
+                      <CommandGroup>
+                        {classes.map((cls) => (
+                          <CommandItem
+                            key={cls.id}
+                            value={`${cls.name} ${cls.churches?.name || ""}`}
+                            onSelect={() => {
+                              setSelectedClassId(cls.id);
+                              setClassPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedClassId === cls.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {cls.name} {cls.churches && `- ${cls.churches.name}`}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
@@ -394,6 +434,7 @@ export default function AttendanceClient({
                             {student.full_name || student.email}
                           </p>
                           <p className="text-sm text-muted-foreground">
+                            {student.user_code && <span className="font-mono mr-2">ID: {student.user_code}</span>}
                             {student.email}
                           </p>
                         </div>

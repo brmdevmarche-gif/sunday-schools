@@ -4,7 +4,7 @@
 // User profiles, assignments, and relationships
 // =====================================================
 
-import type { UserRole, Gender, RelationshipType, AssignmentType } from './base';
+import type { UserRole, Gender, RelationshipType, AssignmentType, PriceTier } from './base';
 
 // =====================================================
 // USER
@@ -25,6 +25,8 @@ export interface ExtendedUser {
   gender: Gender | null;
   address: string | null;
   is_active: boolean | null;
+  price_tier: PriceTier | null;
+  user_code: string | null;
   created_at: string;
   updated_at: string | null;
 }

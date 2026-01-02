@@ -112,7 +112,7 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
   const { church_ids, diocese_ids, class_ids, ...itemData } = input
 
   // Update the store item
-  const updateData: any = {
+  const updateData: Omit<UpdateStoreItemInput, 'church_ids' | 'diocese_ids' | 'class_ids'> & { updated_by: string } = {
     ...itemData,
     updated_by: user.id,
   }

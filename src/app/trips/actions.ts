@@ -225,7 +225,15 @@ export async function getMyTripsAction() {
     }, {})
 
     // Format the data
-    const tripsWithDetails = participations.map((p: any) => ({
+    interface ParticipationWithTrip {
+      id: string
+      trip_id: string
+      approval_status: string
+      payment_status: string
+      registered_at: string
+      trips: Record<string, unknown>
+    }
+    const tripsWithDetails = participations.map((p: ParticipationWithTrip) => ({
       ...p.trips,
       destinations: destinationsByTrip[p.trip_id] || [],
       my_participation: {

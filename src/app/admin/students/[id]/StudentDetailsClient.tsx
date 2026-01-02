@@ -37,14 +37,20 @@ import {
   GraduationCap,
   Activity as ActivityIcon,
   Coins,
+  Package,
+  ShoppingBag,
 } from "lucide-react";
+import { toast } from "sonner";
+import { updateOrderStatusAction } from "@/app/admin/store/orders/actions";
 import PointsAdjustmentDialog from "@/components/PointsAdjustmentDialog";
 import type {
   StudentDetails,
   ActivityParticipation,
   AvailableActivity,
   PointsSummary,
+  StudentOrder,
 } from "./actions";
+import type { OrderStatus } from "@/lib/types";
 
 interface StudentDetailsClientProps {
   student: StudentDetails;
@@ -53,16 +59,61 @@ interface StudentDetailsClientProps {
     available: AvailableActivity[];
   };
   points: PointsSummary;
+  orders: StudentOrder[];
 }
 
 export default function StudentDetailsClient({
   student,
   activities,
   points,
+  orders,
 }: StudentDetailsClientProps) {
   const router = useRouter();
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState("participated");
+  const [ordersTab, setOrdersTab] = useState("current");
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+
+  // Split orders into current and past
+  const currentOrders = orders.filter(
+    (order) => order.status === "pending" || order.status === "approved"
+  );
+  const pastOrders = orders.filter(
+    (order) => order.status === "fulfilled" || order.status === "cancelled" || order.status === "rejected"
+  );
+
+  async function handleUpdateOrderStatus(orderId: string, status: OrderStatus) {
+    setIsProcessingOrder(true);
+    try {
+      await updateOrderStatusAction({
+        order_id: orderId,
+        status,
+      });
+      toast.success(t("store.orderStatusUpdated"));
+      router.refresh();
+    } catch (error) {
+      console.error("Error updating order:", error);
+      toast.error(error instanceof Error ? error.message : t("store.updateFailed"));
+    } finally {
+      setIsProcessingOrder(false);
+    }
+  }
+
+  function getOrderStatusColor(status: string) {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+      case "approved":
+        return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+      case "fulfilled":
+        return "bg-green-500/10 text-green-700 dark:text-green-400";
+      case "cancelled":
+      case "rejected":
+        return "bg-red-500/10 text-red-700 dark:text-red-400";
+      default:
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+    }
+  }
 
   const getInitials = (name: string | null) => {
     if (!name) return "ST";
@@ -199,6 +250,16 @@ export default function StudentDetailsClient({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {student.user_code && (
+              <div className="flex items-center gap-3">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">{t("users.userCode")}</p>
+                  <p className="text-lg font-mono font-bold">{student.user_code}</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <div>
@@ -511,6 +572,211 @@ export default function StudentDetailsClient({
                           <p className="text-xs text-muted-foreground mt-2">
                             {t("studentDetails.activities.maxParticipants", { count: activity.max_participants })}
                           </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Orders */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShoppingBag className="h-5 w-5" />
+            {t("store.orders")}
+          </CardTitle>
+          <CardDescription>
+            {t("studentDetails.orders.description")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={ordersTab} onValueChange={setOrdersTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="current">
+                {t("studentDetails.orders.current")} ({currentOrders.length})
+              </TabsTrigger>
+              <TabsTrigger value="past">
+                {t("studentDetails.orders.past")} ({pastOrders.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="current" className="mt-4">
+              {currentOrders.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-muted-foreground">
+                    {t("studentDetails.orders.noCurrentOrders")}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {currentOrders.map((order) => (
+                    <Card key={order.id}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-base">
+                              {t("store.order")} #{order.id.slice(0, 8)}
+                            </CardTitle>
+                            <CardDescription>
+                              {formatDate(order.created_at)}
+                            </CardDescription>
+                          </div>
+                          <Badge className={getOrderStatusColor(order.status)}>
+                            {t(`store.status.${order.status}`)}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {order.order_items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between text-sm"
+                            >
+                              <div className="flex items-center gap-2">
+                                {item.store_items?.image_url && (
+                                  <img
+                                    src={item.store_items.image_url}
+                                    alt={item.item_name}
+                                    className="w-8 h-8 rounded object-cover"
+                                  />
+                                )}
+                                <span>
+                                  {item.item_name} × {item.quantity}
+                                </span>
+                              </div>
+                              <span className="font-medium">
+                                {item.total_price} {t("store.points")}
+                              </span>
+                            </div>
+                          ))}
+                          <div className="flex items-center justify-between pt-2 border-t font-medium">
+                            <span>{t("store.total")}</span>
+                            <span>
+                              {order.total_points} {t("store.points")}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          {order.status === "pending" && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleUpdateOrderStatus(order.id, "approved")
+                                }
+                                disabled={isProcessingOrder}
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-1" />
+                                {t("store.approve")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() =>
+                                  handleUpdateOrderStatus(order.id, "rejected")
+                                }
+                                disabled={isProcessingOrder}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                {t("store.reject")}
+                              </Button>
+                            </>
+                          )}
+                          {order.status === "approved" && (
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handleUpdateOrderStatus(order.id, "fulfilled")
+                              }
+                              disabled={isProcessingOrder}
+                            >
+                              <Package className="h-4 w-4 mr-1" />
+                              {t("store.markFulfilled")}
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="past" className="mt-4">
+              {pastOrders.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-muted-foreground">
+                    {t("studentDetails.orders.noPastOrders")}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pastOrders.map((order) => (
+                    <Card key={order.id}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-base">
+                              {t("store.order")} #{order.id.slice(0, 8)}
+                            </CardTitle>
+                            <CardDescription>
+                              {formatDate(order.created_at)}
+                              {order.processed_at && (
+                                <span className="ml-2">
+                                  • {t("store.processedAt")} {formatDate(order.processed_at)}
+                                </span>
+                              )}
+                            </CardDescription>
+                          </div>
+                          <Badge className={getOrderStatusColor(order.status)}>
+                            {t(`store.status.${order.status}`)}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {order.order_items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between text-sm"
+                            >
+                              <div className="flex items-center gap-2">
+                                {item.store_items?.image_url && (
+                                  <img
+                                    src={item.store_items.image_url}
+                                    alt={item.item_name}
+                                    className="w-8 h-8 rounded object-cover"
+                                  />
+                                )}
+                                <span>
+                                  {item.item_name} × {item.quantity}
+                                </span>
+                              </div>
+                              <span className="font-medium">
+                                {item.total_price} {t("store.points")}
+                              </span>
+                            </div>
+                          ))}
+                          <div className="flex items-center justify-between pt-2 border-t font-medium">
+                            <span>{t("store.total")}</span>
+                            <span>
+                              {order.total_points} {t("store.points")}
+                            </span>
+                          </div>
+                        </div>
+                        {order.admin_notes && (
+                          <div className="mt-3 p-2 bg-muted rounded text-sm">
+                            <span className="font-medium">{t("store.adminNotes")}: </span>
+                            {order.admin_notes}
+                          </div>
                         )}
                       </CardContent>
                     </Card>

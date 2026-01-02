@@ -35,14 +35,31 @@ import {
 } from "./actions";
 import type { ActivityWithDetails } from "@/lib/types";
 
+interface ActivityCompletion {
+  id: string;
+  activity_id: string;
+  status: "pending" | "completed" | "rejected";
+  is_revoked: boolean;
+  points_awarded: number;
+}
+
+interface UserProfile {
+  id: string;
+  role: string;
+  full_name?: string | null;
+  email?: string;
+  church_id?: string | null;
+  diocese_id?: string | null;
+}
+
 interface ActivitiesClientProps {
   activities: ActivityWithDetails[];
   completionsData: {
-    completions: any[];
+    completions: ActivityCompletion[];
     totalPoints: number;
     pendingPoints: number;
   };
-  userProfile: any;
+  userProfile: UserProfile;
 }
 
 export default function ActivitiesClient({
@@ -92,9 +109,9 @@ export default function ActivitiesClient({
       await participateInActivityAction({ activity_id: activityId });
       toast.success(t("activities.participationRequested"));
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error participating:", error);
-      toast.error(error.message || t("activities.participationFailed"));
+      toast.error(error instanceof Error ? error.message : t("activities.participationFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -106,9 +123,9 @@ export default function ActivitiesClient({
       await completeActivityAction({ activity_id: activityId });
       toast.success(t("activities.completionSubmitted"));
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error completing:", error);
-      toast.error(error.message || t("activities.completionFailed"));
+      toast.error(error instanceof Error ? error.message : t("activities.completionFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -124,9 +141,9 @@ export default function ActivitiesClient({
       await withdrawFromActivityAction(activityId);
       toast.success(t("activities.withdrawnSuccess"));
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error withdrawing:", error);
-      toast.error(error.message || t("activities.withdrawFailed"));
+      toast.error(error instanceof Error ? error.message : t("activities.withdrawFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -282,7 +299,7 @@ export default function ActivitiesClient({
           </div>
           <Select
             value={filterType}
-            onValueChange={(value: any) => setFilterType(value)}
+            onValueChange={(value: "all" | "available" | "participating" | "completed") => setFilterType(value)}
           >
             <SelectTrigger className="w-[200px]">
               <SelectValue />

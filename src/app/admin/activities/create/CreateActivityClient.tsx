@@ -19,10 +19,10 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 import { createActivityAction } from "../actions";
-import type { CreateActivityInput, ActivityStatus } from "@/lib/types";
+import type { CreateActivityInput, ActivityStatus, ExtendedUser } from "@/lib/types";
 
 interface CreateActivityClientProps {
-  userProfile: any;
+  userProfile: ExtendedUser;
 }
 
 export default function CreateActivityClient({
@@ -44,7 +44,7 @@ export default function CreateActivityClient({
     status: "draft" as ActivityStatus,
   });
 
-  function handleInputChange(field: string, value: any) {
+  function handleInputChange(field: string, value: string | number | boolean | undefined) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -63,9 +63,9 @@ export default function CreateActivityClient({
         t("activities.activityCreated") || "Activity created successfully"
       );
       router.push("/admin/activities");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating activity:", error);
-      toast.error(error.message || t("activities.createFailed"));
+      toast.error(error instanceof Error ? error.message : t("activities.createFailed"));
     } finally {
       setIsLoading(false);
     }

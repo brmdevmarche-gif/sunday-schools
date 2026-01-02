@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
+import AdminLayout from "@/components/admin/AdminLayout";
 import UserDetailsClient from './UserDetailsClient'
 import { getTranslations } from 'next-intl/server'
 import { getChurchesData, getDiocesesData } from '../actions'
@@ -120,11 +121,13 @@ export default async function UserDetailsPage({
   ])
 
   return (
-    <UserDetailsClient
-      {...userDetails}
-      currentUserRole={profile.role}
-      churches={churches}
-      dioceses={dioceses}
-    />
+    <AdminLayout>
+      <UserDetailsClient
+        {...userDetails}
+        currentUserRole={profile.role}
+        churches={churches}
+        dioceses={dioceses}
+      />
+    </AdminLayout>
   )
 }

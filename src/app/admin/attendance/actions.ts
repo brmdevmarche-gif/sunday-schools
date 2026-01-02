@@ -137,7 +137,8 @@ export async function getClassAttendanceAction(classId: string, date: string) {
       user:users!attendance_user_id_fkey (
         id,
         full_name,
-        email
+        email,
+        user_code
       )
     `)
     .eq('class_id', classId)
@@ -268,7 +269,8 @@ export async function getClassStudentsAction(classId: string) {
         id,
         full_name,
         email,
-        avatar_url
+        avatar_url,
+        user_code
       )
     `)
     .eq('class_id', classId)

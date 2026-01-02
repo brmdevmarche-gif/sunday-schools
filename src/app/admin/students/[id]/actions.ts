@@ -6,6 +6,7 @@ export interface StudentDetails {
   id: string;
   email: string;
   full_name: string | null;
+  user_code: string | null;
   date_of_birth: string | null;
   gender: string | null;
   phone: string | null;
@@ -65,6 +66,28 @@ export interface PointsSummary {
   activities_pending: number;
 }
 
+export interface StudentOrder {
+  id: string;
+  status: "pending" | "approved" | "fulfilled" | "cancelled" | "rejected";
+  total_points: number;
+  notes: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  processed_at: string | null;
+  order_items: {
+    id: string;
+    item_name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    store_items: {
+      id: string;
+      name: string;
+      image_url: string | null;
+    } | null;
+  }[];
+}
+
 /**
  * Get student details with diocese, church, and class info
  */
@@ -81,6 +104,7 @@ export async function getStudentDetailsAction(
       id,
       email,
       full_name,
+      user_code,
       date_of_birth,
       gender,
       phone,
@@ -118,7 +142,18 @@ export async function getStudentDetailsAction(
   const churches = student.churches as unknown as { name: string } | null;
 
   return {
-    ...student,
+    id: student.id,
+    email: student.email,
+    full_name: student.full_name,
+    user_code: student.user_code,
+    date_of_birth: student.date_of_birth,
+    gender: student.gender,
+    phone: student.phone,
+    address: student.address,
+    avatar_url: student.avatar_url,
+    diocese_id: student.diocese_id,
+    church_id: student.church_id,
+    created_at: student.created_at,
     diocese_name: dioceses?.name ?? null,
     church_name: churches?.name ?? null,
     class_assignments:
@@ -351,4 +386,48 @@ export async function getStudentPointsAction(
     activities_completed,
     activities_pending,
   };
+}
+
+/**
+ * Get student's orders
+ */
+export async function getStudentOrdersAction(
+  studentId: string
+): Promise<StudentOrder[]> {
+  const supabase = createAdminClient();
+
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select(
+      `
+      id,
+      status,
+      total_points,
+      notes,
+      admin_notes,
+      created_at,
+      processed_at,
+      order_items (
+        id,
+        item_name,
+        quantity,
+        unit_price,
+        total_price,
+        store_items (
+          id,
+          name,
+          image_url
+        )
+      )
+    `
+    )
+    .eq("user_id", studentId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching student orders:", error);
+    return [];
+  }
+
+  return (orders || []) as unknown as StudentOrder[];
 }

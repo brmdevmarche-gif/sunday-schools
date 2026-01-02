@@ -214,6 +214,11 @@ export default async function DashboardPage() {
               <h1 className="text-2xl sm:text-3xl font-bold">
                 {profile.full_name || profile.username || t('studentHome.student')}
               </h1>
+              {profile.user_code && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {t('users.userCode')}: <span className="font-mono font-medium">{profile.user_code}</span>
+                </p>
+              )}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1 text-muted-foreground">
                 {churchName && (
                   <span className="flex items-center gap-1">

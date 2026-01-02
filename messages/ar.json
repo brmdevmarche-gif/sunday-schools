@@ -39,7 +39,8 @@
     "unnamed": "بدون اسم",
     "comingSoon": "قريبًا",
     "management": "الإدارة",
-    "change": "تغيير"
+    "change": "تغيير",
+    "sundaySchoolSystem": "نظام إدارة مدارس الأحد"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -971,7 +972,8 @@
     "signUpFailed": "فشل إنشاء الحساب",
     "passwordMismatch": "كلمات المرور غير متطابقة",
     "passwordTooShort": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
-    "hasAccount": "لديك حساب بالفعل؟"
+    "hasAccount": "لديك حساب بالفعل؟",
+    "contactAdmin": "تواصل مع المسؤول للحصول على بيانات تسجيل الدخول"
   },
   "errors": {
     "notAuthenticated": "يجب عليك تسجيل الدخول",

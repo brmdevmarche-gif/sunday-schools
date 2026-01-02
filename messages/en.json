@@ -39,7 +39,8 @@
     "unnamed": "Unnamed",
     "comingSoon": "Coming Soon",
     "management": "Management",
-    "change": "Change"
+    "change": "Change",
+    "sundaySchoolSystem": "Sunday School Management System"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -971,7 +972,8 @@
     "signUpFailed": "Failed to create account",
     "passwordMismatch": "Passwords do not match",
     "passwordTooShort": "Password must be at least 6 characters",
-    "hasAccount": "Already have an account?"
+    "hasAccount": "Already have an account?",
+    "contactAdmin": "Contact your administrator to get your login credentials"
   },
   "errors": {
     "notAuthenticated": "You must be logged in",

@@ -351,7 +351,14 @@
     "settingsSaved": "Settings saved successfully",
     "saveFailed": "Failed to save settings",
     "backupCreated": "Backup created successfully",
-    "backupFailed": "Failed to create backup"
+    "backupFailed": "Failed to create backup",
+    "languageDescription": "Choose your preferred language",
+    "themeDescription": "Customize how the app looks",
+    "notificationsDescription": "Manage your notification preferences",
+    "enableNotificationsDescription": "Receive notifications about trips, activities, and more",
+    "accountDescription": "Manage your account settings",
+    "needHelp": "Need help?",
+    "contactSupport": "Contact support"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -431,7 +438,9 @@
     "church": "Church",
     "logout": "Log out",
     "logoutSuccess": "Logged out successfully",
-    "logoutFailed": "Failed to log out"
+    "logoutFailed": "Failed to log out",
+    "menu": "Menu",
+    "account": "Account"
   },
   "profile": {
     "title": "Profile",

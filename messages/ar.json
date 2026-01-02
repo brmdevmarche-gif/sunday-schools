@@ -351,7 +351,14 @@
     "settingsSaved": "تم حفظ الإعدادات بنجاح",
     "saveFailed": "فشل حفظ الإعدادات",
     "backupCreated": "تم إنشاء النسخة الاحتياطية بنجاح",
-    "backupFailed": "فشل إنشاء النسخة الاحتياطية"
+    "backupFailed": "فشل إنشاء النسخة الاحتياطية",
+    "languageDescription": "اختر لغتك المفضلة",
+    "themeDescription": "تخصيص مظهر التطبيق",
+    "notificationsDescription": "إدارة تفضيلات الإشعارات",
+    "enableNotificationsDescription": "تلقي إشعارات عن الرحلات والأنشطة والمزيد",
+    "accountDescription": "إدارة إعدادات حسابك",
+    "needHelp": "تحتاج مساعدة؟",
+    "contactSupport": "تواصل مع الدعم"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -431,7 +438,9 @@
     "church": "الكنيسة",
     "logout": "تسجيل الخروج",
     "logoutSuccess": "تم تسجيل الخروج بنجاح",
-    "logoutFailed": "فشل تسجيل الخروج"
+    "logoutFailed": "فشل تسجيل الخروج",
+    "menu": "القائمة",
+    "account": "الحساب"
   },
   "profile": {
     "title": "الملف الشخصي",

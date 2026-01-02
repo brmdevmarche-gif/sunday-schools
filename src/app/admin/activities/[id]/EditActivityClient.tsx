@@ -227,11 +227,11 @@ export default function EditActivityClient({
                           type="number"
                           min="0"
                           max="100"
-                          value={formData.reduced_points_percentage}
+                          value={formData.reduced_points_percentage ?? ""}
                           onChange={(e) =>
                             handleInputChange(
                               "reduced_points_percentage",
-                              parseInt(e.target.value)
+                              e.target.value ? parseInt(e.target.value) : undefined
                             )
                           }
                         />

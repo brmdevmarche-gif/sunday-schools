@@ -26,6 +26,8 @@
     "description": "Description",
     "date": "Date",
     "close": "Close",
+    "clear": "Clear",
+    "now": "Now",
     "submit": "Submit",
     "submitting": "Submitting...",
     "update": "Update",
@@ -445,10 +447,81 @@
     "account": "Account"
   },
   "announcements": {
+    "inboxTitle": "Announcements Inbox",
+    "inboxSubtitle": "Unread announcements for your account.",
+    "adminSubtitle": "Target announcements by roles and scope",
     "noUnviewed": "No new announcements.",
     "unreadOnly": "Unread only",
     "new": "New",
+    "newCount": "{count, plural, one {# new} other {# new}}",
     "filterByType": "Filter by type",
+    "clearTypes": "Clear",
+    "selectAllTypes": "Select all",
+    "schemaMissing": "Announcements tables are missing in the database. Please run migrations (Supabase `db push`).",
+    "tipTargeting": "Tip: if you just published one, make sure it targets your role and matches your diocese/church/class scope.",
+    "tipTargetingWithRole": "Tip: if you just published one, make sure it targets your role ({role}) and matches your diocese/church/class scope.",
+    "status": {
+      "active": "Active",
+      "scheduled": "Scheduled",
+      "expired": "Expired",
+      "deactivated": "Deactivated"
+    },
+    "table": {
+      "title": "Title",
+      "types": "Types",
+      "roles": "Roles",
+      "publishFrom": "Publish from",
+      "publishTo": "Publish to",
+      "status": "Status"
+    },
+    "actions": {
+      "republish": "Republish",
+      "deactivate": "Deactivate"
+    },
+    "ranges": {
+      "noEnd": "No end",
+      "next7Days": "Next 7 days",
+      "endOfMonth": "End of month",
+      "oneMonth": "One month"
+    },
+    "deactivateDialog": {
+      "title": "Deactivate announcement",
+      "description": "This will hide the announcement. You can optionally provide a reason.",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "(Optional) Why are you deactivating this announcement?"
+    },
+    "republishDialog": {
+      "title": "Republish announcement",
+      "description": "Choose how long the announcement should be visible starting from now.",
+      "pickDates": "Pick dates",
+      "from": "From",
+      "to": "To"
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "Announcement title",
+      "description": "Description",
+      "descriptionPlaceholder": "Details...",
+      "types": "Types (tags)",
+      "typesPlaceholder": "Type and press Enter",
+      "addType": "Add",
+      "whoCanSee": "Who can see it",
+      "publishFrom": "Publish from",
+      "publishTo": "Publish to"
+    },
+    "scope": {
+      "title": "Scope (optional)",
+      "dioceses": "Dioceses",
+      "churches": "Churches",
+      "classes": "Classes",
+      "selectAll": "Select all",
+      "selectDioceseFirst": "Select diocese first to load churches.",
+      "selectChurchFirst": "Select church first to load classes.",
+      "strongestHint": "If you select classes, it becomes the strongest filter (only those classes)."
+    },
+    "date": {
+      "select": "Select…"
+    },
     "selectAtLeastOneType": "Select at least one type to show announcements.",
     "open": "Open",
     "noType": "No type",

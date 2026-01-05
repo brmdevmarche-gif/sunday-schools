@@ -185,26 +185,26 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                 )}
                 <span className="sr-only">{t("studentHome.announcements")}</span>
               </Button>
-            </Link>
+          </Link>
 
-            {/* Burger Menu */}
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant={isScrolled ? "outline" : "secondary"}
-                  size="icon"
-                  className={`shrink-0 ${
-                    !isScrolled
-                      ? "bg-white/20 hover:bg-white/30 border-white/30"
-                      : ""
-                  }`}
-                >
-                  <Menu
-                    className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
-                  />
-                  <span className="sr-only">{t("studentHome.menu")}</span>
-                </Button>
-              </SheetTrigger>
+          {/* Burger Menu */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant={isScrolled ? "outline" : "secondary"}
+                size="icon"
+                className={`shrink-0 ${
+                  !isScrolled
+                    ? "bg-white/20 hover:bg-white/30 border-white/30"
+                    : ""
+                }`}
+              >
+                <Menu
+                  className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
+                />
+                <span className="sr-only">{t("studentHome.menu")}</span>
+              </Button>
+            </SheetTrigger>
             <SheetContent
               side="left"
               className="w-[300px] sm:w-[350px] bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50"

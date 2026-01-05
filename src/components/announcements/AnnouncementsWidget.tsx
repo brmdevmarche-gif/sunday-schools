@@ -60,7 +60,7 @@ export default function AnnouncementsWidget() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
-          setAnnouncements([])
+          setAllAnnouncements([])
           return
         }
 
@@ -82,7 +82,7 @@ export default function AnnouncementsWidget() {
           const msg = aErr.message || ''
           if (msg.includes("Could not find the table 'public.announcements'") || msg.includes('schema cache')) {
             setSchemaMissing(true)
-            setAnnouncements([])
+            setAllAnnouncements([])
             return
           }
           throw aErr
@@ -100,7 +100,7 @@ export default function AnnouncementsWidget() {
           const msg = vErr.message || ''
           if (msg.includes("Could not find the table 'public.announcement_views'") || msg.includes('schema cache')) {
             setSchemaMissing(true)
-            setAnnouncements([])
+            setAllAnnouncements([])
             return
           }
           throw vErr
@@ -121,7 +121,7 @@ export default function AnnouncementsWidget() {
             const upsertRows = unviewedIds.map(id => ({ announcement_id: id, user_id: user.id }))
             const { error: upsertErr } = await supabase
               .from('announcement_views')
-              .upsert(upsertRows, { onConflict: 'announcement_id,user_id' })
+              .upsert(upsertRows, { onConflict: 'announcement_id,user_id', ignoreDuplicates: true })
 
             if (!upsertErr) {
               setViewedIds(prev => {
@@ -163,7 +163,8 @@ export default function AnnouncementsWidget() {
       if (!user) return
       const { error } = await supabase
         .from('announcement_views')
-        .upsert({ announcement_id: a.id, user_id: user.id }, { onConflict: 'announcement_id,user_id' })
+        // Important: ignore duplicates so PostgREST doesn't try UPDATE (we only have INSERT policy)
+        .upsert({ announcement_id: a.id, user_id: user.id }, { onConflict: 'announcement_id,user_id', ignoreDuplicates: true })
       if (error) throw error
       setViewedIds(prev => {
         const next = new Set(prev)
@@ -171,8 +172,12 @@ export default function AnnouncementsWidget() {
         return next
       })
     } catch (e: any) {
-      console.error(e)
-      toast.error(e?.message || 'Failed to mark as viewed')
+      const msg =
+        e?.message ||
+        (typeof e === 'string' ? e : '') ||
+        (e ? JSON.stringify(e) : '')
+      console.error('markViewed failed:', msg, e)
+      toast.error(msg || 'Failed to mark as viewed')
     }
   }
 
@@ -181,7 +186,7 @@ export default function AnnouncementsWidget() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-3">
           <span>{t('studentHome.announcements')}</span>
-          {unreadCount > 0 && <Badge>{unreadCount} new</Badge>}
+          {unreadCount > 0 && <Badge>{t('announcements.newCount', { count: unreadCount })}</Badge>}
         </CardTitle>
         <CardDescription>{t('studentHome.announcementsDescription')}</CardDescription>
       </CardHeader>
@@ -190,15 +195,15 @@ export default function AnnouncementsWidget() {
           <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         ) : schemaMissing ? (
           <p className="text-sm text-destructive">
-            Announcements tables are missing in the database. Please run migrations (Supabase `db push`).
+            {t('announcements.schemaMissing')}
           </p>
         ) : allAnnouncements.length === 0 ? (
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">{t('announcements.noUnviewed')}</p>
             <p className="text-xs text-muted-foreground">
               {userRole
-                ? `Tip: if you just published one, make sure it targets your role (${userRole}) and matches your diocese/church/class scope.`
-                : 'Tip: if you just published one, make sure it targets your role and matches your diocese/church/class scope.'}
+                ? t('announcements.tipTargetingWithRole', { role: (t(`roles.${userRole}` as any) as string) || userRole })
+                : t('announcements.tipTargeting')}
             </p>
           </div>
         ) : (
@@ -212,17 +217,17 @@ export default function AnnouncementsWidget() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-sm font-medium">{t('announcements.filterByType')}</div>
                   <div className="flex gap-2">
-                    <Button type="button" size="sm" variant="outline" onClick={() => setSelectedTypes([])}>
-                      {t('announcements.clearTypes')}
-                    </Button>
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => setSelectedTypes(allTypes)}
+                      onClick={() => {
+                        if (selectedTypes.length > 0) setSelectedTypes([])
+                        else setSelectedTypes(allTypes)
+                      }}
                       disabled={allTypes.length === 0}
                     >
-                      {t('announcements.selectAllTypes')}
+                      {selectedTypes.length > 0 ? t('announcements.clearTypes') : t('announcements.selectAllTypes')}
                     </Button>
                   </div>
                 </div>

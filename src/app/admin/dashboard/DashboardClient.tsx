@@ -161,7 +161,7 @@ export default function DashboardClient({
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Unread announcements for your account.
+                    {t('announcements.inboxSubtitle')}
                   </p>
                 </CardContent>
               </Card>

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { AnnouncementTargetRole, Class, Church, CreateAnnouncementInput, Diocese, UpdateAnnouncementInput } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,13 +30,13 @@ type AnnouncementFormValues = {
   class_ids: string[]
 }
 
-const ALL_ROLES: { role: AnnouncementTargetRole; label: string }[] = [
-  { role: 'student', label: 'Student' },
-  { role: 'parent', label: 'Parent' },
-  { role: 'teacher', label: 'Teacher' },
-  { role: 'church_admin', label: 'Church Admin' },
-  { role: 'diocese_admin', label: 'Diocese Admin' },
-  { role: 'super_admin', label: 'Super Admin' },
+const ALL_ROLES: { role: AnnouncementTargetRole }[] = [
+  { role: 'student' },
+  { role: 'parent' },
+  { role: 'teacher' },
+  { role: 'church_admin' },
+  { role: 'diocese_admin' },
+  { role: 'super_admin' },
 ]
 
 function isoToDateTimeLocal(iso: string) {
@@ -63,11 +63,11 @@ function endOfCurrentMonthIso(fromIso: string) {
   return end.toISOString()
 }
 
-function formatLocalOrDash(v: string) {
-  if (!v) return 'Select…'
+function formatLocalOrDash(v: string, locale: string, selectLabel: string) {
+  if (!v) return selectLabel
   const d = new Date(v)
-  if (Number.isNaN(d.getTime())) return 'Select…'
-  return d.toLocaleString()
+  if (Number.isNaN(d.getTime())) return selectLabel
+  return d.toLocaleString(locale)
 }
 
 function toggleId(list: string[], id: string) {
@@ -85,6 +85,7 @@ export default function AnnouncementForm(props: {
   successRedirectHref?: string
 }) {
   const t = useTranslations()
+  const locale = useLocale()
   const router = useRouter()
 
   const nowLocal = useMemo(() => isoToDateTimeLocal(new Date().toISOString()), [])
@@ -173,7 +174,7 @@ export default function AnnouncementForm(props: {
         <Popover>
           <PopoverTrigger asChild>
             <Button type="button" variant="outline" className="justify-start">
-              {formatLocalOrDash(p.value)}
+              {formatLocalOrDash(p.value, locale, t('announcements.date.select'))}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 space-y-2" align="start">
@@ -181,11 +182,11 @@ export default function AnnouncementForm(props: {
             <div className="flex gap-2 justify-end">
               {p.allowClear && (
                 <Button type="button" variant="outline" size="sm" onClick={() => p.onChange('')}>
-                  Clear
+                  {t('common.clear')}
                 </Button>
               )}
               <Button type="button" size="sm" onClick={() => p.onChange(nowLocal)}>
-                Now
+                {t('common.now')}
               </Button>
             </div>
           </PopoverContent>
@@ -268,17 +269,17 @@ export default function AnnouncementForm(props: {
     <div className="space-y-6">
       <div className="grid gap-4">
         <div className="grid gap-2">
-          <Label>Title</Label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title" />
+          <Label>{t('announcements.form.title')}</Label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('announcements.form.titlePlaceholder')} />
         </div>
 
         <div className="grid gap-2">
-          <Label>Description</Label>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." />
+          <Label>{t('announcements.form.description')}</Label>
+          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('announcements.form.descriptionPlaceholder')} />
         </div>
 
         <div className="grid gap-2">
-          <Label>Types (tags)</Label>
+          <Label>{t('announcements.form.types')}</Label>
           <div className="flex gap-2">
             <Input
               value={typeInput}
@@ -290,7 +291,7 @@ export default function AnnouncementForm(props: {
                 }
               }}
               list="announcement-type-suggestions"
-              placeholder="Type and press Enter"
+              placeholder={t('announcements.form.typesPlaceholder')}
             />
             <datalist id="announcement-type-suggestions">
               {typeSuggestions.map(s => (
@@ -298,7 +299,7 @@ export default function AnnouncementForm(props: {
               ))}
             </datalist>
             <Button type="button" variant="outline" onClick={() => addType(typeInput)} disabled={!typeInput.trim()}>
-              Add
+              {t('announcements.form.addType')}
             </Button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -319,52 +320,52 @@ export default function AnnouncementForm(props: {
         </div>
 
         <div className="grid gap-2">
-          <Label>Who can see it</Label>
+          <Label>{t('announcements.form.whoCanSee')}</Label>
           <div className="grid grid-cols-2 gap-2">
             {ALL_ROLES.map(r => (
               <label key={r.role} className="flex items-center gap-2 text-sm">
                 <Checkbox checked={targetRoles.includes(r.role)} onCheckedChange={() => toggleRole(r.role)} />
-                <span>{r.label}</span>
+                <span>{(t(`roles.${r.role}` as any) as string) || r.role}</span>
               </label>
             ))}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <DateTimePicker label="Publish from" value={publishFrom} onChange={setPublishFrom} />
-          <DateTimePicker label="Publish to" value={publishTo} onChange={setPublishTo} allowClear />
+          <DateTimePicker label={t('announcements.form.publishFrom')} value={publishFrom} onChange={setPublishFrom} />
+          <DateTimePicker label={t('announcements.form.publishTo')} value={publishTo} onChange={setPublishTo} allowClear />
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => applyQuickRange('no_end')}>
-            No end
+            {t('announcements.ranges.noEnd')}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => applyQuickRange('week')}>
-            Next 7 days
+            {t('announcements.ranges.next7Days')}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => applyQuickRange('current_month')}>
-            End of month
+            {t('announcements.ranges.endOfMonth')}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => applyQuickRange('one_month')}>
-            One month
+            {t('announcements.ranges.oneMonth')}
           </Button>
         </div>
 
         {props.canScope && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Scope (optional)</CardTitle>
+              <CardTitle className="text-base">{t('announcements.scope.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <Label>Dioceses</Label>
+                  <Label>{t('announcements.scope.dioceses')}</Label>
                   <label className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Checkbox
                       checked={allDiocesesSelected}
                       onCheckedChange={() => setDioceseIds(allDiocesesSelected ? [] : allDioceseIds)}
                     />
-                    <span>Select all</span>
+                    <span>{t('announcements.scope.selectAll')}</span>
                   </label>
                 </div>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
@@ -379,7 +380,7 @@ export default function AnnouncementForm(props: {
 
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <Label>Churches</Label>
+                  <Label>{t('announcements.scope.churches')}</Label>
                   <label className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Checkbox
                       disabled={dioceseIds.length === 0}
@@ -389,11 +390,11 @@ export default function AnnouncementForm(props: {
                         setChurchIds(allChurchesSelected ? [] : allChurchIdsInSelectedDioceses)
                       }}
                     />
-                    <span>Select all</span>
+                    <span>{t('announcements.scope.selectAll')}</span>
                   </label>
                 </div>
                 {dioceseIds.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Select diocese first to load churches.</p>
+                  <p className="text-xs text-muted-foreground">{t('announcements.scope.selectDioceseFirst')}</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
                     {filteredChurches.map(c => (
@@ -408,7 +409,7 @@ export default function AnnouncementForm(props: {
 
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <Label>Classes</Label>
+                  <Label>{t('announcements.scope.classes')}</Label>
                   <label className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Checkbox
                       disabled={churchIds.length === 0}
@@ -418,11 +419,11 @@ export default function AnnouncementForm(props: {
                         setClassIds(allClassesSelected ? [] : allClassIdsInSelectedChurches)
                       }}
                     />
-                    <span>Select all</span>
+                    <span>{t('announcements.scope.selectAll')}</span>
                   </label>
                 </div>
                 {churchIds.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Select church first to load classes.</p>
+                  <p className="text-xs text-muted-foreground">{t('announcements.scope.selectChurchFirst')}</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
                     {filteredClasses.map(c => (
@@ -434,7 +435,7 @@ export default function AnnouncementForm(props: {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  If you select classes, it becomes the strongest filter (only those classes).
+                  {t('announcements.scope.strongestHint')}
                 </p>
               </div>
             </CardContent>

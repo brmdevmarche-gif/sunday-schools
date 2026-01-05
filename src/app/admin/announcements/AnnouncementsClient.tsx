@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { AnnouncementTargetRole, Class, Church, CreateAnnouncementInput, Diocese, ExtendedUser, UpdateAnnouncementInput } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -70,13 +70,13 @@ function computeStatus(a: AnnouncementRow) {
   return 'active'
 }
 
-const ALL_ROLES: { role: AnnouncementTargetRole; label: string }[] = [
-  { role: 'student', label: 'Student' },
-  { role: 'parent', label: 'Parent' },
-  { role: 'teacher', label: 'Teacher' },
-  { role: 'church_admin', label: 'Church Admin' },
-  { role: 'diocese_admin', label: 'Diocese Admin' },
-  { role: 'super_admin', label: 'Super Admin' },
+const ALL_ROLES: { role: AnnouncementTargetRole }[] = [
+  { role: 'student' },
+  { role: 'parent' },
+  { role: 'teacher' },
+  { role: 'church_admin' },
+  { role: 'diocese_admin' },
+  { role: 'super_admin' },
 ]
 
 export default function AnnouncementsClient(props: {
@@ -89,6 +89,7 @@ export default function AnnouncementsClient(props: {
   schemaMissing: boolean
 }) {
   const t = useTranslations()
+  const locale = useLocale()
   const router = useRouter()
   const [announcements, setAnnouncements] = useState<AnnouncementRow[]>(props.initialAnnouncements || [])
   const [statusTab, setStatusTab] = useState<'all' | 'active' | 'scheduled' | 'expired' | 'deleted'>('all')
@@ -315,16 +316,25 @@ export default function AnnouncementsClient(props: {
   }
 
   const roleLabel = useMemo(() => {
-    const map = new Map(ALL_ROLES.map(r => [r.role, r.label]))
-    return (r: AnnouncementTargetRole) => map.get(r) || r
-  }, [])
+    return (r: AnnouncementTargetRole) => (t(`roles.${r}` as any) as string) || r
+  }, [t])
 
   const formatDateTime = (iso?: string | null) => {
     if (!iso) return '—'
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return '—'
-    return d.toLocaleString()
+    return d.toLocaleString(locale)
   }
+
+  const statusLabel = useMemo(() => {
+    return (s: ReturnType<typeof computeStatus>) => {
+      if (s === 'active') return t('announcements.status.active')
+      if (s === 'scheduled') return t('announcements.status.scheduled')
+      if (s === 'expired') return t('announcements.status.expired')
+      // computeStatus uses "deleted" for deactivated rows
+      return t('announcements.status.deactivated')
+    }
+  }, [t])
 
   const DateTimePicker = (props: {
     label: string
@@ -332,7 +342,7 @@ export default function AnnouncementsClient(props: {
     onChange: (v: string) => void
     allowClear?: boolean
   }) => {
-    const display = props.value ? new Date(props.value).toLocaleString() : 'Select…'
+    const display = props.value ? new Date(props.value).toLocaleString(locale) : t('announcements.date.select')
     return (
       <div className="grid gap-2">
         <Label>{props.label}</Label>
@@ -351,7 +361,7 @@ export default function AnnouncementsClient(props: {
             <div className="flex gap-2 justify-end">
               {props.allowClear && (
                 <Button type="button" variant="outline" size="sm" onClick={() => props.onChange('')}>
-                  Clear
+                  {t('common.clear')}
                 </Button>
               )}
               <Button
@@ -359,7 +369,7 @@ export default function AnnouncementsClient(props: {
                 size="sm"
                 onClick={() => props.onChange(isoToDateTimeLocal(new Date().toISOString()))}
               >
-                Now
+                {t('common.now')}
               </Button>
             </div>
           </PopoverContent>
@@ -449,10 +459,10 @@ export default function AnnouncementsClient(props: {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">{t('nav.announcements')}</h1>
-          <p className="text-sm text-muted-foreground">Target announcements by roles and scope</p>
+          <p className="text-sm text-muted-foreground">{t('announcements.adminSubtitle')}</p>
           {props.schemaMissing && (
             <p className="mt-2 text-sm text-destructive">
-              Announcements tables are missing in your database. Run `supabase db push` to apply migrations.
+              {t('announcements.schemaMissing')}
             </p>
           )}
         </div>
@@ -536,7 +546,7 @@ export default function AnnouncementsClient(props: {
                   {ALL_ROLES.map(r => (
                     <label key={r.role} className="flex items-center gap-2 text-sm">
                       <Checkbox checked={targetRoles.includes(r.role)} onCheckedChange={() => toggleRole(r.role)} />
-                      <span>{r.label}</span>
+                      <span>{roleLabel(r.role)}</span>
                     </label>
                   ))}
                 </div>
@@ -689,21 +699,21 @@ export default function AnnouncementsClient(props: {
           <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as any)}>
             <TabsList>
               <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-              <TabsTrigger value="expired">Expired</TabsTrigger>
-              <TabsTrigger value="deleted">Deactivated</TabsTrigger>
+              <TabsTrigger value="active">{t('announcements.status.active')}</TabsTrigger>
+              <TabsTrigger value="scheduled">{t('announcements.status.scheduled')}</TabsTrigger>
+              <TabsTrigger value="expired">{t('announcements.status.expired')}</TabsTrigger>
+              <TabsTrigger value="deleted">{t('announcements.status.deactivated')}</TabsTrigger>
             </TabsList>
             <TabsContent value={statusTab} className="mt-4">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Types</TableHead>
-                    <TableHead>Roles</TableHead>
-                    <TableHead>Publish from</TableHead>
-                    <TableHead>Publish to</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t('announcements.table.title')}</TableHead>
+                    <TableHead>{t('announcements.table.types')}</TableHead>
+                    <TableHead>{t('announcements.table.roles')}</TableHead>
+                    <TableHead>{t('announcements.table.publishFrom')}</TableHead>
+                    <TableHead>{t('announcements.table.publishTo')}</TableHead>
+                    <TableHead>{t('announcements.table.status')}</TableHead>
                     <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -740,7 +750,7 @@ export default function AnnouncementsClient(props: {
                         </TableCell>
                         <TableCell>
                           <Badge variant={status === 'active' ? 'default' : status === 'deleted' ? 'destructive' : 'secondary'}>
-                            {status}
+                            {statusLabel(status)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -749,12 +759,12 @@ export default function AnnouncementsClient(props: {
                           </Button>
                           {status !== 'active' && (
                             <Button variant="outline" size="sm" onClick={() => openRepublish(a)}>
-                              Republish
+                              {t('announcements.actions.republish')}
                             </Button>
                           )}
                           {status === 'active' && (
                             <Button variant="destructive" size="sm" onClick={() => openDeactivate(a)}>
-                              Deactivate
+                              {t('announcements.actions.deactivate')}
                             </Button>
                           )}
                         </TableCell>
@@ -778,17 +788,17 @@ export default function AnnouncementsClient(props: {
       <Dialog open={deactivateOpen} onOpenChange={(v) => { setDeactivateOpen(v); if (!v) { setDeactivateTarget(null); setDeactivateReason('') } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Deactivate announcement</DialogTitle>
+            <DialogTitle>{t('announcements.deactivateDialog.title')}</DialogTitle>
             <DialogDescription>
-              This will hide the announcement. Please provide a reason.
+              {t('announcements.deactivateDialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
-            <Label>Reason</Label>
+            <Label>{t('announcements.deactivateDialog.reasonLabel')}</Label>
             <Textarea
               value={deactivateReason}
               onChange={(e) => setDeactivateReason(e.target.value)}
-              placeholder="(Optional) Why are you deactivating this announcement?"
+              placeholder={t('announcements.deactivateDialog.reasonPlaceholder')}
             />
           </div>
           <DialogFooter>
@@ -796,7 +806,7 @@ export default function AnnouncementsClient(props: {
               {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={confirmDeactivate} disabled={deactivating}>
-              {deactivating ? t('common.saving') : 'Deactivate'}
+              {deactivating ? t('common.saving') : t('announcements.actions.deactivate')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -805,17 +815,17 @@ export default function AnnouncementsClient(props: {
       <Dialog open={republishOpen} onOpenChange={(v) => { setRepublishOpen(v); if (!v) { setRepublishTarget(null) } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Republish announcement</DialogTitle>
+            <DialogTitle>{t('announcements.republishDialog.title')}</DialogTitle>
             <DialogDescription>
-              Choose how long the announcement should be visible starting from now.
+              {t('announcements.republishDialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="rounded border p-3 space-y-2">
-              <div className="text-sm font-medium">Pick dates</div>
+              <div className="text-sm font-medium">{t('announcements.republishDialog.pickDates')}</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DateTimePicker
-                  label="From"
+                  label={t('announcements.republishDialog.from')}
                   value={republishFrom}
                   onChange={(v) => {
                     setRepublishFrom(v)
@@ -824,7 +834,7 @@ export default function AnnouncementsClient(props: {
                   }}
                 />
                 <DateTimePicker
-                  label="To"
+                  label={t('announcements.republishDialog.to')}
                   value={republishTo}
                   onChange={setRepublishTo}
                   allowClear
@@ -832,16 +842,16 @@ export default function AnnouncementsClient(props: {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={() => setRepublishTo(isoToDateTimeLocal(computeRepublishToIso(republishFrom, 'week')))}>
-                  Next 7 days
+                  {t('announcements.ranges.next7Days')}
                 </Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => setRepublishTo(isoToDateTimeLocal(computeRepublishToIso(republishFrom, 'current_month')))}>
-                  End of month
+                  {t('announcements.ranges.endOfMonth')}
                 </Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => setRepublishTo(isoToDateTimeLocal(computeRepublishToIso(republishFrom, 'one_month')))}>
-                  One month
+                  {t('announcements.ranges.oneMonth')}
                 </Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => setRepublishTo('')}>
-                  No end
+                  {t('announcements.ranges.noEnd')}
                 </Button>
               </div>
             </div>
@@ -851,7 +861,7 @@ export default function AnnouncementsClient(props: {
               {t('common.cancel')}
             </Button>
             <Button onClick={confirmRepublish} disabled={republishing}>
-              {republishing ? t('common.saving') : 'Republish'}
+              {republishing ? t('common.saving') : t('announcements.actions.republish')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -862,7 +872,7 @@ export default function AnnouncementsClient(props: {
           <DialogHeader>
             <DialogTitle>{detailsTarget?.title || 'Announcement'}</DialogTitle>
             <DialogDescription>
-              {detailsTarget ? `Status: ${computeStatus(detailsTarget)}` : ''}
+              {detailsTarget ? `${t('announcements.table.status')}: ${statusLabel(computeStatus(detailsTarget))}` : ''}
             </DialogDescription>
           </DialogHeader>
           {detailsTarget && (

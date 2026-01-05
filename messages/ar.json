@@ -26,6 +26,8 @@
     "description": "الوصف",
     "date": "التاريخ",
     "close": "إغلاق",
+    "clear": "مسح",
+    "now": "الآن",
     "submit": "إرسال",
     "submitting": "جاري الإرسال...",
     "update": "تحديث",
@@ -445,10 +447,81 @@
     "account": "الحساب"
   },
   "announcements": {
+    "inboxTitle": "صندوق الإعلانات",
+    "inboxSubtitle": "الإعلانات غير المقروءة لحسابك.",
+    "adminSubtitle": "استهداف الإعلانات حسب الأدوار والنطاق",
     "noUnviewed": "لا توجد إعلانات جديدة.",
     "unreadOnly": "غير مقروء فقط",
     "new": "جديد",
+    "newCount": "{count, plural, one {# جديد} other {# جديد}}",
     "filterByType": "تصفية حسب النوع",
+    "clearTypes": "إلغاء التحديد",
+    "selectAllTypes": "تحديد الكل",
+    "schemaMissing": "جداول الإعلانات غير موجودة في قاعدة البيانات. يرجى تشغيل المهاجرات (Supabase `db push`).",
+    "tipTargeting": "ملاحظة: إذا قمت بنشر إعلان للتو، تأكد أنه يستهدف دورك ويتطابق مع نطاق الأبرشية/الكنيسة/الفصل.",
+    "tipTargetingWithRole": "ملاحظة: إذا قمت بنشر إعلان للتو، تأكد أنه يستهدف دورك ({role}) ويتطابق مع نطاق الأبرشية/الكنيسة/الفصل.",
+    "status": {
+      "active": "نشط",
+      "scheduled": "مجدول",
+      "expired": "منتهي",
+      "deactivated": "مُعطّل"
+    },
+    "table": {
+      "title": "العنوان",
+      "types": "الأنواع",
+      "roles": "الأدوار",
+      "publishFrom": "بدء النشر",
+      "publishTo": "انتهاء النشر",
+      "status": "الحالة"
+    },
+    "actions": {
+      "republish": "إعادة نشر",
+      "deactivate": "إيقاف"
+    },
+    "ranges": {
+      "noEnd": "بدون نهاية",
+      "next7Days": "7 أيام قادمة",
+      "endOfMonth": "نهاية الشهر",
+      "oneMonth": "شهر واحد"
+    },
+    "deactivateDialog": {
+      "title": "إيقاف الإعلان",
+      "description": "سيؤدي هذا إلى إخفاء الإعلان. يمكنك إضافة سبب (اختياري).",
+      "reasonLabel": "السبب",
+      "reasonPlaceholder": "(اختياري) لماذا تقوم بإيقاف هذا الإعلان؟"
+    },
+    "republishDialog": {
+      "title": "إعادة نشر الإعلان",
+      "description": "اختر مدة ظهور الإعلان ابتداءً من الآن.",
+      "pickDates": "اختر التواريخ",
+      "from": "من",
+      "to": "إلى"
+    },
+    "form": {
+      "title": "العنوان",
+      "titlePlaceholder": "عنوان الإعلان",
+      "description": "الوصف",
+      "descriptionPlaceholder": "التفاصيل...",
+      "types": "الأنواع (وسوم)",
+      "typesPlaceholder": "اكتب ثم اضغط Enter",
+      "addType": "إضافة",
+      "whoCanSee": "من يمكنه رؤيته",
+      "publishFrom": "بدء النشر",
+      "publishTo": "انتهاء النشر"
+    },
+    "scope": {
+      "title": "النطاق (اختياري)",
+      "dioceses": "الأبرشيات",
+      "churches": "الكنائس",
+      "classes": "الفصول",
+      "selectAll": "تحديد الكل",
+      "selectDioceseFirst": "اختر الأبرشية أولاً لتحميل الكنائس.",
+      "selectChurchFirst": "اختر الكنيسة أولاً لتحميل الفصول.",
+      "strongestHint": "إذا حددت فصولاً فسيكون هذا هو الفلتر الأقوى (هذه الفصول فقط)."
+    },
+    "date": {
+      "select": "اختر…"
+    },
     "selectAtLeastOneType": "اختر نوعًا واحدًا على الأقل لعرض الإعلانات.",
     "open": "فتح",
     "noType": "بدون نوع",

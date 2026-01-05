@@ -23,6 +23,7 @@ import {
   CheckSquare,
   ClipboardList,
   PartyPopper,
+  Megaphone,
   Bus,
   Store,
   Settings,
@@ -60,6 +61,7 @@ const iconMap = {
   check: CheckSquare,
   task: ClipboardList,
   activity: PartyPopper,
+  announcement: Megaphone,
   trip: Bus,
   store: Store,
   settings: Settings,
@@ -86,6 +88,12 @@ export default function AdminSidebar({
     // Special case for dashboard: only active on exact /admin path
     if (href === "/admin") {
       return pathname === "/admin";
+    }
+    // Special case: don't highlight Announcements management when user is on the inbox page
+    if (href === "/admin/announcements") {
+      if (pathname === "/admin/announcements/inbox") return false;
+      if (pathname.startsWith("/admin/announcements/inbox/")) return false;
+      return pathname === href || pathname.startsWith(href + "/");
     }
     // For other routes, check if pathname starts with the href
     return pathname === href || pathname.startsWith(href + "/");

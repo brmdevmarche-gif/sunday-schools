@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import DashboardNavbar from "./DashboardNavbar";
+import AnnouncementsWidget from "@/components/announcements/AnnouncementsWidget";
 import {
   Bus,
   ShoppingBag,
@@ -172,8 +173,7 @@ export default async function DashboardPage() {
       href: "/announcements",
       icon: Bell,
       color: "bg-orange-500",
-      available: false,
-      comingSoon: true,
+      available: true,
     },
     {
       title: t("studentHome.lessons"),
@@ -357,6 +357,11 @@ export default async function DashboardPage() {
               </Link>
             ))}
           </div>
+        </div>
+
+        {/* Announcements */}
+        <div className="pt-2">
+          <AnnouncementsWidget />
         </div>
       </div>
     </div>

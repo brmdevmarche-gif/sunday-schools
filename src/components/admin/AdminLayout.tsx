@@ -162,6 +162,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           icon: "trip",
         });
 
+        // Announcements Management - all admins and teachers (original name/icon)
+        items.push({
+          name: t("nav.announcements"),
+          href: "/admin/announcements",
+          icon: "announcement",
+        });
+
         setNavItems(items);
       } catch (error) {
         console.error("Error loading admin layout:", error);

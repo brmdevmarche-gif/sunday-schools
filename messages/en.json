@@ -44,6 +44,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "announcements": "Announcements",
     "users": "Users",
     "churches": "Churches",
     "dioceses": "Dioceses",
@@ -442,6 +443,16 @@
     "logoutFailed": "Failed to log out",
     "menu": "Menu",
     "account": "Account"
+  },
+  "announcements": {
+    "noUnviewed": "No new announcements.",
+    "unreadOnly": "Unread only",
+    "new": "New",
+    "filterByType": "Filter by type",
+    "selectAtLeastOneType": "Select at least one type to show announcements.",
+    "open": "Open",
+    "noType": "No type",
+    "noDescription": "No description."
   },
   "profile": {
     "title": "Profile",

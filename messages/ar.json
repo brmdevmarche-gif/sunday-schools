@@ -44,6 +44,7 @@
   },
   "nav": {
     "dashboard": "لوحة التحكم",
+    "announcements": "الإعلانات",
     "users": "المستخدمون",
     "churches": "الكنائس",
     "dioceses": "الأبرشيات",
@@ -442,6 +443,16 @@
     "logoutFailed": "فشل تسجيل الخروج",
     "menu": "القائمة",
     "account": "الحساب"
+  },
+  "announcements": {
+    "noUnviewed": "لا توجد إعلانات جديدة.",
+    "unreadOnly": "غير مقروء فقط",
+    "new": "جديد",
+    "filterByType": "تصفية حسب النوع",
+    "selectAtLeastOneType": "اختر نوعًا واحدًا على الأقل لعرض الإعلانات.",
+    "open": "فتح",
+    "noType": "بدون نوع",
+    "noDescription": "لا يوجد وصف."
   },
   "profile": {
     "title": "الملف الشخصي",

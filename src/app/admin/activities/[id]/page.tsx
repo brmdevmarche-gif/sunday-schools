@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getActivityByIdAction } from "../actions";
+import AdminLayout from "@/components/admin/AdminLayout";
 import EditActivityClient from "./EditActivityClient";
 
 export default async function EditActivityPage({
@@ -29,5 +30,9 @@ export default async function EditActivityPage({
     notFound();
   }
 
-  return <EditActivityClient activity={result.data} userProfile={profile} />;
+  return (
+    <AdminLayout>
+      <EditActivityClient activity={result.data} userProfile={profile} />
+    </AdminLayout>
+  );
 }

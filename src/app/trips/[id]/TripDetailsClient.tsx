@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +46,7 @@ export default function TripDetailsClient({
 }: TripDetailsClientProps) {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations();
 
   // Get currency symbol based on locale
   const getCurrencySymbol = () => {
@@ -61,7 +62,13 @@ export default function TripDetailsClient({
   const isSubscribed = !!trip.my_participation;
   const isApproved = trip.my_participation?.approval_status === "approved";
   const isPending = trip.my_participation?.approval_status === "pending";
-  const isRejected = trip.my_participation?.approval_status === "rejected";
+
+  // Get the price based on user's tier
+  function getUserPrice() {
+    if (userProfile.price_tier === "mastor") return trip.price_mastor;
+    if (userProfile.price_tier === "botl") return trip.price_botl;
+    return trip.price_normal;
+  }
 
   function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
@@ -121,13 +128,13 @@ export default function TripDetailsClient({
         emergency_contact: subscribeForm.emergency_contact || undefined,
         medical_info: subscribeForm.medical_info || undefined,
       });
-      toast.success("Successfully subscribed to trip! Waiting for approval.");
+      toast.success(t("studentTrips.subscribeSuccess"));
       setIsSubscribeDialogOpen(false);
       setSubscribeForm({ emergency_contact: "", medical_info: "" });
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error subscribing to trip:", error);
-      toast.error(error.message || "Failed to subscribe to trip");
+      toast.error(error instanceof Error ? error.message : t("studentTrips.subscribeFailed"));
     } finally {
       setIsSubscribing(false);
     }
@@ -140,7 +147,7 @@ export default function TripDetailsClient({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
             </Button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{trip.title}</h1>
@@ -154,7 +161,7 @@ export default function TripDetailsClient({
                   </Badge>
                 )}
                 {!trip.available && (
-                  <Badge variant="outline">Unavailable</Badge>
+                  <Badge variant="outline">{t("studentTrips.unavailable")}</Badge>
                 )}
               </div>
             </div>
@@ -187,7 +194,7 @@ export default function TripDetailsClient({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Info className="h-5 w-5" />
-                    About This Trip
+                    {t("studentTrips.aboutTrip")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -204,7 +211,7 @@ export default function TripDetailsClient({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    Destinations ({trip.destinations.length})
+                    {t("studentTrips.destinations")} ({trip.destinations.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -238,7 +245,7 @@ export default function TripDetailsClient({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Bus className="h-5 w-5" />
-                    Transportation
+                    {t("studentTrips.transportation")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -255,7 +262,7 @@ export default function TripDetailsClient({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="h-5 w-5" />
-                    What to Bring
+                    {t("studentTrips.whatToBring")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -272,14 +279,14 @@ export default function TripDetailsClient({
             {/* Trip Details */}
             <Card>
               <CardHeader>
-                <CardTitle>Trip Details</CardTitle>
+                <CardTitle>{t("studentTrips.tripDetails")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {trip.start_datetime && (
                   <div>
                     <div className="flex items-center gap-2 text-sm font-medium mb-1">
                       <Calendar className="h-4 w-4 text-blue-500" />
-                      Start Date
+                      {t("studentTrips.startDate")}
                     </div>
                     <p className="text-sm text-muted-foreground pl-6">
                       {formatDateTime(trip.start_datetime)}
@@ -291,7 +298,7 @@ export default function TripDetailsClient({
                   <div>
                     <div className="flex items-center gap-2 text-sm font-medium mb-1">
                       <Clock className="h-4 w-4 text-green-500" />
-                      End Date
+                      {t("studentTrips.endDate")}
                     </div>
                     <p className="text-sm text-muted-foreground pl-6">
                       {formatDateTime(trip.end_datetime)}
@@ -305,13 +312,13 @@ export default function TripDetailsClient({
                   <div>
                     <div className="flex items-center gap-2 text-sm font-medium mb-1">
                       <Users className="h-4 w-4 text-orange-500" />
-                      Capacity
+                      {t("studentTrips.capacity")}
                     </div>
                     <p className="text-sm text-muted-foreground pl-6">
-                      Max {trip.max_participants} participants
+                      {t("studentTrips.maxParticipantsCount", { count: trip.max_participants })}
                       {trip.participants_count !== undefined && (
                         <span className="ml-1">
-                          ({trip.participants_count} registered)
+                          ({trip.participants_count} {t("studentTrips.registered")})
                         </span>
                       )}
                     </p>
@@ -321,23 +328,13 @@ export default function TripDetailsClient({
                 <Separator />
 
                 <div>
-                  <div className="text-sm font-medium mb-2">
-                    Pricing
+                  <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                    <DollarSign className="h-4 w-4 text-green-500" />
+                    {t("studentTrips.price")}
                   </div>
-                  <div className="space-y-1 pl-6 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Normal:</span>
-                      <span className="font-medium">{getCurrencySymbol()}{trip.price_normal}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Mastor:</span>
-                      <span className="font-medium">{getCurrencySymbol()}{trip.price_mastor}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Botl:</span>
-                      <span className="font-medium">{getCurrencySymbol()}{trip.price_botl}</span>
-                    </div>
-                  </div>
+                  <p className="text-2xl font-bold text-primary pl-6">
+                    {getCurrencySymbol()}{getUserPrice()}
+                  </p>
                 </div>
 
                 {trip.requires_parent_approval && (
@@ -346,7 +343,7 @@ export default function TripDetailsClient({
                     <div className="flex items-start gap-2 text-sm">
                       <Info className="h-4 w-4 text-blue-500 mt-0.5" />
                       <span className="text-muted-foreground">
-                        Parent approval required
+                        {t("studentTrips.parentApprovalRequired")}
                       </span>
                     </div>
                   </>
@@ -357,7 +354,7 @@ export default function TripDetailsClient({
             {/* Subscription Status / Subscribe Button */}
             <Card>
               <CardHeader>
-                <CardTitle>Your Status</CardTitle>
+                <CardTitle>{t("studentTrips.yourStatus")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {isSubscribed ? (
@@ -367,21 +364,21 @@ export default function TripDetailsClient({
                         <>
                           <CheckCircle2 className="h-5 w-5 text-green-500" />
                           <span className="font-medium text-green-600">
-                            Approved
+                            {t("studentTrips.approved")}
                           </span>
                         </>
                       ) : isPending ? (
                         <>
                           <Clock className="h-5 w-5 text-yellow-500" />
                           <span className="font-medium text-yellow-600">
-                            Pending Approval
+                            {t("studentTrips.pendingApproval")}
                           </span>
                         </>
                       ) : (
                         <>
                           <XCircle className="h-5 w-5 text-red-500" />
                           <span className="font-medium text-red-600">
-                            Rejected
+                            {t("studentTrips.rejected")}
                           </span>
                         </>
                       )}
@@ -390,7 +387,7 @@ export default function TripDetailsClient({
                     {trip.my_participation?.payment_status && (
                       <div className="flex items-center justify-between pt-2 border-t">
                         <span className="text-sm text-muted-foreground">
-                          Payment:
+                          {t("studentTrips.payment")}:
                         </span>
                         <Badge
                           variant={
@@ -407,7 +404,7 @@ export default function TripDetailsClient({
                     {trip.my_participation?.emergency_contact && (
                       <div className="pt-2 border-t">
                         <p className="text-sm font-medium mb-1">
-                          Emergency Contact
+                          {t("studentTrips.emergencyContact")}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {trip.my_participation.emergency_contact}
@@ -418,18 +415,18 @@ export default function TripDetailsClient({
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground">
-                      You are not subscribed to this trip yet.
+                      {t("studentTrips.notSubscribed")}
                     </p>
                     {trip.status === "active" && trip.available ? (
                       <Button
                         className="w-full"
                         onClick={() => setIsSubscribeDialogOpen(true)}
                       >
-                        Subscribe to Trip
+                        {t("studentTrips.subscribeToTrip")}
                       </Button>
                     ) : (
                       <p className="text-sm text-destructive">
-                        This trip is not available for subscription.
+                        {t("studentTrips.tripNotAvailable")}
                       </p>
                     )}
                   </>
@@ -447,9 +444,9 @@ export default function TripDetailsClient({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Subscribe to Trip</DialogTitle>
+            <DialogTitle>{t("studentTrips.subscribeToTrip")}</DialogTitle>
             <DialogDescription>
-              Fill in the information below to subscribe to this trip
+              {t("studentTrips.subscribeDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -465,7 +462,7 @@ export default function TripDetailsClient({
 
             <div>
               <Label htmlFor="emergency_contact">
-                Emergency Contact (Optional)
+                {t("studentTrips.emergencyContact")}
               </Label>
               <Input
                 id="emergency_contact"
@@ -476,13 +473,13 @@ export default function TripDetailsClient({
                     emergency_contact: e.target.value,
                   })
                 }
-                placeholder="Name and phone number"
+                placeholder={t("studentTrips.emergencyContactPlaceholder")}
               />
             </div>
 
             <div>
               <Label htmlFor="medical_info">
-                Medical Information (Optional)
+                {t("studentTrips.medicalInfo")}
               </Label>
               <Textarea
                 id="medical_info"
@@ -493,7 +490,7 @@ export default function TripDetailsClient({
                     medical_info: e.target.value,
                   })
                 }
-                placeholder="Any medical conditions or allergies to note"
+                placeholder={t("studentTrips.medicalInfoPlaceholder")}
                 rows={3}
               />
             </div>
@@ -504,10 +501,10 @@ export default function TripDetailsClient({
               variant="outline"
               onClick={() => setIsSubscribeDialogOpen(false)}
             >
-              Cancel
+              {t("studentTrips.cancel")}
             </Button>
             <Button onClick={handleSubscribe} disabled={isSubscribing}>
-              {isSubscribing ? "Subscribing..." : "Subscribe"}
+              {isSubscribing ? t("studentTrips.subscribing") : t("studentTrips.subscribe")}
             </Button>
           </DialogFooter>
         </DialogContent>

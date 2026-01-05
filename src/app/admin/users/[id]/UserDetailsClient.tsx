@@ -54,6 +54,10 @@ import {
   Pencil,
   UserCheck,
   UserX,
+  Key,
+  Eye,
+  EyeOff,
+  AlertTriangle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ExtendedUser, UserRole, AttendanceStatus } from '@/lib/types/sunday-school'
@@ -61,6 +65,7 @@ import {
   updateUserRoleAction,
   activateUserAction,
   deactivateUserAction,
+  changeUserPasswordAction,
 } from '../actions'
 
 interface ClassAssignment {
@@ -147,6 +152,7 @@ export default function UserDetailsClient({
   const t = useTranslations()
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editFormData, setEditFormData] = useState({
     full_name: user.full_name || '',
@@ -156,6 +162,14 @@ export default function UserDetailsClient({
     diocese_id: user.diocese_id || '',
     church_id: user.church_id || '',
   })
+  const [passwordFormData, setPasswordFormData] = useState({
+    adminPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [showAdminPassword, setShowAdminPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [identityVerified, setIdentityVerified] = useState(false)
 
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
@@ -235,6 +249,53 @@ export default function UserDetailsClient({
     setIsEditDialogOpen(true)
   }
 
+  function handleOpenPasswordDialog() {
+    setPasswordFormData({
+      adminPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    })
+    setShowAdminPassword(false)
+    setShowNewPassword(false)
+    setIdentityVerified(false)
+    setIsPasswordDialogOpen(true)
+  }
+
+  async function handleChangePassword() {
+    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
+      toast.error(t('users.passwordMismatch'))
+      return
+    }
+
+    if (passwordFormData.newPassword.length < 6) {
+      toast.error(t('users.passwordTooShort'))
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const result = await changeUserPasswordAction(
+        user.id,
+        passwordFormData.newPassword,
+        passwordFormData.adminPassword
+      )
+
+      if (result.success) {
+        toast.success(t('users.passwordChanged'))
+        setIsPasswordDialogOpen(false)
+      } else {
+        toast.error(result.error || t('users.passwordChangeFailed'))
+      }
+    } catch (error) {
+      console.error('Error changing password:', error)
+      toast.error(t('users.passwordChangeFailed'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const canChangePassword = ['super_admin', 'diocese_admin', 'church_admin', 'teacher'].includes(currentUserRole)
+
   const attendanceStats = attendanceRecords.length > 0 ? {
     total: attendanceRecords.length,
     present: attendanceRecords.filter((r) => r.status === 'present').length,
@@ -252,7 +313,7 @@ export default function UserDetailsClient({
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -378,13 +439,31 @@ export default function UserDetailsClient({
 
             {/* Account Information */}
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
                   {t('userDetails.accountInfo')}
                 </CardTitle>
+                {canChangePassword && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleOpenPasswordDialog}
+                  >
+                    <Key className="mr-2 h-4 w-4" />
+                    {t('users.changePassword')}
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
+                {user.user_code && (
+                  <div>
+                    <div className="text-sm text-muted-foreground">
+                      {t('users.userCode')}
+                    </div>
+                    <div className="font-mono text-lg font-bold">{user.user_code}</div>
+                  </div>
+                )}
                 <div>
                   <div className="text-sm text-muted-foreground">
                     {t('userDetails.userId')}
@@ -809,6 +888,148 @@ export default function UserDetailsClient({
             </Button>
             <Button onClick={handleUpdateUser} disabled={isSubmitting}>
               {isSubmitting ? t('common.saving') : t('common.update')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              {t('users.changePassword')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('users.changePasswordFor')}: {user.full_name || user.email}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Security Warning */}
+            <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                {t('users.passwordSecurityWarning')}
+              </p>
+            </div>
+
+            {/* Admin Password Verification */}
+            <div className="space-y-2">
+              <Label>{t('users.yourPassword')}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t('users.confirmIdentity')}
+              </p>
+              <div className="relative">
+                <Input
+                  type={showAdminPassword ? 'text' : 'password'}
+                  value={passwordFormData.adminPassword}
+                  onChange={(e) =>
+                    setPasswordFormData({
+                      ...passwordFormData,
+                      adminPassword: e.target.value,
+                    })
+                  }
+                  placeholder="••••••••"
+                  disabled={isSubmitting}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  onClick={() => setShowAdminPassword(!showAdminPassword)}
+                >
+                  {showAdminPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <hr className="my-4" />
+
+            {/* New Password */}
+            <div className="space-y-2">
+              <Label>{t('users.newPassword')}</Label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={passwordFormData.newPassword}
+                  onChange={(e) =>
+                    setPasswordFormData({
+                      ...passwordFormData,
+                      newPassword: e.target.value,
+                    })
+                  }
+                  placeholder="••••••••"
+                  disabled={isSubmitting}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t('users.passwordMinLength')}
+              </p>
+            </div>
+
+            {/* Confirm Password */}
+            <div className="space-y-2">
+              <Label>{t('users.confirmNewPassword')}</Label>
+              <Input
+                type={showNewPassword ? 'text' : 'password'}
+                value={passwordFormData.confirmPassword}
+                onChange={(e) =>
+                  setPasswordFormData({
+                    ...passwordFormData,
+                    confirmPassword: e.target.value,
+                  })
+                }
+                placeholder="••••••••"
+                disabled={isSubmitting}
+              />
+              {passwordFormData.confirmPassword &&
+                passwordFormData.newPassword !== passwordFormData.confirmPassword && (
+                  <p className="text-xs text-destructive">
+                    {t('users.passwordMismatch')}
+                  </p>
+                )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsPasswordDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              onClick={handleChangePassword}
+              disabled={
+                isSubmitting ||
+                !passwordFormData.adminPassword ||
+                !passwordFormData.newPassword ||
+                !passwordFormData.confirmPassword ||
+                passwordFormData.newPassword !== passwordFormData.confirmPassword
+              }
+            >
+              {isSubmitting ? t('common.saving') : t('users.changePassword')}
             </Button>
           </DialogFooter>
         </DialogContent>

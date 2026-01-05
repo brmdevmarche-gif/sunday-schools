@@ -21,14 +21,18 @@ export default async function SettingsPage() {
     return null
   }
 
-  // Get user profile to check if super admin
+  // Get user profile to check if super admin and get church info
   const { data: profile } = await supabase
     .from('users')
-    .select('role')
+    .select('role, church_id, churches(name)')
     .eq('id', user.id)
     .single()
 
   const isSuperAdmin = profile?.role === 'super_admin'
+  const isChurchAdmin = profile?.role === 'admin' && profile?.church_id
+  const churchId = profile?.church_id
+  const churchData = profile?.churches as unknown as { name: string } | null
+  const churchName = churchData?.name
 
   // Fetch all data in parallel
   const [settings, backupLogs, databaseStats] = await Promise.all([
@@ -44,6 +48,9 @@ export default async function SettingsPage() {
         backupLogs={backupLogs}
         databaseStats={databaseStats}
         isSuperAdmin={isSuperAdmin}
+        isChurchAdmin={!!isChurchAdmin}
+        churchId={churchId || undefined}
+        churchName={churchName || undefined}
       />
     </AdminLayout>
   )

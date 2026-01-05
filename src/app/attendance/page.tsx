@@ -20,6 +20,7 @@ export default async function TeacherAttendancePage() {
   }
 
   // Fetch teacher's assigned classes or all classes for admins
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let classes: any[] = [];
 
   if (profile.role === "teacher") {

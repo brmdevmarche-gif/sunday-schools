@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getTripByIdAction, getChurchesForTrips, getDiocesesForTrips } from "../../actions";
+import AdminLayout from "@/components/admin/AdminLayout";
 import EditTripClient from "../EditTripClient";
 
 export default async function EditTripPage({
@@ -34,6 +35,10 @@ export default async function EditTripPage({
     getDiocesesForTrips(),
   ]);
 
-  return <EditTripClient trip={result.data} userProfile={profile} churches={churches} dioceses={dioceses} />;
+  return (
+    <AdminLayout>
+      <EditTripClient trip={result.data} userProfile={profile} churches={churches} dioceses={dioceses} />
+    </AdminLayout>
+  );
 }
 

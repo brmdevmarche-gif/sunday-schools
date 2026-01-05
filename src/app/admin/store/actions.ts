@@ -112,7 +112,7 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
   const { church_ids, diocese_ids, class_ids, ...itemData } = input
 
   // Update the store item
-  const updateData: any = {
+  const updateData: Omit<UpdateStoreItemInput, 'church_ids' | 'diocese_ids' | 'class_ids'> & { updated_by: string } = {
     ...itemData,
     updated_by: user.id,
   }
@@ -248,4 +248,107 @@ export async function toggleStoreItemStatusAction(itemId: string, isActive: bool
 
   revalidatePath('/admin/store')
   return { success: true }
+}
+
+export interface ItemDemandStats {
+  item_id: string
+  item_name: string
+  item_image_url: string | null
+  stock_quantity: number
+  stock_type: 'quantity' | 'on_demand'
+  total_requested: number
+  pending_requests: number
+  approved_requests: number
+  fulfilled_requests: number
+}
+
+/**
+ * Get item demand statistics - shows total requests per item
+ */
+export async function getItemDemandStatsAction(): Promise<ItemDemandStats[]> {
+  const adminClient = createAdminClient()
+
+  // Get all store items
+  const { data: storeItems, error: itemsError } = await adminClient
+    .from('store_items')
+    .select('id, name, image_url, stock_quantity, stock_type')
+    .order('name')
+
+  if (itemsError) {
+    throw new Error(`Failed to fetch store items: ${itemsError.message}`)
+  }
+
+  // Get all order items with their order status
+  const { data: orderItems, error: ordersError } = await adminClient
+    .from('order_items')
+    .select(`
+      store_item_id,
+      quantity,
+      orders!inner(status)
+    `)
+
+  if (ordersError) {
+    throw new Error(`Failed to fetch order items: ${ordersError.message}`)
+  }
+
+  // Aggregate the data
+  const demandMap = new Map<string, {
+    total: number
+    pending: number
+    approved: number
+    fulfilled: number
+  }>()
+
+  // Initialize all items with zero counts
+  for (const item of storeItems || []) {
+    demandMap.set(item.id, { total: 0, pending: 0, approved: 0, fulfilled: 0 })
+  }
+
+  // Aggregate order items
+  for (const orderItem of orderItems || []) {
+    const stats = demandMap.get(orderItem.store_item_id)
+    if (stats) {
+      const order = orderItem.orders as unknown as { status: string }
+      const qty = orderItem.quantity
+
+      // Count all requests (not cancelled or rejected)
+      if (order.status !== 'cancelled' && order.status !== 'rejected') {
+        stats.total += qty
+      }
+
+      // Count by status
+      switch (order.status) {
+        case 'pending':
+          stats.pending += qty
+          break
+        case 'approved':
+          stats.approved += qty
+          break
+        case 'fulfilled':
+          stats.fulfilled += qty
+          break
+      }
+    }
+  }
+
+  // Build the result
+  const result: ItemDemandStats[] = (storeItems || []).map(item => {
+    const stats = demandMap.get(item.id) || { total: 0, pending: 0, approved: 0, fulfilled: 0 }
+    return {
+      item_id: item.id,
+      item_name: item.name,
+      item_image_url: item.image_url,
+      stock_quantity: item.stock_quantity,
+      stock_type: item.stock_type,
+      total_requested: stats.total,
+      pending_requests: stats.pending,
+      approved_requests: stats.approved,
+      fulfilled_requests: stats.fulfilled,
+    }
+  })
+
+  // Sort by total requested (highest first)
+  result.sort((a, b) => b.total_requested - a.total_requested)
+
+  return result
 }

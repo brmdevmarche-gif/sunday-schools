@@ -7,15 +7,9 @@ import AdminSidebar from "./AdminSidebar";
 import { getCurrentUserProfileClient } from "@/lib/sunday-school/users";
 import { signOut } from "@/lib/auth";
 import { toast } from "sonner";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { cn } from "@/lib/utils";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -40,6 +34,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -187,6 +182,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     loadProfile();
   }, [router, t]);
 
+  // Close mobile sidebar when clicking outside
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -210,39 +217,58 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block">
+      {/* Mobile Header with Burger Menu */}
+      <div className="fixed top-0 inset-x-0 z-40 flex h-14 items-center border-b bg-card px-4 lg:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsMobileOpen(true)}
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+        <span className="ms-3 text-lg font-semibold">Knesty</span>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 ltr:left-0 rtl:right-0 z-50 transform transition-transform duration-300 lg:hidden",
+          isMobileOpen ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"
+        )}
+      >
         <AdminSidebar
           items={navItems}
           userRole={userProfile?.role}
           userName={userProfile?.full_name || userProfile?.email}
           onLogout={handleLogout}
+          isMobile={true}
+          onClose={() => setIsMobileOpen(false)}
         />
       </aside>
 
-      {/* Mobile Sidebar */}
-      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-        <SheetTrigger asChild className="lg:hidden fixed top-4 left-4 z-50">
-          <Button variant="default" size="icon">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64">
-          <VisuallyHidden>
-            <SheetTitle>{t("nav.dashboard")}</SheetTitle>
-          </VisuallyHidden>
-          <AdminSidebar
-            items={navItems}
-            userRole={userProfile?.role}
-            userName={userProfile?.full_name || userProfile?.email}
-            onLogout={handleLogout}
-          />
-        </SheetContent>
-      </Sheet>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block shrink-0">
+        <AdminSidebar
+          items={navItems}
+          userRole={userProfile?.role}
+          userName={userProfile?.full_name || userProfile?.email}
+          onLogout={handleLogout}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        />
+      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-background">
-        <div className="container mx-auto pt-22 p-6 lg:p-8">{children}</div>
+      <main className="flex-1 overflow-y-auto bg-background pt-14 lg:pt-0">
+        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

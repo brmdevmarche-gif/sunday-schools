@@ -48,87 +48,95 @@ export default function DashboardClient({
   }, []);
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Welcome back, {userProfile?.full_name || "Admin"}!
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">{t("adminDashboard.title")}</h1>
+        <p className="text-muted-foreground mt-2">
+          {t("adminDashboard.welcome", {
+            name: userProfile?.full_name || t("adminDashboard.admin"),
+          })}
+        </p>
+        {userProfile?.user_code && (
+          <p className="text-sm text-muted-foreground mt-1">
+            {t("users.userCode")}: <span className="font-mono font-medium text-foreground">{userProfile.user_code}</span>
           </p>
-        </div>
+        )}
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {userProfile.role === "super_admin" && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Dioceses
-                </CardTitle>
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.dioceses}</div>
-                <p className="text-xs text-muted-foreground">
-                  Across the system
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {(userProfile.role === "super_admin" ||
-            userProfile.role === "diocese_admin") && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {userProfile.role === "super_admin"
-                    ? "Total Churches"
-                    : "Churches in Diocese"}
-                </CardTitle>
-                <Church className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.churches}</div>
-                <p className="text-xs text-muted-foreground">Active churches</p>
-              </CardContent>
-            </Card>
-          )}
-
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {userProfile.role === "super_admin" && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {userProfile.role === "teacher"
-                  ? "My Classes"
-                  : "Total Classes"}
+                {t("adminDashboard.stats.totalDioceses")}
               </CardTitle>
-              <School className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.classes}</div>
+              <div className="text-2xl font-bold">{stats.dioceses}</div>
               <p className="text-xs text-muted-foreground">
-                Sunday school classes
+                {t("adminDashboard.stats.acrossSystem")}
               </p>
             </CardContent>
           </Card>
+        )}
 
-          {userProfile.role !== "teacher" && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Users
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.users}</div>
-                <p className="text-xs text-muted-foreground">
-                  Students, teachers, parents
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {(userProfile.role === "super_admin" ||
+          userProfile.role === "diocese_admin") && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {userProfile.role === "super_admin"
+                  ? t("adminDashboard.stats.totalChurches")
+                  : t("adminDashboard.stats.churchesInDiocese")}
+              </CardTitle>
+              <Church className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.churches}</div>
+              <p className="text-xs text-muted-foreground">
+                {t("adminDashboard.stats.activeChurches")}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {userProfile.role === "teacher"
+                ? t("adminDashboard.stats.myClasses")
+                : t("adminDashboard.stats.totalClasses")}
+            </CardTitle>
+            <School className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.classes}</div>
+            <p className="text-xs text-muted-foreground">
+              {t("adminDashboard.stats.sundaySchoolClasses")}
+            </p>
+          </CardContent>
+        </Card>
+
+        {userProfile.role !== "teacher" && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("adminDashboard.stats.totalUsers")}
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.users}</div>
+              <p className="text-xs text-muted-foreground">
+                {t("adminDashboard.stats.usersDescription")}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Quick Actions */}
       <Card>
@@ -174,86 +182,95 @@ export default function DashboardClient({
               </Card>
             )}
 
-              {(userProfile?.role === "super_admin" ||
-                userProfile?.role === "diocese_admin") && (
+            {(userProfile?.role === "super_admin" ||
+              userProfile?.role === "diocese_admin") && (
+              <Card className="cursor-pointer hover:bg-muted transition-colors">
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    {t("adminDashboard.quickActions.manageChurches")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    {t("adminDashboard.quickActions.addEditChurches")}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className="cursor-pointer hover:bg-muted transition-colors">
+              <CardHeader>
+                <CardTitle className="text-base">
+                  {t("adminDashboard.quickActions.manageClasses")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {t("adminDashboard.quickActions.createOrganizeClasses")}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:bg-muted transition-colors">
+              <CardHeader>
+                <CardTitle className="text-base">
+                  {t("adminDashboard.quickActions.manageUsers")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {t("adminDashboard.quickActions.addUsers")}
+                </p>
+              </CardContent>
+            </Card>
+
+            {userProfile?.role === "teacher" && (
+              <>
                 <Card className="cursor-pointer hover:bg-muted transition-colors">
                   <CardHeader>
-                    <CardTitle className="text-base">Manage Churches</CardTitle>
+                    <CardTitle className="text-base">
+                      {t("adminDashboard.quickActions.myClasses")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Add or edit churches
+                      {t("adminDashboard.quickActions.viewAssignedClasses")}
                     </p>
                   </CardContent>
                 </Card>
-              )}
 
-              <Card className="cursor-pointer hover:bg-muted transition-colors">
-                <CardHeader>
-                  <CardTitle className="text-base">Manage Classes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Create and organize classes
-                  </p>
-                </CardContent>
-              </Card>
+                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {t("adminDashboard.quickActions.takeAttendance")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {t("adminDashboard.quickActions.markAttendance")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-              <Card className="cursor-pointer hover:bg-muted transition-colors">
-                <CardHeader>
-                  <CardTitle className="text-base">Manage Users</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Add teachers, students, parents
-                  </p>
-                </CardContent>
-              </Card>
-
-              {userProfile?.role === "teacher" && (
-                <>
-                  <Card className="cursor-pointer hover:bg-muted transition-colors">
-                    <CardHeader>
-                      <CardTitle className="text-base">My Classes</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        View assigned classes
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="cursor-pointer hover:bg-muted transition-colors">
-                    <CardHeader>
-                      <CardTitle className="text-base">
-                        Take Attendance
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        Mark student attendance
-                      </p>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates and changes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No recent activity to display.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </AdminLayout>
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("adminDashboard.recentActivity.title")}</CardTitle>
+          <CardDescription>
+            {t("adminDashboard.recentActivity.description")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {t("adminDashboard.recentActivity.noActivity")}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

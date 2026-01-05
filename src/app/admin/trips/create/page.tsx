@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getChurchesForTrips, getDiocesesForTrips } from "../actions";
+import AdminLayout from "@/components/admin/AdminLayout";
 import CreateTripClient from "./CreateTripClient";
 
 export default async function CreateTripPage() {
@@ -21,7 +22,11 @@ export default async function CreateTripPage() {
     getDiocesesForTrips(),
   ]);
 
-  return <CreateTripClient userProfile={profile} churches={churches} dioceses={dioceses} />;
+  return (
+    <AdminLayout>
+      <CreateTripClient userProfile={profile} churches={churches} dioceses={dioceses} />
+    </AdminLayout>
+  );
 }
 
 

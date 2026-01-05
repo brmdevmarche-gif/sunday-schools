@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ export default function CreateStoreItemClient({
   classes,
 }: CreateStoreItemClientProps) {
   const router = useRouter();
+  const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -144,7 +146,7 @@ export default function CreateStoreItemClient({
       !formData.name ||
       (formData.stock_type === "quantity" && formData.stock_quantity < 0)
     ) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("createStoreItem.errors.fillRequired"));
       return;
     }
 
@@ -164,12 +166,12 @@ export default function CreateStoreItemClient({
         is_available_to_all_classes: formData.is_available_to_all_classes,
         class_ids: formData.class_ids,
       });
-      toast.success("Store item created successfully");
+      toast.success(t("createStoreItem.messages.createSuccess"));
       router.push("/admin/store");
     } catch (error: unknown) {
       console.error("Error creating store item:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to create store item"
+        error instanceof Error ? error.message : t("createStoreItem.messages.createError")
       );
     } finally {
       setIsLoading(false);
@@ -180,12 +182,12 @@ export default function CreateStoreItemClient({
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Add Store Item</h1>
+          <h1 className="text-3xl font-bold">{t("createStoreItem.title")}</h1>
           <p className="text-muted-foreground mt-1">
-            Create a new item for the store
+            {t("createStoreItem.subtitle")}
           </p>
         </div>
       </div>
@@ -197,37 +199,37 @@ export default function CreateStoreItemClient({
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
+                <CardTitle>{t("createStoreItem.basicInfo")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Item Name *</Label>
+                  <Label htmlFor="name">{t("createStoreItem.fields.itemName")} *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="Enter item name"
+                    placeholder={t("createStoreItem.placeholders.itemName")}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t("createStoreItem.fields.description")}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    placeholder="Enter item description"
+                    placeholder={t("createStoreItem.placeholders.description")}
                     rows={4}
                   />
                 </div>
 
                 <ImageUpload
-                  label="Item Image"
+                  label={t("createStoreItem.fields.itemImage")}
                   currentImageUrl={formData.image_url}
                   onImageUploaded={(url) =>
                     setFormData({ ...formData, image_url: url })
@@ -242,11 +244,11 @@ export default function CreateStoreItemClient({
             {/* Stock Management */}
             <Card>
               <CardHeader>
-                <CardTitle>Stock Management</CardTitle>
+                <CardTitle>{t("createStoreItem.stockManagement")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Stock Type *</Label>
+                  <Label>{t("createStoreItem.fields.stockType")} *</Label>
                   <div className="flex gap-4 mt-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -257,13 +259,14 @@ export default function CreateStoreItemClient({
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            stock_type: e.target
-                              .value as "quantity" | "on_demand",
+                            stock_type: e.target.value as
+                              | "quantity"
+                              | "on_demand",
                           })
                         }
                         className="w-4 h-4"
                       />
-                      <span>Limited Quantity</span>
+                      <span>{t("createStoreItem.stockTypes.limitedQuantity")}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -274,20 +277,21 @@ export default function CreateStoreItemClient({
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            stock_type: e.target
-                              .value as "quantity" | "on_demand",
+                            stock_type: e.target.value as
+                              | "quantity"
+                              | "on_demand",
                           })
                         }
                         className="w-4 h-4"
                       />
-                      <span>Available on Demand</span>
+                      <span>{t("createStoreItem.stockTypes.onDemand")}</span>
                     </label>
                   </div>
                 </div>
 
                 {formData.stock_type === "quantity" && (
                   <div className="space-y-2">
-                    <Label htmlFor="stock_quantity">Stock Quantity *</Label>
+                    <Label htmlFor="stock_quantity">{t("createStoreItem.fields.stockQuantity")} *</Label>
                     <Input
                       id="stock_quantity"
                       type="number"
@@ -312,11 +316,11 @@ export default function CreateStoreItemClient({
             {/* Pricing */}
             <Card>
               <CardHeader>
-                <CardTitle>Pricing</CardTitle>
+                <CardTitle>{t("createStoreItem.pricing")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="price_normal">Normal Price *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="price_normal">{t("createStoreItem.fields.priceNormal")} *</Label>
                   <Input
                     id="price_normal"
                     type="number"
@@ -328,13 +332,13 @@ export default function CreateStoreItemClient({
                         price_normal: parseInt(e.target.value) || 0,
                       })
                     }
-                    placeholder="Points"
+                    placeholder={t("createStoreItem.placeholders.points")}
                     required
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="price_mastor">Mastor Price *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="price_mastor">{t("createStoreItem.fields.priceMastor")} *</Label>
                   <Input
                     id="price_mastor"
                     type="number"
@@ -346,13 +350,13 @@ export default function CreateStoreItemClient({
                         price_mastor: parseInt(e.target.value) || 0,
                       })
                     }
-                    placeholder="Points"
+                    placeholder={t("createStoreItem.placeholders.points")}
                     required
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="price_botl">Botl Price *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="price_botl">{t("createStoreItem.fields.priceBotl")} *</Label>
                   <Input
                     id="price_botl"
                     type="number"
@@ -364,7 +368,7 @@ export default function CreateStoreItemClient({
                         price_botl: parseInt(e.target.value) || 0,
                       })
                     }
-                    placeholder="Points"
+                    placeholder={t("createStoreItem.placeholders.points")}
                     required
                   />
                 </div>
@@ -377,7 +381,7 @@ export default function CreateStoreItemClient({
                 {dioceses.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Available in Dioceses</CardTitle>
+                      <CardTitle>{t("createStoreItem.availableInDioceses")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="border rounded p-2 max-h-40 overflow-y-auto">
@@ -392,7 +396,10 @@ export default function CreateStoreItemClient({
                                 diocese.id
                               )}
                               onChange={(e) =>
-                                handleDioceseChange(diocese.id, e.target.checked)
+                                handleDioceseChange(
+                                  diocese.id,
+                                  e.target.checked
+                                )
                               }
                               className="w-4 h-4"
                             />
@@ -407,7 +414,7 @@ export default function CreateStoreItemClient({
                 {churches.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Available in Churches</CardTitle>
+                      <CardTitle>{t("createStoreItem.availableInChurches")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="border rounded p-2 max-h-40 overflow-y-auto">
@@ -446,11 +453,11 @@ export default function CreateStoreItemClient({
             {/* Class Selection */}
             <Card>
               <CardHeader>
-                <CardTitle>Class Availability</CardTitle>
+                <CardTitle>{t("createStoreItem.classAvailability")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="all_classes">Available to All Classes</Label>
+                  <Label htmlFor="all_classes">{t("createStoreItem.availableToAllClasses")}</Label>
                   <Switch
                     id="all_classes"
                     checked={formData.is_available_to_all_classes}
@@ -491,7 +498,7 @@ export default function CreateStoreItemClient({
             {/* Submit */}
             <Button type="submit" className="w-full" disabled={isLoading}>
               <Save className="mr-2 h-4 w-4" />
-              {isLoading ? "Creating..." : "Create Item"}
+              {isLoading ? t("createStoreItem.creating") : t("createStoreItem.createItem")}
             </Button>
           </div>
         </div>

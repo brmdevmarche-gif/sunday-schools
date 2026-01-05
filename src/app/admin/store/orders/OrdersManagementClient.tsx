@@ -49,12 +49,30 @@ import {
 } from "./actions";
 import type { OrderStatus } from "@/lib/types";
 
+interface Diocese {
+  id: string;
+  name: string;
+}
+
+interface Church {
+  id: string;
+  name: string;
+  diocese_id: string | null;
+}
+
+interface Class {
+  id: string;
+  name: string;
+  church_id: string | null;
+}
+
 interface OrderUser {
   id: string;
   full_name: string | null;
   email: string;
   church_id: string | null;
   diocese_id: string | null;
+  user_code?: string | null;
 }
 
 interface OrderItem {
@@ -92,23 +110,54 @@ interface Order {
   order_items: OrderItem[];
 }
 
+interface UserProfile {
+  id: string;
+  role: string;
+  full_name?: string | null;
+  email?: string;
+  church_id?: string | null;
+  diocese_id?: string | null;
+}
+
 interface OrdersManagementClientProps {
   orders: Order[];
-  userProfile: any;
+  userProfile: UserProfile;
+  dioceses: Diocese[];
+  churches: Church[];
+  classes: Class[];
 }
 
 export default function OrdersManagementClient({
   orders,
   userProfile,
+  dioceses,
+  churches,
+  classes,
 }: OrdersManagementClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
+  const [dioceseFilter, setDioceseFilter] = useState<string>("all");
+  const [churchFilter, setChurchFilter] = useState<string>("all");
+  const [classFilter, setClassFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
+
+  
+  // Filter churches based on selected diocese
+  const filteredChurches = useMemo(() => {
+    if (dioceseFilter === "all") return churches;
+    return churches.filter((c) => c.diocese_id === dioceseFilter);
+  }, [churches, dioceseFilter]);
+
+  // Filter classes based on selected church
+  const filteredClasses = useMemo(() => {
+    if (churchFilter === "all") return classes;
+    return classes.filter((c) => c.church_id === churchFilter);
+  }, [classes, churchFilter]);
 
   // Filter orders
   const filteredOrders = useMemo(() => {
@@ -118,11 +167,30 @@ export default function OrdersManagementClient({
         return false;
       }
 
+      // Diocese filter
+      if (
+        dioceseFilter !== "all" &&
+        order.users?.diocese_id !== dioceseFilter
+      ) {
+        return false;
+      }
+
+      // Church filter
+      if (churchFilter !== "all" && order.users?.church_id !== churchFilter) {
+        return false;
+      }
+
+      // Class filter
+      if (classFilter !== "all" && order.class_id !== classFilter) {
+        return false;
+      }
+
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const userName = order.users?.full_name?.toLowerCase() || "";
         const userEmail = order.users?.email?.toLowerCase() || "";
+        const userCode = (order.users?.user_code || "").toLowerCase();
         const orderId = order.id.toLowerCase();
         const itemNames = order.order_items
           .map((item) => item.item_name.toLowerCase())
@@ -131,6 +199,7 @@ export default function OrdersManagementClient({
         if (
           !userName.includes(query) &&
           !userEmail.includes(query) &&
+          !userCode.includes(query) &&
           !orderId.includes(query) &&
           !itemNames.includes(query)
         ) {
@@ -140,7 +209,14 @@ export default function OrdersManagementClient({
 
       return true;
     });
-  }, [orders, statusFilter, searchQuery]);
+  }, [
+    orders,
+    statusFilter,
+    dioceseFilter,
+    churchFilter,
+    classFilter,
+    searchQuery,
+  ]);
 
   function getStatusColor(status: string) {
     switch (status) {
@@ -181,6 +257,13 @@ export default function OrdersManagementClient({
     status: OrderStatus,
     notes?: string
   ) {
+    // Prevent updating fulfilled orders
+    const order = orders.find((o) => o.id === orderId);
+    if (order?.status === "fulfilled") {
+      toast.error(t("store.cannotChangeFulfilled"));
+      return;
+    }
+
     setIsProcessing(true);
     try {
       await updateOrderStatusAction({
@@ -192,9 +275,9 @@ export default function OrdersManagementClient({
       router.refresh();
       setSelectedOrder(null);
       setAdminNotes("");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating order status:", error);
-      toast.error(error.message || t("store.updateFailed"));
+      toast.error(error instanceof Error ? error.message : t("store.updateFailed"));
     } finally {
       setIsProcessing(false);
     }
@@ -206,9 +289,19 @@ export default function OrdersManagementClient({
       return;
     }
 
+    // Filter out fulfilled orders - they cannot change status
+    const orderIds = Array.from(selectedOrders).filter((orderId) => {
+      const order = orders.find((o) => o.id === orderId);
+      return order && order.status !== "fulfilled";
+    });
+
+    if (orderIds.length === 0) {
+      toast.error(t("store.noOrdersSelected"));
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      const orderIds = Array.from(selectedOrders);
       const { successCount, failedCount } = await bulkUpdateOrderStatusAction(
         orderIds,
         status
@@ -222,9 +315,9 @@ export default function OrdersManagementClient({
       );
       router.refresh();
       deselectAll();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error bulk updating orders:", error);
-      toast.error(error.message || t("store.bulkUpdateFailed"));
+      toast.error(error instanceof Error ? error.message : t("store.bulkUpdateFailed"));
     } finally {
       setIsProcessing(false);
     }
@@ -242,7 +335,7 @@ export default function OrdersManagementClient({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">
@@ -253,6 +346,10 @@ export default function OrdersManagementClient({
                 </p>
               </div>
             </div>
+            <Button onClick={() => router.push("/admin/store/orders/create")}>
+              <Package className="h-4 w-4 mr-2" />
+              {t("store.createOrderForStudent")}
+            </Button>
           </div>
         </div>
       </div>
@@ -261,9 +358,9 @@ export default function OrdersManagementClient({
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Search and Filter */}
-            <div className="flex flex-1 gap-4 w-full sm:w-auto">
-              <div className="relative flex-1">
+            {/* Search and Filters */}
+            <div className="flex flex-1 gap-2 w-full flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t("store.searchOrders")}
@@ -278,7 +375,7 @@ export default function OrdersManagementClient({
                   setStatusFilter(value as OrderStatus | "all")
                 }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[140px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -301,43 +398,100 @@ export default function OrdersManagementClient({
                   </SelectItem>
                 </SelectContent>
               </Select>
+              <Select
+                value={dioceseFilter}
+                onValueChange={(value) => {
+                  setDioceseFilter(value);
+                  setChurchFilter("all");
+                  setClassFilter("all");
+                }}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={t("classes.allDioceses")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {t("classes.allDioceses")}
+                  </SelectItem>
+                  {dioceses.map((diocese) => (
+                    <SelectItem key={diocese.id} value={diocese.id}>
+                      {diocese.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={churchFilter}
+                onValueChange={(value) => {
+                  setChurchFilter(value);
+                  setClassFilter("all");
+                }}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={t("classes.allChurches")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {t("classes.allChurches")}
+                  </SelectItem>
+                  {filteredChurches.map((church) => (
+                    <SelectItem key={church.id} value={church.id}>
+                      {church.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={t("classes.allClasses")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("classes.allClasses")}</SelectItem>
+                  {filteredClasses.map((cls) => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Bulk Actions */}
-            {selectedOrders.size > 0 && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkUpdateStatus("approved")}
-                  disabled={isProcessing}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  {t("store.approveSelected")} ({selectedOrders.size})
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkUpdateStatus("rejected")}
-                  disabled={isProcessing}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  {t("store.rejectSelected")} ({selectedOrders.size})
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkUpdateStatus("fulfilled")}
-                  disabled={isProcessing}
-                >
-                  <Package className="h-4 w-4 mr-2" />
-                  {t("store.fulfillSelected")} ({selectedOrders.size})
-                </Button>
-              </div>
-            )}
+            {/* Bulk Actions - always visible */}
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkUpdateStatus("approved")}
+                disabled={isProcessing || selectedOrders.size === 0}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                {t("store.approveSelected")}{" "}
+                {selectedOrders.size > 0 && `(${selectedOrders.size})`}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkUpdateStatus("rejected")}
+                disabled={isProcessing || selectedOrders.size === 0}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                {t("store.rejectSelected")}{" "}
+                {selectedOrders.size > 0 && `(${selectedOrders.size})`}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkUpdateStatus("fulfilled")}
+                disabled={isProcessing || selectedOrders.size === 0}
+              >
+                <Package className="h-4 w-4 mr-2" />
+                {t("store.fulfillSelected")}{" "}
+                {selectedOrders.size > 0 && `(${selectedOrders.size})`}
+              </Button>
+            </div>
           </div>
 
-          {/* Select All */}
+          {/* Select All - always visible when there are orders */}
           {filteredOrders.length > 0 && (
             <div className="mt-4 flex items-center gap-2">
               <Checkbox
@@ -346,9 +500,9 @@ export default function OrdersManagementClient({
                   if (checked) selectAll();
                   else deselectAll();
                 }}
-                ref={(el) => {
+                ref={(el: HTMLButtonElement | null) => {
                   if (el) {
-                    (el as any).indeterminate = someSelected;
+                    (el as unknown as HTMLInputElement).indeterminate = someSelected;
                   }
                 }}
               />
@@ -400,6 +554,14 @@ export default function OrdersManagementClient({
                             {order.users?.full_name || order.users?.email}
                           </CardTitle>
                           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                            {order.users?.user_code && (
+                              <>
+                                <span className="font-mono">
+                                  ID: {order.users.user_code}
+                                </span>
+                                <span>•</span>
+                              </>
+                            )}
                             <span>#{order.id.slice(0, 8)}</span>
                             <span>•</span>
                             <span>
@@ -516,7 +678,12 @@ export default function OrdersManagementClient({
                     </DialogTitle>
                     <DialogDescription>
                       {selectedOrder.users?.full_name ||
-                        selectedOrder.users?.email}{" "}
+                        selectedOrder.users?.email}
+                      {selectedOrder.users?.user_code && (
+                        <span className="font-mono ml-2">
+                          (ID: {selectedOrder.users.user_code})
+                        </span>
+                      )}{" "}
                       •{" "}
                       {new Date(selectedOrder.created_at).toLocaleDateString()}
                     </DialogDescription>

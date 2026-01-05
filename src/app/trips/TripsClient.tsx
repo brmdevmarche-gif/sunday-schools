@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,9 +40,18 @@ import {
 import { subscribeToTripAction } from "./actions";
 import type { TripWithDetails, TripType } from "@/lib/types";
 
+interface UserProfile {
+  id: string;
+  role: string;
+  full_name?: string | null;
+  email?: string;
+  church_id?: string | null;
+  diocese_id?: string | null;
+}
+
 interface TripsClientProps {
   trips: TripWithDetails[];
-  userProfile: any;
+  userProfile: UserProfile;
 }
 
 export default function TripsClient({
@@ -51,6 +60,7 @@ export default function TripsClient({
 }: TripsClientProps) {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TripType | "all">("all");
   const [selectedTrip, setSelectedTrip] = useState<TripWithDetails | null>(
@@ -133,13 +143,13 @@ export default function TripsClient({
         emergency_contact: subscribeForm.emergency_contact || undefined,
         medical_info: subscribeForm.medical_info || undefined,
       });
-      toast.success("Successfully subscribed to trip! Waiting for approval.");
+      toast.success(t("studentTrips.subscribeSuccess"));
       setIsSubscribeDialogOpen(false);
       setSubscribeForm({ emergency_contact: "", medical_info: "" });
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error subscribing to trip:", error);
-      toast.error(error.message || "Failed to subscribe to trip");
+      toast.error(error instanceof Error ? error.message : t("studentTrips.subscribeFailed"));
     } finally {
       setIsSubscribing(false);
     }
@@ -153,12 +163,12 @@ export default function TripsClient({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">Available Trips</h1>
+                <h1 className="text-2xl font-bold">{t("studentTrips.title")}</h1>
                 <p className="text-sm text-muted-foreground">
-                  Browse and subscribe to upcoming trips
+                  {t("studentTrips.description")}
                 </p>
               </div>
             </div>
@@ -172,7 +182,7 @@ export default function TripsClient({
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search trips..."
+              placeholder={t("studentTrips.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -186,15 +196,15 @@ export default function TripsClient({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="one_day">One Day</SelectItem>
-              <SelectItem value="spiritual">Spiritual</SelectItem>
-              <SelectItem value="volunteering">Volunteering</SelectItem>
-              <SelectItem value="fun">Fun</SelectItem>
-              <SelectItem value="retreat">Retreat</SelectItem>
-              <SelectItem value="carnival">Carnival</SelectItem>
-              <SelectItem value="tournament">Tournament</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="all">{t("studentTrips.allTypes")}</SelectItem>
+              <SelectItem value="one_day">{t("trips.types.one_day")}</SelectItem>
+              <SelectItem value="spiritual">{t("trips.types.spiritual")}</SelectItem>
+              <SelectItem value="volunteering">{t("trips.types.volunteering")}</SelectItem>
+              <SelectItem value="fun">{t("trips.types.fun")}</SelectItem>
+              <SelectItem value="retreat">{t("trips.types.retreat")}</SelectItem>
+              <SelectItem value="carnival">{t("trips.types.carnival")}</SelectItem>
+              <SelectItem value="tournament">{t("trips.types.tournament")}</SelectItem>
+              <SelectItem value="other">{t("trips.types.other")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -204,9 +214,9 @@ export default function TripsClient({
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <MapPin className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No trips available</p>
+              <p className="text-lg font-medium">{t("studentTrips.noTrips")}</p>
               <p className="text-sm text-muted-foreground">
-                Check back later for new trips
+                {t("studentTrips.noTripsDescription")}
               </p>
             </CardContent>
           </Card>
@@ -272,7 +282,7 @@ export default function TripsClient({
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-sm">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">Destinations:</span>
+                          <span className="font-medium">{t("studentTrips.destinations")}:</span>
                         </div>
                         <div className="pl-6 space-y-1">
                           {trip.destinations.slice(0, 2).map((dest, idx) => (
@@ -285,7 +295,7 @@ export default function TripsClient({
                           ))}
                           {trip.destinations.length > 2 && (
                             <p className="text-xs text-muted-foreground">
-                              +{trip.destinations.length - 2} more
+                              +{trip.destinations.length - 2} {t("common.more")}
                             </p>
                           )}
                         </div>
@@ -297,7 +307,7 @@ export default function TripsClient({
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-blue-500" />
                           <span className="text-muted-foreground">
-                            Start: {formatDateTime(trip.start_datetime)}
+                            {t("studentTrips.start")}: {formatDateTime(trip.start_datetime)}
                           </span>
                         </div>
                       )}
@@ -305,7 +315,7 @@ export default function TripsClient({
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-green-500" />
                           <span className="text-muted-foreground">
-                            End: {formatDateTime(trip.end_datetime)}
+                            {t("studentTrips.end")}: {formatDateTime(trip.end_datetime)}
                           </span>
                         </div>
                       )}
@@ -313,15 +323,15 @@ export default function TripsClient({
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-orange-500" />
                           <span className="text-muted-foreground">
-                            Max: {trip.max_participants} participants
+                            {t("studentTrips.maxParticipants", { count: trip.max_participants })}
                           </span>
                         </div>
                       )}
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          Price: {locale === 'ar' ? 'ج.م' : 'E.L'}{trip.price_normal} (normal), {locale === 'ar' ? 'ج.م' : 'E.L'}
-                          {trip.price_mastor} (mastor), {locale === 'ar' ? 'ج.م' : 'E.L'}{trip.price_botl}{" "}
-                          (botl)
+                          {t("studentTrips.price")}: {locale === 'ar' ? 'ج.م' : 'E.L'}{trip.price_normal} ({t("studentTrips.normal")}), {locale === 'ar' ? 'ج.م' : 'E.L'}
+                          {trip.price_mastor} ({t("studentTrips.mastor")}), {locale === 'ar' ? 'ج.م' : 'E.L'}{trip.price_botl}{" "}
+                          ({t("studentTrips.botl")})
                         </span>
                       </div>
                     </div>
@@ -332,21 +342,21 @@ export default function TripsClient({
                           {isApproved ? (
                             <>
                               <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              <span className="text-green-600">Approved</span>
+                              <span className="text-green-600">{t("studentTrips.approved")}</span>
                               {trip.my_participation?.payment_status ===
-                                "paid" && <Badge className="ml-auto">Paid</Badge>}
+                                "paid" && <Badge className="ml-auto">{t("studentTrips.paid")}</Badge>}
                             </>
                           ) : isPending ? (
                             <>
                               <Clock className="h-4 w-4 text-yellow-500" />
                               <span className="text-yellow-600">
-                                Pending Approval
+                                {t("studentTrips.pendingApproval")}
                               </span>
                             </>
                           ) : (
                             <>
                               <XCircle className="h-4 w-4 text-red-500" />
-                              <span className="text-red-600">Rejected</span>
+                              <span className="text-red-600">{t("studentTrips.rejected")}</span>
                             </>
                           )}
                         </div>
@@ -356,7 +366,7 @@ export default function TripsClient({
                         variant={isSubscribed ? "outline" : "default"}
                         onClick={() => router.push(`/trips/${trip.id}`)}
                       >
-                        View Details
+                        {t("studentTrips.viewDetails")}
                       </Button>
                     </div>
                   </CardContent>
@@ -374,9 +384,9 @@ export default function TripsClient({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Subscribe to Trip</DialogTitle>
+            <DialogTitle>{t("studentTrips.subscribeToTrip")}</DialogTitle>
             <DialogDescription>
-              Fill in the information below to subscribe to this trip
+              {t("studentTrips.subscribeDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -394,7 +404,7 @@ export default function TripsClient({
 
             <div>
               <Label htmlFor="emergency_contact">
-                Emergency Contact (Optional)
+                {t("studentTrips.emergencyContact")}
               </Label>
               <Input
                 id="emergency_contact"
@@ -405,13 +415,13 @@ export default function TripsClient({
                     emergency_contact: e.target.value,
                   })
                 }
-                placeholder="Name and phone number"
+                placeholder={t("studentTrips.emergencyContactPlaceholder")}
               />
             </div>
 
             <div>
               <Label htmlFor="medical_info">
-                Medical Information (Optional)
+                {t("studentTrips.medicalInfo")}
               </Label>
               <Textarea
                 id="medical_info"
@@ -422,7 +432,7 @@ export default function TripsClient({
                     medical_info: e.target.value,
                   })
                 }
-                placeholder="Any medical conditions or allergies to note"
+                placeholder={t("studentTrips.medicalInfoPlaceholder")}
                 rows={3}
               />
             </div>
@@ -433,10 +443,10 @@ export default function TripsClient({
               variant="outline"
               onClick={() => setIsSubscribeDialogOpen(false)}
             >
-              Cancel
+              {t("studentTrips.cancel")}
             </Button>
             <Button onClick={handleSubscribe} disabled={isSubscribing}>
-              {isSubscribing ? "Subscribing..." : "Subscribe"}
+              {isSubscribing ? t("studentTrips.subscribing") : t("studentTrips.subscribe")}
             </Button>
           </DialogFooter>
         </DialogContent>

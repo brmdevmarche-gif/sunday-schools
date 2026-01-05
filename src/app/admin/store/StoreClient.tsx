@@ -32,6 +32,12 @@ import {
   Search,
   Eye,
   ShoppingCart,
+  BarChart3,
+  ArrowLeft,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { StoreItem } from "@/lib/types";
@@ -41,6 +47,8 @@ import {
   updateStoreItemAction,
   deleteStoreItemAction,
   toggleStoreItemStatusAction,
+  getItemDemandStatsAction,
+  type ItemDemandStats,
 } from "./actions";
 
 interface Church {
@@ -80,6 +88,9 @@ export default function StoreClient({
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDemandView, setShowDemandView] = useState(false);
+  const [demandStats, setDemandStats] = useState<ItemDemandStats[]>([]);
+  const [isLoadingDemand, setIsLoadingDemand] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -349,8 +360,69 @@ export default function StoreClient({
   };
 
   const openViewDialog = (item: StoreItem) => {
-    setSelectedItem(item);
-    setIsViewDialogOpen(true);
+    router.push(`/admin/store/${item.id}`);
+  };
+
+  const loadDemandStats = async () => {
+    setIsLoadingDemand(true);
+    try {
+      const stats = await getItemDemandStatsAction();
+      setDemandStats(stats);
+      setShowDemandView(true);
+    } catch (error) {
+      console.error("Failed to load demand stats:", error);
+      toast.error("Failed to load demand statistics");
+    } finally {
+      setIsLoadingDemand(false);
+    }
+  };
+
+  const exportDemandToExcel = () => {
+    if (demandStats.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    // Create CSV content (Excel compatible)
+    const headers = [
+      t("store.item"),
+      t("store.stock"),
+      t("store.pending"),
+      t("store.approved"),
+      t("store.needsRestock"),
+    ];
+
+    const rows = demandStats.map((stat) => {
+      const needsRestock =
+        stat.stock_type === "quantity" &&
+        stat.pending_requests + stat.approved_requests > stat.stock_quantity;
+      return [
+        stat.item_name,
+        stat.stock_type === "on_demand" ? "Unlimited" : stat.stock_quantity,
+        stat.pending_requests,
+        stat.approved_requests,
+        needsRestock ? t("store.restock") : t("store.ok"),
+      ];
+    });
+
+    // Add BOM for Excel UTF-8 compatibility
+    const BOM = "\uFEFF";
+    const csvContent =
+      BOM +
+      [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `item-demand-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(t("store.exportSuccess"));
   };
 
   // Filter items based on search
@@ -377,6 +449,14 @@ export default function StoreClient({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
+            onClick={loadDemandStats}
+            disabled={isLoadingDemand}
+          >
+            <BarChart3 className="mr-2 h-4 w-4" />
+            {isLoadingDemand ? "Loading..." : t("store.itemDemand")}
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => router.push("/admin/store/orders")}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
@@ -389,20 +469,133 @@ export default function StoreClient({
         </div>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search items..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
+      {/* Demand View */}
+      {showDemandView ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => setShowDemandView(false)}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t("common.back")}
+              </Button>
+              <div>
+                <h2 className="text-xl font-semibold">{t("store.itemDemand")}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {t("store.itemDemandDescription")}
+                </p>
+              </div>
+            </div>
+            <Button onClick={exportDemandToExcel} variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              {t("store.exportExcel")}
+            </Button>
+          </div>
 
-      {/* Items Table */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("store.item")}</TableHead>
+                  <TableHead className="text-center">{t("store.stock")}</TableHead>
+                  <TableHead className="text-center">{t("store.pending")}</TableHead>
+                  <TableHead className="text-center">{t("store.approved")}</TableHead>
+                  <TableHead className="text-center">{t("store.needsRestock")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {demandStats.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      {t("store.noItems")}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  demandStats.map((stat) => {
+                    const needsRestock = stat.stock_type === 'quantity' &&
+                      stat.pending_requests + stat.approved_requests > stat.stock_quantity;
+                    return (
+                      <TableRow key={stat.item_id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {stat.item_image_url ? (
+                              <img
+                                src={stat.item_image_url}
+                                alt={stat.item_name}
+                                className="h-10 w-10 rounded object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
+                                <Package className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-medium">{stat.item_name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {stat.stock_type === 'on_demand' ? 'On Demand' : 'Limited Stock'}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {stat.stock_type === 'on_demand' ? (
+                            <Badge variant="outline">Unlimited</Badge>
+                          ) : (
+                            <Badge variant={stat.stock_quantity > 0 ? "default" : "destructive"}>
+                              {stat.stock_quantity}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Clock className="h-4 w-4 text-yellow-500" />
+                            <span className="font-medium">{stat.pending_requests}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <CheckCircle className="h-4 w-4 text-blue-500" />
+                            <span className="font-medium">{stat.approved_requests}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {needsRestock ? (
+                            <Badge variant="destructive" className="gap-1">
+                              <AlertTriangle className="h-3 w-3" />
+                              {t("store.restock")}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-green-600">
+                              {t("store.ok")}
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Search */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          {/* Items Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -515,6 +708,8 @@ export default function StoreClient({
           </TableBody>
         </Table>
       </div>
+        </>
+      )}
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

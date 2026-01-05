@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { createClient } from "@/lib/supabase/server";
+import AdminLayout from "@/components/admin/AdminLayout";
 import CreateStoreItemClient from "./CreateStoreItemClient";
 
 export default async function CreateStoreItemPage() {
@@ -36,13 +37,13 @@ export default async function CreateStoreItemPage() {
     .order("name");
 
   return (
-    <div className="min-h-screen bg-background">
+    <AdminLayout>
       <CreateStoreItemClient
         userProfile={profile}
         churches={churches || []}
         dioceses={dioceses || []}
         classes={classes || []}
       />
-    </div>
+    </AdminLayout>
   );
 }

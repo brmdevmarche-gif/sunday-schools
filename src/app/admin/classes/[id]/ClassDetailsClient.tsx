@@ -52,7 +52,10 @@ import {
   Download,
   Loader2,
   Bus,
+  Cake,
+  Coins,
 } from "lucide-react";
+import ClassPointsOverview from "@/components/ClassPointsOverview";
 import { toast } from "sonner";
 import type { ExtendedUser } from "@/lib/types";
 import {
@@ -372,9 +375,9 @@ export default function ClassDetailsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error subscribing student:", error);
-      toast.error(error.message || t("trips.classDetails.failedToSubscribeStudent"));
+      toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToSubscribeStudent"));
     } finally {
       setSubscribingStudentId(null);
     }
@@ -392,9 +395,9 @@ export default function ClassDetailsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error approving participant:", error);
-      toast.error(error.message || t("trips.classDetails.failedToApprove"));
+      toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToApprove"));
     } finally {
       setApprovingParticipantId(null);
     }
@@ -412,9 +415,9 @@ export default function ClassDetailsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error marking as paid:", error);
-      toast.error(error.message || t("trips.classDetails.failedToMarkAsPaid"));
+      toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToMarkAsPaid"));
     } finally {
       setMarkingPaidParticipantId(null);
     }
@@ -459,6 +462,15 @@ export default function ClassDetailsClient({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/admin/classes/${classData.id}/birthdays`)}
+            className="gap-2"
+          >
+            <Cake className="h-4 w-4" />
+            {t("birthdays.title")}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -591,6 +603,10 @@ export default function ClassDetailsClient({
           >
             <Bus className="h-4 w-4 mr-2" />
             {t("trips.title")}{trips.length > 0 && ` (${trips.length})`}
+          </TabsTrigger>
+          <TabsTrigger value="points">
+            <Coins className="h-4 w-4 mr-2" />
+            {t("points.classPoints")}
           </TabsTrigger>
         </TabsList>
 
@@ -971,7 +987,7 @@ export default function ClassDetailsClient({
                         <Filter className="h-4 w-4 text-muted-foreground" />
                         <Select
                           value={subscriptionFilter}
-                          onValueChange={(value: any) =>
+                          onValueChange={(value: "all" | "subscribed" | "unsubscribed") =>
                             setSubscriptionFilter(value)
                           }
                         >
@@ -1207,6 +1223,11 @@ export default function ClassDetailsClient({
               </Card>
             </div>
           )}
+        </TabsContent>
+
+        {/* Points Tab */}
+        <TabsContent value="points" className="space-y-4">
+          <ClassPointsOverview classId={classData.id} />
         </TabsContent>
       </Tabs>
 

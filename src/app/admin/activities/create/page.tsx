@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
+import AdminLayout from "@/components/admin/AdminLayout";
 import CreateActivityClient from "./CreateActivityClient";
 
 export default async function CreateActivityPage() {
@@ -15,5 +16,9 @@ export default async function CreateActivityPage() {
     redirect("/admin/dashboard");
   }
 
-  return <CreateActivityClient userProfile={profile} />;
+  return (
+    <AdminLayout>
+      <CreateActivityClient userProfile={profile} />
+    </AdminLayout>
+  );
 }

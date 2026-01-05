@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -72,6 +72,7 @@ export default function TripClassStudentsClient({
 }: TripClassStudentsClientProps) {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations();
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const [subscriptionFilter, setSubscriptionFilter] = useState<
     "all" | "subscribed" | "unsubscribed"
@@ -142,7 +143,7 @@ export default function TripClassStudentsClient({
             onClick={() => router.push("/admin/classes")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Classes
+            {t("tripClassStudents.backToClasses")}
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
@@ -169,26 +170,27 @@ export default function TripClassStudentsClient({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("tripClassStudents.stats.totalStudents")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalStudents}</div>
-            <p className="text-xs text-muted-foreground">Across all classes</p>
+            <p className="text-xs text-muted-foreground">{t("tripClassStudents.stats.acrossAllClasses")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Subscribed</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("tripClassStudents.stats.subscribed")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {subscribedStudents}
             </div>
             <p className="text-xs text-muted-foreground">
-              {totalStudents > 0
-                ? Math.round((subscribedStudents / totalStudents) * 100)
-                : 0}
-              % of total
+              {t("tripClassStudents.stats.percentOfTotal", {
+                percent: totalStudents > 0
+                  ? Math.round((subscribedStudents / totalStudents) * 100)
+                  : 0
+              })}
             </p>
           </CardContent>
         </Card>
@@ -197,7 +199,7 @@ export default function TripClassStudentsClient({
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Start Date
+                {t("tripClassStudents.stats.startDate")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -211,7 +213,7 @@ export default function TripClassStudentsClient({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
-                Price
+                {t("tripClassStudents.stats.price")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -225,7 +227,7 @@ export default function TripClassStudentsClient({
       {trip.destinations && trip.destinations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Destinations</CardTitle>
+            <CardTitle>{t("tripClassStudents.destinations")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -243,21 +245,21 @@ export default function TripClassStudentsClient({
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>{t("tripClassStudents.filters.title")}</CardTitle>
           <CardDescription>
-            Filter students by class and subscription status
+            {t("tripClassStudents.filters.description")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px] space-y-1">
-              <label className="text-sm font-medium">Class</label>
+              <label className="text-sm font-medium">{t("tripClassStudents.filters.class")}</label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Classes</SelectItem>
+                  <SelectItem value="all">{t("tripClassStudents.filters.allClasses")}</SelectItem>
                   {classes.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id}>
                       {cls.name} ({cls.students.length})
@@ -267,7 +269,7 @@ export default function TripClassStudentsClient({
               </Select>
             </div>
             <div className="flex-1 min-w-[200px] space-y-1">
-              <label className="text-sm font-medium">Subscription Status</label>
+              <label className="text-sm font-medium">{t("tripClassStudents.filters.subscriptionStatus")}</label>
               <Select
                 value={subscriptionFilter}
                 onValueChange={(value: any) => setSubscriptionFilter(value)}
@@ -276,16 +278,16 @@ export default function TripClassStudentsClient({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Students</SelectItem>
-                  <SelectItem value="subscribed">Subscribed</SelectItem>
-                  <SelectItem value="unsubscribed">Not Subscribed</SelectItem>
+                  <SelectItem value="all">{t("tripClassStudents.filters.allStudents")}</SelectItem>
+                  <SelectItem value="subscribed">{t("tripClassStudents.filters.subscribed")}</SelectItem>
+                  <SelectItem value="unsubscribed">{t("tripClassStudents.filters.notSubscribed")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex-1 min-w-[200px] space-y-1">
-              <label className="text-sm font-medium">Search</label>
+              <label className="text-sm font-medium">{t("tripClassStudents.filters.search")}</label>
               <Input
-                placeholder="Search by name, email, or phone"
+                placeholder={t("tripClassStudents.filters.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -300,7 +302,7 @@ export default function TripClassStudentsClient({
           <Card>
             <CardContent className="py-8">
               <p className="text-center text-muted-foreground">
-                No students found matching the filters
+                {t("tripClassStudents.noStudentsFound")}
               </p>
             </CardContent>
           </Card>
@@ -313,11 +315,10 @@ export default function TripClassStudentsClient({
                   {cls.name}
                 </CardTitle>
                 <CardDescription>
-                  {cls.students.length} student{cls.students.length !== 1 ? "s" : ""}
+                  {t("tripClassStudents.studentCount", { count: cls.students.length })}
                   {" - "}
-                  {cls.students.filter((s) => s.isSubscribed).length} subscribed,{" "}
-                  {cls.students.filter((s) => !s.isSubscribed).length} not
-                  subscribed
+                  {t("tripClassStudents.subscribedCount", { count: cls.students.filter((s) => s.isSubscribed).length })},{" "}
+                  {t("tripClassStudents.notSubscribedCount", { count: cls.students.filter((s) => !s.isSubscribed).length })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -360,7 +361,7 @@ export default function TripClassStudentsClient({
                             <CheckCircle2 className="h-5 w-5 text-green-600" />
                             <div className="text-xs text-right">
                               <p className="font-medium text-green-600">
-                                Subscribed
+                                {t("tripClassStudents.subscribed")}
                               </p>
                               {student.approval_status && (
                                 <Badge
@@ -384,7 +385,7 @@ export default function TripClassStudentsClient({
                           <>
                             <XCircle className="h-5 w-5 text-gray-400" />
                             <p className="text-xs text-muted-foreground">
-                              Not Subscribed
+                              {t("tripClassStudents.notSubscribed")}
                             </p>
                           </>
                         )}

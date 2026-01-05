@@ -15,6 +15,7 @@ export default async function AttendancePage() {
   }
 
   // Fetch classes based on role
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let classes: any[] = [];
 
   if (profile.role === "super_admin") {

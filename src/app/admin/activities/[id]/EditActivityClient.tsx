@@ -24,11 +24,12 @@ import type {
   Activity,
   ActivityStatus,
   UpdateActivityInput,
+  ExtendedUser,
 } from "@/lib/types";
 
 interface EditActivityClientProps {
   activity: Activity;
-  userProfile: any;
+  userProfile: ExtendedUser;
 }
 
 export default function EditActivityClient({
@@ -58,7 +59,7 @@ export default function EditActivityClient({
     status: activity.status,
   });
 
-  function handleInputChange(field: string, value: any) {
+  function handleInputChange(field: string, value: string | number | boolean | undefined) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -77,9 +78,9 @@ export default function EditActivityClient({
         t("activities.activityUpdated") || "Activity updated successfully"
       );
       router.push("/admin/activities");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating activity:", error);
-      toast.error(error.message || t("activities.updateFailed"));
+      toast.error(error instanceof Error ? error.message : t("activities.updateFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +102,7 @@ export default function EditActivityClient({
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">{t("activities.editActivity")}</h1>
@@ -226,11 +227,11 @@ export default function EditActivityClient({
                           type="number"
                           min="0"
                           max="100"
-                          value={formData.reduced_points_percentage}
+                          value={formData.reduced_points_percentage ?? ""}
                           onChange={(e) =>
                             handleInputChange(
                               "reduced_points_percentage",
-                              parseInt(e.target.value)
+                              e.target.value ? parseInt(e.target.value) : undefined
                             )
                           }
                         />
@@ -374,7 +375,7 @@ export default function EditActivityClient({
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="status">
-                        {t("activities.status") || "Status"}
+                        {t("common.status")}
                       </Label>
                       <Select
                         value={formData.status}

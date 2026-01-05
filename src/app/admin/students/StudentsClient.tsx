@@ -38,7 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, UserPlus, X, Search, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, UserPlus, X, Search } from "lucide-react";
 import type {
   UserWithClassAssignments,
   Diocese,
@@ -167,9 +167,9 @@ export default function StudentsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving student:", error);
-      toast.error(error.message || "Failed to save student");
+      toast.error(error instanceof Error ? error.message : "Failed to save student");
     } finally {
       setIsSubmitting(false);
     }
@@ -190,9 +190,9 @@ export default function StudentsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting student:", error);
-      toast.error(error.message || "Failed to delete student");
+      toast.error(error instanceof Error ? error.message : "Failed to delete student");
     }
   }
 
@@ -213,9 +213,9 @@ export default function StudentsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error assigning student to class:", error);
-      toast.error(error.message || "Failed to assign student to class");
+      toast.error(error instanceof Error ? error.message : "Failed to assign student to class");
     } finally {
       setIsSubmitting(false);
     }
@@ -237,9 +237,9 @@ export default function StudentsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error removing student from class:", error);
-      toast.error(error.message || "Failed to remove student from class");
+      toast.error(error instanceof Error ? error.message : "Failed to remove student from class");
     }
   }
 
@@ -257,10 +257,13 @@ export default function StudentsClient({
 
   // Filter students
   const filteredStudents = initialStudents.filter((student) => {
+    const query = searchQuery.toLowerCase();
     const matchesSearch =
       !searchQuery ||
-      student.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase());
+      student.full_name?.toLowerCase().includes(query) ||
+      student.email.toLowerCase().includes(query) ||
+      student.user_code?.toLowerCase().includes(query) ||
+      student.phone?.toLowerCase().includes(query);
 
     const matchesDiocese =
       selectedDioceseFilter === "all" ||
@@ -308,7 +311,7 @@ export default function StudentsClient({
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name or email..."
+                  placeholder={t('students.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8"
@@ -374,6 +377,7 @@ export default function StudentsClient({
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>{t('users.userCode')}</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Diocese</TableHead>
@@ -391,7 +395,14 @@ export default function StudentsClient({
                     : null;
 
                   return (
-                    <TableRow key={student.id}>
+                    <TableRow
+                      key={student.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => router.push(`/admin/students/${student.id}`)}
+                    >
+                      <TableCell className="font-mono text-sm">
+                        {student.user_code || "-"}
+                      </TableCell>
                       <TableCell className="font-medium">
                         {student.full_name || "-"}
                       </TableCell>
@@ -409,12 +420,13 @@ export default function StudentsClient({
                                 key={assignment.class_id}
                                 variant="secondary"
                                 className="text-xs cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleRemoveFromClass(
                                     student,
                                     assignment.class_id
-                                  )
-                                }
+                                  );
+                                }}
                               >
                                 {assignment.class_name}
                                 <X className="ml-1 h-3 w-3" />
@@ -429,17 +441,7 @@ export default function StudentsClient({
                       </TableCell>
                       <TableCell>{age ? `${age} yrs` : "-"}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              router.push(`/admin/students/${student.id}`)
-                            }
-                            title="View details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
                           {canEdit && (
                             <>
                               <Button
@@ -612,7 +614,7 @@ export default function StudentsClient({
                   <Label htmlFor="gender">Gender</Label>
                   <Select
                     value={formData.gender}
-                    onValueChange={(value: any) =>
+                    onValueChange={(value: "male" | "female") =>
                       setFormData({ ...formData, gender: value })
                     }
                     disabled={isSubmitting}

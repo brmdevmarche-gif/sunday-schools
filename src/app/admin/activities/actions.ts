@@ -204,7 +204,8 @@ export async function getActivityParticipantsAction(activityId: string) {
       users!user_id(
         id,
         full_name,
-        email
+        email,
+        user_code
       )
     `)
     .eq('activity_id', activityId)
@@ -230,7 +231,8 @@ export async function getActivityCompletionsAction(activityId: string) {
       users!user_id(
         id,
         full_name,
-        email
+        email,
+        user_code
       )
     `)
     .eq('activity_id', activityId)

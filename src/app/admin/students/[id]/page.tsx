@@ -6,6 +6,7 @@ import {
   getStudentDetailsAction,
   getStudentActivitiesAction,
   getStudentPointsAction,
+  getStudentOrdersAction,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -69,9 +70,16 @@ export default async function StudentDetailsPage({
   }
 
   // Fetch student details
-  const studentDetails = await getStudentDetailsAction(id);
+  let studentDetails;
+  try {
+    studentDetails = await getStudentDetailsAction(id);
+  } catch {
+    return notFound();
+  }
+
   const activities = await getStudentActivitiesAction(id);
   const points = await getStudentPointsAction(id);
+  const orders = await getStudentOrdersAction(id);
 
   return (
     <AdminLayout>
@@ -79,6 +87,7 @@ export default async function StudentDetailsPage({
         student={studentDetails}
         activities={activities}
         points={points}
+        orders={orders}
       />
     </AdminLayout>
   );

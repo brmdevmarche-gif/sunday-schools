@@ -258,7 +258,7 @@ export default function CreateTripClient({
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Create Trip</h1>
@@ -579,7 +579,7 @@ export default function CreateTripClient({
                 <CardTitle>Pricing</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="price_normal">Normal Price *</Label>
                   <Input
                     id="price_normal"
@@ -597,7 +597,7 @@ export default function CreateTripClient({
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="price_mastor">Mastor Price *</Label>
                   <Input
                     id="price_mastor"
@@ -615,7 +615,7 @@ export default function CreateTripClient({
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="price_botl">Botl Price *</Label>
                   <Input
                     id="price_botl"

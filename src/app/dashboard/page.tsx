@@ -22,31 +22,76 @@ import {
   Clock,
 } from "lucide-react";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-async function getUserProfile() {
-  const supabase = await createClient()
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const t = await getTranslations();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return null
+    redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  // Fetch profile
+  const { data: initialProfile, error: profileError } = await supabase
+    .from("users")
+    .select(
+      `
+      *,
+      churches(name, cover_image_url),
+      dioceses(name)
+    `
+    )
+    .eq("id", user.id)
+    .single();
 
-  return profile
-}
+  let profile = initialProfile;
 
-export default async function DashboardPage() {
-  const profile = await getUserProfile()
-  const t = await getTranslations()
+  // If profile doesn't exist, create it (for users created before trigger was set up)
+  if (!profile || profileError) {
+    console.log("Creating profile for user:", user.id, user.email);
+    const adminClient = createAdminClient();
+
+    // First try to insert
+    const { error: insertError } = await adminClient.from("users").insert({
+      id: user.id,
+      email: user.email || "",
+      role: "student",
+    });
+
+    if (insertError && insertError.code !== "23505") {
+      // 23505 = unique violation (already exists)
+      console.error(
+        "Error inserting profile:",
+        insertError.message,
+        insertError.code
+      );
+    }
+
+    // Now fetch the profile
+    const { data: newProfile, error: fetchError } = await adminClient
+      .from("users")
+      .select(
+        `
+        *,
+        churches(name, cover_image_url),
+        dioceses(name)
+      `
+      )
+      .eq("id", user.id)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching profile after create:", fetchError.message);
+      redirect("/login");
+    }
+
+    profile = newProfile;
+  }
 
   if (!profile) {
     redirect("/login");
@@ -153,71 +198,117 @@ export default async function DashboardPage() {
     "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1200&h=400&fit=crop";
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
-          <DashboardActions />
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* Top Navbar */}
+      <DashboardNavbar userName={profile.full_name} />
+
+      {/* Hero Section with Church Cover - Parallax Effect */}
+      <div className="relative">
+        {/* Cover Image with Parallax */}
+        <div className="h-56 sm:h-72 w-full overflow-hidden relative">
+          <div
+            className="absolute inset-0 bg-fixed bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${churchImage || defaultCoverImage})`,
+              backgroundAttachment: "fixed",
+              transform: "translateZ(0)",
+            }}
+          />
+          {/* Fallback Image for browsers that don't support background-attachment: fixed */}
+          <Image
+            src={churchImage || defaultCoverImage}
+            alt={churchName || t("studentHome.church")}
+            fill
+            className="object-cover md:hidden"
+            priority
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         </div>
 
-        <SecurityAlerts />
+        {/* Profile Section - overlapping cover */}
+        <div className="container mx-auto px-4">
+          <div className="relative -mt-20 sm:-mt-24 flex flex-col sm:flex-row items-center sm:items-end gap-4 py-4 px-2 rounded-2xl p-4bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50">
+            {/* Profile Photo */}
+            <Avatar className="h-32 w-32 sm:h-36 sm:w-36 border-4 border-background shadow-xl">
+              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
+                {getInitials(profile.full_name)}
+              </AvatarFallback>
+            </Avatar>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>{profile?.full_name || profile?.username || t('dashboard.welcomeBack')}</CardTitle>
-              <CardDescription>{t('dashboard.profileInfo')}</CardDescription>
+            {/* Name and Info */}
+            <div className="flex-1 text-center sm:text-left pb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold">
+                {profile.full_name ||
+                  profile.username ||
+                  t("studentHome.student")}
+              </h1>
+              {profile.user_code && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {t("users.userCode")}:{" "}
+                  <span className="font-mono font-medium">
+                    {profile.user_code}
+                  </span>
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1 text-muted-foreground">
+                {churchName && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {churchName}
+                  </span>
+                )}
+                {studentClass && (
+                  <Badge variant="secondary" className="font-normal">
+                    {studentClass.name}
+                  </Badge>
+                )}
+              </div>
             </div>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/dashboard/profile">{t('dashboard.editProfile')}</Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {profile?.avatar_url && (
-              <div className="flex items-center space-x-4">
-                <img
-                  src={profile.avatar_url}
-                  alt={t('dashboard.profile')}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-border"
-                />
-              </div>
-            )}
+          </div>
+        </div>
+      </div>
 
-            <div className="grid gap-3">
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.email')}</span>
-                <p>{profile?.email}</p>
-              </div>
-
-              {profile?.username && (
-                <div>
-                  <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.username')}</span>
-                  <p>@{profile.username}</p>
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Points Card */}
+        <Card className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-full">
+                  <Star className="h-6 w-6" />
                 </div>
-              )}
-
-              {profile?.full_name && (
                 <div>
-                  <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.fullName')}</span>
-                  <p>{profile.full_name}</p>
+                  <p className="text-sm text-white/80">
+                    {t("studentHome.yourPoints")}
+                  </p>
+                  <p className="text-3xl font-bold">
+                    {pointsBalance.available_points}
+                  </p>
                 </div>
-              )}
-
-              {profile?.bio && (
-                <div>
-                  <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.bio')}</span>
-                  <p className="text-sm">{profile.bio}</p>
-                </div>
-              )}
-
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.accountCreated')}</span>
-                <p>{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}</p>
               </div>
-
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">{t('dashboard.userId')}</span>
-                <p className="font-mono text-xs">{profile?.id}</p>
+              <div className="flex gap-6">
+                {pointsBalance.suspended_points > 0 && (
+                  <div className="text-right">
+                    <p className="text-xs text-white/70 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {t("studentHome.suspended")}
+                    </p>
+                    <p className="text-lg font-semibold">
+                      {pointsBalance.suspended_points}
+                    </p>
+                  </div>
+                )}
+                <div className="text-right">
+                  <p className="text-xs text-white/70 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    {t("studentHome.totalEarned")}
+                  </p>
+                  <p className="text-lg font-semibold">
+                    {pointsBalance.total_earned}
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -274,5 +365,5 @@ export default async function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

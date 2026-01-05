@@ -16,6 +16,7 @@ import {
   CheckSquare,
   ClipboardList,
   PartyPopper,
+  Megaphone,
   Bus,
   Store,
   Settings,
@@ -46,6 +47,7 @@ const iconMap = {
   check: CheckSquare,
   task: ClipboardList,
   activity: PartyPopper,
+  announcement: Megaphone,
   trip: Bus,
   store: Store,
   settings: Settings,
@@ -64,12 +66,55 @@ export default function AdminSidebar({
     return Icon;
   };
 
-  return (
-    <div className="flex h-full w-64 flex-col border-r bg-card">
-      {/* Header */}
-      <div className="px-6 pt-6">
-        <h2 className="text-2xl font-bold">Knesty</h2>
-        {/* <p className="text-sm text-muted-foreground mt-1">Admin Panel</p> */}
+  const isItemActive = (href: string) => {
+    // Special case for dashboard: only active on exact /admin path
+    if (href === "/admin") {
+      return pathname === "/admin";
+    }
+    // Special case: don't highlight Announcements management when user is on the inbox page
+    if (href === "/admin/announcements") {
+      if (pathname === "/admin/announcements/inbox") return false;
+      if (pathname.startsWith("/admin/announcements/inbox/")) return false;
+      return pathname === href || pathname.startsWith(href + "/");
+    }
+    // For other routes, check if pathname starts with the href
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
+  const sidebarContent = (
+    <div
+      className={cn(
+        "flex h-full flex-col ltr:border-r rtl:border-l bg-card transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      {/* Header with Logo */}
+      <div
+        className={cn(
+          "pt-6 flex items-center",
+          isCollapsed ? "px-3 justify-center" : "px-6 gap-3"
+        )}
+      >
+        <Image
+          src="/Logo.png"
+          alt="Knesty Logo"
+          width={40}
+          height={40}
+          className="object-contain"
+        />
+        {!isCollapsed && <h2 className="text-2xl font-bold">Knesty</h2>}
+
+        {/* Close button for mobile */}
+        {isMobile && onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ms-auto"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
       {/* User Info */}

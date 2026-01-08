@@ -50,7 +50,7 @@ export default function TripDetailsClient({
 
   // Get currency symbol based on locale
   const getCurrencySymbol = () => {
-    return locale === 'ar' ? 'ج.م' : 'E.L';
+    return locale === "ar" ? "ج.م" : "E.L";
   };
   const [isSubscribeDialogOpen, setIsSubscribeDialogOpen] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -134,7 +134,11 @@ export default function TripDetailsClient({
       router.refresh();
     } catch (error) {
       console.error("Error subscribing to trip:", error);
-      toast.error(error instanceof Error ? error.message : t("studentTrips.subscribeFailed"));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("studentTrips.subscribeFailed")
+      );
     } finally {
       setIsSubscribing(false);
     }
@@ -143,7 +147,7 @@ export default function TripDetailsClient({
   return (
     <>
       {/* Header */}
-      <div className="border-b bg-card">
+      <div className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -161,7 +165,9 @@ export default function TripDetailsClient({
                   </Badge>
                 )}
                 {!trip.available && (
-                  <Badge variant="outline">{t("studentTrips.unavailable")}</Badge>
+                  <Badge variant="outline">
+                    {t("studentTrips.unavailable")}
+                  </Badge>
                 )}
               </div>
             </div>
@@ -211,7 +217,8 @@ export default function TripDetailsClient({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    {t("studentTrips.destinations")} ({trip.destinations.length})
+                    {t("studentTrips.destinations")} ({trip.destinations.length}
+                    )
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -225,7 +232,9 @@ export default function TripDetailsClient({
                           {idx + 1}
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-medium">{dest.destination_name}</h4>
+                          <h4 className="font-medium">
+                            {dest.destination_name}
+                          </h4>
                           {dest.description && (
                             <p className="text-sm text-muted-foreground mt-1">
                               {dest.description}
@@ -315,10 +324,13 @@ export default function TripDetailsClient({
                       {t("studentTrips.capacity")}
                     </div>
                     <p className="text-sm text-muted-foreground pl-6">
-                      {t("studentTrips.maxParticipantsCount", { count: trip.max_participants })}
+                      {t("studentTrips.maxParticipantsCount", {
+                        count: trip.max_participants,
+                      })}
                       {trip.participants_count !== undefined && (
                         <span className="ml-1">
-                          ({trip.participants_count} {t("studentTrips.registered")})
+                          ({trip.participants_count}{" "}
+                          {t("studentTrips.registered")})
                         </span>
                       )}
                     </p>
@@ -333,7 +345,8 @@ export default function TripDetailsClient({
                     {t("studentTrips.price")}
                   </div>
                   <p className="text-2xl font-bold text-primary pl-6">
-                    {getCurrencySymbol()}{getUserPrice()}
+                    {getCurrencySymbol()}
+                    {getUserPrice()}
                   </p>
                 </div>
 
@@ -504,7 +517,9 @@ export default function TripDetailsClient({
               {t("studentTrips.cancel")}
             </Button>
             <Button onClick={handleSubscribe} disabled={isSubscribing}>
-              {isSubscribing ? t("studentTrips.subscribing") : t("studentTrips.subscribe")}
+              {isSubscribing
+                ? t("studentTrips.subscribing")
+                : t("studentTrips.subscribe")}
             </Button>
           </DialogFooter>
         </DialogContent>

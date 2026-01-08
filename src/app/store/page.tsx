@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import StoreClient from "./StoreClient";
 
 export default async function StorePage() {
-  const supabase = await createClient();
   const profile = await getCurrentUserProfile();
 
   if (!profile) {
@@ -31,14 +29,16 @@ export default async function StorePage() {
   // 3. OR they're assigned to the user's church
   // 4. OR they're assigned to the user's diocese
 
-  let query = adminClient
+  const query = adminClient
     .from("store_items")
-    .select(`
+    .select(
+      `
       *,
       store_item_churches (church_id),
       store_item_dioceses (diocese_id),
       store_item_classes (class_id)
-    `)
+    `
+    )
     .eq("is_active", true);
 
   const { data: allItems, error } = await query;
@@ -48,29 +48,58 @@ export default async function StorePage() {
   }
 
   // Filter items based on user's access
-  const availableItems = allItems?.filter((item) => {
-    // Item available to all classes
-    if (item.is_available_to_all_classes) {
-      return true;
-    }
+  const availableItems =
+    allItems?.filter((item) => {
+      // Item available to all classes
+      if (item.is_available_to_all_classes) {
+        return true;
+      }
 
-    // Item assigned to user's classes
-    if (item.store_item_classes?.some((sic: { class_id: string }) => classIds.includes(sic.class_id))) {
-      return true;
-    }
+      // Item assigned to user's classes
+      if (
+        item.store_item_classes?.some((sic: { class_id: string }) =>
+          classIds.includes(sic.class_id)
+        )
+      ) {
+        return true;
+      }
 
-    // Item assigned to user's church
-    if (item.store_item_churches?.some((sic: { church_id: string }) => sic.church_id === profile.church_id)) {
-      return true;
-    }
+      // Item assigned to user's church
+      if (
+        item.store_item_churches?.some(
+          (sic: { church_id: string }) => sic.church_id === profile.church_id
+        )
+      ) {
+        return true;
+      }
 
-    // Item assigned to user's diocese
-    if (item.store_item_dioceses?.some((sid: { diocese_id: string }) => sid.diocese_id === profile.diocese_id)) {
-      return true;
-    }
+      // Item assigned to user's diocese
+      if (
+        item.store_item_dioceses?.some(
+          (sid: { diocese_id: string }) => sid.diocese_id === profile.diocese_id
+        )
+      ) {
+        return true;
+      }
 
-    return false;
-  }) || [];
+      return false;
+    }) || [];
+
+  // Get user's points balance
+  let pointsBalance = {
+    available_points: 0,
+    suspended_points: 0,
+    total_earned: 0,
+  };
+  const { data: balanceData } = await adminClient
+    .from("student_points_balance")
+    .select("available_points, suspended_points, total_earned")
+    .eq("user_id", profile.id)
+    .maybeSingle();
+
+  if (balanceData) {
+    pointsBalance = balanceData;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,6 +107,7 @@ export default async function StorePage() {
         items={availableItems}
         userProfile={profile}
         userClassIds={classIds}
+        pointsBalance={pointsBalance}
       />
     </div>
   );

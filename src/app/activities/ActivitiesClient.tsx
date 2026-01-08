@@ -111,7 +111,11 @@ export default function ActivitiesClient({
       router.refresh();
     } catch (error) {
       console.error("Error participating:", error);
-      toast.error(error instanceof Error ? error.message : t("activities.participationFailed"));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("activities.participationFailed")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +129,11 @@ export default function ActivitiesClient({
       router.refresh();
     } catch (error) {
       console.error("Error completing:", error);
-      toast.error(error instanceof Error ? error.message : t("activities.completionFailed"));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("activities.completionFailed")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +151,9 @@ export default function ActivitiesClient({
       router.refresh();
     } catch (error) {
       console.error("Error withdrawing:", error);
-      toast.error(error instanceof Error ? error.message : t("activities.withdrawFailed"));
+      toast.error(
+        error instanceof Error ? error.message : t("activities.withdrawFailed")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +224,7 @@ export default function ActivitiesClient({
   return (
     <>
       {/* Header with Stats */}
-      <div className="border-b bg-card">
+      <div className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -299,7 +309,9 @@ export default function ActivitiesClient({
           </div>
           <Select
             value={filterType}
-            onValueChange={(value: "all" | "available" | "participating" | "completed") => setFilterType(value)}
+            onValueChange={(
+              value: "all" | "available" | "participating" | "completed"
+            ) => setFilterType(value)}
           >
             <SelectTrigger className="w-[200px]">
               <SelectValue />

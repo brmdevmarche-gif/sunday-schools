@@ -33,7 +33,13 @@
       "Bash(do npx supabase migration repair $v --status applied)",
       "Bash(while read f)",
       "Bash(do if ! grep -q \"useTranslations\" \"$f\")",
-      "Skill(BMad:agents:architect)"
+      "Skill(BMad:agents:architect)",
+      "Bash(for key in \"activities.description\" \"competitions.basePoints\" \"competitions.earnUpTo\" \"competitions.formSubmission\" \"competitions.maxFileSize\" \"competitions.prizes\" \"competitions.readyToSubmit\" \"competitions.submitNow\" \"competitions.timeline\" \"readings.activeSchedules\" \"readings.checkUpcoming\" \"readings.current\" \"readings.daysCompleted\" \"readings.finalScore\" \"readings.noCompleted\" \"readings.noCurrent\" \"readings.noUpcoming\" \"readings.perReading\" \"readings.pointsEarned\" \"readings.startsOn\" \"readings.viewSchedule\" \"spiritualNotes.type\")",
+      "Bash(do)",
+      "Bash(then)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Skill(BMad:agents:ux-expert)"
     ],
     "deny": [],
     "ask": []

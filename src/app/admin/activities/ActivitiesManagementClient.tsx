@@ -33,6 +33,9 @@ import {
   Calendar,
   Edit,
   Trash2,
+  BookOpen,
+  Heart,
+  ChevronRight,
 } from "lucide-react";
 import { deleteActivityAction } from "./actions";
 import type { Activity, ActivityStatus, ExtendedUser } from "@/lib/types";
@@ -121,6 +124,63 @@ export default function ActivitiesManagementClient({
           <Plus className="mr-2 h-4 w-4" />
           {t("activities.createActivity")}
         </Button>
+      </div>
+
+      {/* Enhanced Activities Navigation */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card
+          className="cursor-pointer hover:border-primary/50 transition-colors"
+          onClick={() => router.push("/admin/activities/spiritual-notes")}
+        >
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <Heart className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-medium">{t("activities.enhancedActivities.spiritualNotes")}</p>
+                <p className="text-xs text-muted-foreground">{t("activities.enhancedActivities.spiritualNotesDesc")}</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:border-primary/50 transition-colors"
+          onClick={() => router.push("/admin/activities/competitions")}
+        >
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <Trophy className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-medium">{t("activities.enhancedActivities.competitions")}</p>
+                <p className="text-xs text-muted-foreground">{t("activities.enhancedActivities.competitionsDesc")}</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:border-primary/50 transition-colors"
+          onClick={() => router.push("/admin/activities/readings")}
+        >
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <BookOpen className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium">{t("activities.enhancedActivities.readings")}</p>
+                <p className="text-xs text-muted-foreground">{t("activities.enhancedActivities.readingsDesc")}</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}

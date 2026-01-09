@@ -27,6 +27,9 @@ import {
   ArrowLeft,
   Target,
   Award,
+  Heart,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react";
 import {
   participateInActivityAction,
@@ -227,7 +230,7 @@ export default function ActivitiesClient({
       <div className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} aria-label={t("common.back")}>
               <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
             </Button>
             <div className="flex-1">
@@ -237,61 +240,77 @@ export default function ActivitiesClient({
               </p>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Points Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("activities.totalPoints")}
-                    </p>
-                    <p className="text-3xl font-bold">
-                      {completionsData.totalPoints}
-                    </p>
-                  </div>
-                  <Trophy className="h-8 w-8 text-amber-500" />
+      {/* Enhanced Activities Navigation */}
+      <div className="container mx-auto px-4 pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => router.push("/activities/spiritual-notes")}
+          >
+            <CardContent className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-500/10">
+                  <Heart className="h-5 w-5 text-purple-600" />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <p className="font-medium">
+                    {t("activities.enhancedActivities.spiritualNotes")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("activities.enhancedActivities.spiritualNotesUserDesc")}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground rtl:rotate-180" />
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("activities.pendingPoints")}
-                    </p>
-                    <p className="text-3xl font-bold">
-                      {completionsData.pendingPoints}
-                    </p>
-                  </div>
-                  <Clock className="h-8 w-8 text-blue-500" />
+          <Card
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => router.push("/activities/competitions")}
+          >
+            <CardContent className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/10">
+                  <Trophy className="h-5 w-5 text-amber-600" />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <p className="font-medium">
+                    {t("activities.enhancedActivities.competitions")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("activities.enhancedActivities.competitionsUserDesc")}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground rtl:rotate-180" />
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("activities.completedCount")}
-                    </p>
-                    <p className="text-3xl font-bold">
-                      {
-                        completionsData.completions.filter(
-                          (c) => c.status === "completed" && !c.is_revoked
-                        ).length
-                      }
-                    </p>
-                  </div>
-                  <Award className="h-8 w-8 text-green-500" />
+          <Card
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => router.push("/activities/readings")}
+          >
+            <CardContent className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-500/10">
+                  <BookOpen className="h-5 w-5 text-green-600" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div>
+                  <p className="font-medium">
+                    {t("activities.enhancedActivities.readings")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("activities.enhancedActivities.readingsUserDesc")}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground rtl:rotate-180" />
+            </CardContent>
+          </Card>
         </div>
       </div>
 

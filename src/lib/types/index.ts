@@ -16,6 +16,7 @@ export * from './modules/activities';
 export * from './modules/attendance';
 export * from './modules/points';
 export * from './modules/announcements';
+export * from './modules/enhanced-activities';
 
 // =====================================================
 // USAGE EXAMPLES:

@@ -31,6 +31,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeft,
+  Trophy,
 } from "lucide-react";
 
 interface NavItem {
@@ -65,6 +66,7 @@ const iconMap = {
   trip: Bus,
   store: Store,
   settings: Settings,
+  trophy: Trophy,
 };
 
 export default function AdminSidebar({

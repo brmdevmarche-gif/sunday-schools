@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -143,8 +143,17 @@ export default function SpiritualNotesClient({
   userProfile,
 }: SpiritualNotesClientProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   const form = useForm<SpiritualNoteFormData>({
     resolver: zodResolver(createSpiritualNoteSchema),
@@ -590,7 +599,7 @@ export default function SpiritualNotesClient({
                           </p>
                         )}
                         <p className="text-xs text-muted-foreground">
-                          {new Date(note.activity_date).toLocaleDateString()}
+                          {formatDate(note.activity_date)}
                         </p>
                         {note.status === "approved" && note.points_awarded && (
                           <p className="text-sm font-medium text-green-600">

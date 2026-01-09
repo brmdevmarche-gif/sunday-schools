@@ -75,7 +75,7 @@ export default function UserDetailsLoading() {
           <Skeleton className="h-4 w-32" />
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-5">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-4 w-20" />

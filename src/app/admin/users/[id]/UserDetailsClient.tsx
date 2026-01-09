@@ -537,7 +537,7 @@ export default function UserDetailsClient({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-5">
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">
                       {t('attendance.total')}

@@ -40,6 +40,7 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Pencil, UserPlus, Link as LinkIcon, UserCheck, UserX, Users } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
+import { ResponsiveFilters } from '@/components/ui/filter-sheet'
 import type { ExtendedUser, UserRole, Church, Diocese } from '@/lib/types/sunday-school'
 import {
   updateUserRoleAction,
@@ -282,6 +283,20 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
     if (filterType === 'diocese') setDioceseFilter(value)
   }
 
+  // Calculate active filter count (excluding search)
+  const activeFilterCount = [
+    roleFilter !== 'all',
+    churchFilter !== 'all',
+    dioceseFilter !== 'all',
+  ].filter(Boolean).length
+
+  function clearFilters() {
+    setRoleFilter('all')
+    setChurchFilter('all')
+    setDioceseFilter('all')
+    setSearchQuery('')
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -304,76 +319,76 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('common.filter')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <Label>{t('common.search')}</Label>
-              <Input
-                placeholder={t('users.searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('users.role')}</Label>
-              <Select value={roleFilter} onValueChange={(value) => handleFilterChange('role', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('users.filterByRole')}</SelectItem>
-                  <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
-                  <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
-                  <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
-                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
-                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
-                  <SelectItem value="student">{t('roles.student')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('users.diocese')}</Label>
-              <Select value={dioceseFilter} onValueChange={(value) => handleFilterChange('diocese', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('users.filterByDiocese')}</SelectItem>
-                  {dioceses.map((diocese) => (
-                    <SelectItem key={diocese.id} value={diocese.id}>
-                      {diocese.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('users.church')}</Label>
-              <Select value={churchFilter} onValueChange={(value) => handleFilterChange('church', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('users.filterByChurch')}</SelectItem>
-                  {churches.map((church) => (
-                    <SelectItem key={church.id} value={church.id}>
-                      {church.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Filters - Responsive: inline on desktop, sheet on mobile */}
+      <ResponsiveFilters
+        title={t('common.filters')}
+        activeFilterCount={activeFilterCount}
+        onClear={clearFilters}
+        clearText={t('common.clearAll')}
+      >
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-2">
+            <Label>{t('common.search')}</Label>
+            <Input
+              placeholder={t('users.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="space-y-2">
+            <Label>{t('users.role')}</Label>
+            <Select value={roleFilter} onValueChange={(value) => handleFilterChange('role', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('users.filterByRole')}</SelectItem>
+                <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
+                <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
+                <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
+                <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
+                <SelectItem value="parent">{t('roles.parent')}</SelectItem>
+                <SelectItem value="student">{t('roles.student')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('users.diocese')}</Label>
+            <Select value={dioceseFilter} onValueChange={(value) => handleFilterChange('diocese', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('users.filterByDiocese')}</SelectItem>
+                {dioceses.map((diocese) => (
+                  <SelectItem key={diocese.id} value={diocese.id}>
+                    {diocese.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('users.church')}</Label>
+            <Select value={churchFilter} onValueChange={(value) => handleFilterChange('church', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('users.filterByChurch')}</SelectItem>
+                {churches.map((church) => (
+                  <SelectItem key={church.id} value={church.id}>
+                    {church.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </ResponsiveFilters>
 
       {/* Users by Role */}
       {filteredUsers.length === 0 ? (

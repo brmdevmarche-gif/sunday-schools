@@ -39,6 +39,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Church as ChurchIcon } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ResponsiveFilters } from "@/components/ui/filter-sheet";
 import type { Church, CreateChurchInput, Diocese } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -198,6 +199,13 @@ export default function ChurchesClient({
     return diocese?.name || "-";
   }
 
+  // Calculate active filter count
+  const activeFilterCount = selectedDioceseFilter !== "all" ? 1 : 0;
+
+  function clearFilters() {
+    setSelectedDioceseFilter("all");
+  }
+
   // Filter and sort churches
   const filteredChurches = (
     selectedDioceseFilter === "all"
@@ -231,37 +239,35 @@ export default function ChurchesClient({
         </Button>
       </div>
 
-      {/* Filter */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("common.filters")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1 max-w-xs">
-              <Label>{t("churches.diocese")}</Label>
-              <Select
-                value={selectedDioceseFilter}
-                onValueChange={setSelectedDioceseFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t("churches.allDioceses")}
-                  </SelectItem>
-                  {dioceses.map((diocese) => (
-                    <SelectItem key={diocese.id} value={diocese.id}>
-                      {diocese.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Filter - Responsive: inline on desktop, sheet on mobile */}
+      <ResponsiveFilters
+        title={t("common.filters")}
+        activeFilterCount={activeFilterCount}
+        onClear={clearFilters}
+        clearText={t("common.clearAll")}
+      >
+        <div className="flex-1 max-w-xs space-y-1">
+          <Label>{t("churches.diocese")}</Label>
+          <Select
+            value={selectedDioceseFilter}
+            onValueChange={setSelectedDioceseFilter}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                {t("churches.allDioceses")}
+              </SelectItem>
+              {dioceses.map((diocese) => (
+                <SelectItem key={diocese.id} value={diocese.id}>
+                  {diocese.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </ResponsiveFilters>
 
       {/* Churches Table */}
       <Card>

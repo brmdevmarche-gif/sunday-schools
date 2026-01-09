@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ResponsiveFilters } from "@/components/ui/filter-sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type {
   Class,
@@ -370,6 +371,17 @@ export default function ClassesClient({
       ? churches
       : churches.filter((c) => c.diocese_id === selectedDioceseFilter);
 
+  // Calculate active filter count
+  const activeFilterCount = [
+    selectedDioceseFilter !== "all",
+    selectedChurchFilter !== "all",
+  ].filter(Boolean).length;
+
+  function clearFilters() {
+    setSelectedDioceseFilter("all");
+    setSelectedChurchFilter("all");
+  }
+
   const filteredClasses = initialClasses
     .filter((cls) => {
       if (
@@ -408,59 +420,60 @@ export default function ClassesClient({
         </Button>
       </div>
 
-          {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("common.filters")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 items-end flex-wrap">
-            <div className="flex-1 min-w-[200px] space-y-1">
-              <Label>{t("classes.diocese")}</Label>
-              <Select
-                value={selectedDioceseFilter}
-                onValueChange={setSelectedDioceseFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t("classes.allDioceses")}
+      {/* Filters - Responsive: inline on desktop, sheet on mobile */}
+      <ResponsiveFilters
+        title={t("common.filters")}
+        activeFilterCount={activeFilterCount}
+        onClear={clearFilters}
+        clearText={t("common.clearAll")}
+        className="mb-0"
+      >
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 min-w-[200px] space-y-1">
+            <Label>{t("classes.diocese")}</Label>
+            <Select
+              value={selectedDioceseFilter}
+              onValueChange={setSelectedDioceseFilter}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  {t("classes.allDioceses")}
+                </SelectItem>
+                {dioceses.map((diocese) => (
+                  <SelectItem key={diocese.id} value={diocese.id}>
+                    {diocese.name}
                   </SelectItem>
-                  {dioceses.map((diocese) => (
-                    <SelectItem key={diocese.id} value={diocese.id}>
-                      {diocese.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex-1 min-w-[200px] space-y-1">
-              <Label>{t("classes.church")}</Label>
-              <Select
-                value={selectedChurchFilter}
-                onValueChange={setSelectedChurchFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t("classes.allChurches")}
-                  </SelectItem>
-                  {filteredChurches.map((church) => (
-                    <SelectItem key={church.id} value={church.id}>
-                      {church.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="flex-1 min-w-[200px] space-y-1">
+            <Label>{t("classes.church")}</Label>
+            <Select
+              value={selectedChurchFilter}
+              onValueChange={setSelectedChurchFilter}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  {t("classes.allChurches")}
+                </SelectItem>
+                {filteredChurches.map((church) => (
+                  <SelectItem key={church.id} value={church.id}>
+                    {church.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </ResponsiveFilters>
 
       {/* Classes Table */}
       <Card>

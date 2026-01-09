@@ -69,7 +69,7 @@ const ACTIVITY_TYPES = [
 const createSpiritualNoteSchema = z
   .object({
     activity_type: z.enum(ACTIVITY_TYPES, {
-      required_error: "Please select an activity type",
+      message: "Please select an activity type",
     }),
     activity_template_id: z.string().optional(),
     title: z

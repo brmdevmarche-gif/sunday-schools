@@ -197,7 +197,7 @@ export default function EditActivityClient({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="points">
                           {t("activities.points")} *
@@ -284,7 +284,7 @@ export default function EditActivityClient({
                           />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="start_time">
                               {t("activities.startTime") || "Start Time"}
@@ -318,7 +318,7 @@ export default function EditActivityClient({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="full_points_window_start">
                               {t("activities.fullPointsStart") ||

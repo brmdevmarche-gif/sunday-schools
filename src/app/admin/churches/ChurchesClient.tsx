@@ -220,13 +220,13 @@ export default function ChurchesClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t("churches.title")}</h1>
           <p className="text-muted-foreground mt-2">{t("churches.subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+          <Plus className="me-2 h-4 w-4" />
           {t("churches.addChurch")}
         </Button>
       </div>
@@ -498,7 +498,7 @@ export default function ChurchesClient({
                 maxSizeMB={3}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">{t("churches.city")}</Label>
                   <Input
@@ -526,7 +526,7 @@ export default function ChurchesClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="contact_email">
                     {t("churches.contactEmail")}

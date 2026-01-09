@@ -49,8 +49,13 @@ import {
   Mail,
   Phone,
   Loader2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  GraduationCap,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type {
   Class,
@@ -96,6 +101,9 @@ interface ClassesClientProps {
   userProfile: ExtendedUser;
 }
 
+type SortColumn = "name" | "church" | "gradeLevel" | "studentCount";
+type SortDirection = "asc" | "desc";
+
 export default function ClassesClient({
   initialClasses,
   churches,
@@ -130,6 +138,8 @@ export default function ClassesClient({
     open: boolean;
     assignmentId: string | null;
   }>({ open: false, assignmentId: null });
+  const [sortColumn, setSortColumn] = useState<SortColumn>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const [formData, setFormData] = useState<CreateClassInput>({
     church_id: "",
@@ -335,30 +345,64 @@ export default function ClassesClient({
     return church?.name || "-";
   }
 
+  function handleSort(column: SortColumn) {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }
+
+  function SortIcon({ column }: { column: SortColumn }) {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-4 w-4 ms-1" />;
+    }
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-4 w-4 ms-1" />
+    ) : (
+      <ArrowDown className="h-4 w-4 ms-1" />
+    );
+  }
+
   const filteredChurches =
     selectedDioceseFilter === "all"
       ? churches
       : churches.filter((c) => c.diocese_id === selectedDioceseFilter);
 
-  const filteredClasses = initialClasses.filter((cls) => {
-    if (
-      selectedChurchFilter !== "all" &&
-      cls.church_id !== selectedChurchFilter
-    ) {
-      return false;
-    }
-    return true;
-  });
+  const filteredClasses = initialClasses
+    .filter((cls) => {
+      if (
+        selectedChurchFilter !== "all" &&
+        cls.church_id !== selectedChurchFilter
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      if (sortColumn === "name") {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortColumn === "church") {
+        comparison = getChurchName(a.church_id).localeCompare(getChurchName(b.church_id));
+      } else if (sortColumn === "gradeLevel") {
+        comparison = (a.grade_level || "").localeCompare(b.grade_level || "");
+      } else if (sortColumn === "studentCount") {
+        comparison = a.studentCount - b.studentCount;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t("classes.title")}</h1>
           <p className="text-muted-foreground mt-2">{t("classes.subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
+        <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
           <Plus className="me-2 h-4 w-4" />
           {t("classes.addClass")}
         </Button>
@@ -428,20 +472,56 @@ export default function ClassesClient({
         </CardHeader>
         <CardContent>
           {filteredClasses.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">{t("classes.noClasses")}</p>
-            </div>
+            <EmptyState
+              icon={GraduationCap}
+              title={t("classes.noClasses")}
+              description={t("classes.noClassesDescription")}
+              action={{
+                label: t("classes.addClass"),
+                onClick: () => handleOpenDialog(),
+              }}
+            />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("common.name")}</TableHead>
-                  <TableHead>{t("classes.church")}</TableHead>
-                  <TableHead>{t("classes.gradeLevel")}</TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => handleSort("name")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t("common.name")}
+                      <SortIcon column="name" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => handleSort("church")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t("classes.church")}
+                      <SortIcon column="church" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => handleSort("gradeLevel")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t("classes.gradeLevel")}
+                      <SortIcon column="gradeLevel" />
+                    </button>
+                  </TableHead>
                   <TableHead>{t("classes.academicYear")}</TableHead>
                   <TableHead>{t("classes.schedule")}</TableHead>
                   <TableHead className="text-center">
-                    {t("classes.students")}
+                    <button
+                      onClick={() => handleSort("studentCount")}
+                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
+                    >
+                      {t("classes.students")}
+                      <SortIcon column="studentCount" />
+                    </button>
                   </TableHead>
                   <TableHead className="text-center">
                     {t("common.status")}
@@ -620,7 +700,7 @@ export default function ClassesClient({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="grade_level">{t("classes.gradeLevel")}</Label>
                   <Input
@@ -653,7 +733,7 @@ export default function ClassesClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="schedule">{t("classes.schedule")}</Label>
                   <Input

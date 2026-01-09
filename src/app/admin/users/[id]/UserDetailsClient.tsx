@@ -39,7 +39,6 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  ArrowLeft,
   User,
   Mail,
   MapPin,
@@ -58,7 +57,17 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
+  Home,
 } from 'lucide-react'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import type { ExtendedUser, UserRole, AttendanceStatus } from '@/lib/types/sunday-school'
 import {
@@ -310,11 +319,31 @@ export default function UserDetailsClient({
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/admin">
+                <Home className="h-4 w-4" />
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator className="rtl:rotate-180" />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/admin/users">{t('users.title')}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator className="rtl:rotate-180" />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{user.full_name || user.username || user.email}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
-        </Button>
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <h1 className="text-3xl font-bold flex items-center gap-3">
             {user.full_name || user.username || user.email}
@@ -334,23 +363,19 @@ export default function UserDetailsClient({
           >
             {user.is_active ? (
               <>
-                <UserX className="mr-2 h-4 w-4" />
+                <UserX className="me-2 h-4 w-4" />
                 {t('users.deactivateUser')}
               </>
             ) : (
               <>
-                <UserCheck className="mr-2 h-4 w-4" />
+                <UserCheck className="me-2 h-4 w-4" />
                 {t('users.activateUser')}
               </>
             )}
           </Button>
           <Button variant="outline" onClick={handleOpenEditDialog}>
-            <Pencil className="mr-2 h-4 w-4" />
+            <Pencil className="me-2 h-4 w-4" />
             {t('common.edit')}
-          </Button>
-          <Button onClick={() => router.push(`/admin/users`)}>
-            <Users className="mr-2 h-4 w-4" />
-            {t('users.title')}
           </Button>
         </div>
       </div>
@@ -358,25 +383,25 @@ export default function UserDetailsClient({
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">
-            <User className="mr-2 h-4 w-4" />
+            <User className="me-2 h-4 w-4" />
             {t('userDetails.overview')}
           </TabsTrigger>
           <TabsTrigger value="classes">
-            <BookOpen className="mr-2 h-4 w-4" />
+            <BookOpen className="me-2 h-4 w-4" />
             {t('userDetails.classes')}
           </TabsTrigger>
           {user.role === 'student' && (
             <TabsTrigger value="attendance">
-              <CheckCircle className="mr-2 h-4 w-4" />
+              <CheckCircle className="me-2 h-4 w-4" />
               {t('userDetails.attendance')}
             </TabsTrigger>
           )}
           <TabsTrigger value="relationships">
-            <Users className="mr-2 h-4 w-4" />
+            <Users className="me-2 h-4 w-4" />
             {t('userDetails.relationships')}
           </TabsTrigger>
           <TabsTrigger value="activity">
-            <Activity className="mr-2 h-4 w-4" />
+            <Activity className="me-2 h-4 w-4" />
             {t('userDetails.activity')}
           </TabsTrigger>
         </TabsList>
@@ -450,7 +475,7 @@ export default function UserDetailsClient({
                     size="sm"
                     onClick={handleOpenPasswordDialog}
                   >
-                    <Key className="mr-2 h-4 w-4" />
+                    <Key className="me-2 h-4 w-4" />
                     {t('users.changePassword')}
                   </Button>
                 )}

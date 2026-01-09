@@ -1,0 +1,209 @@
+"use client";
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+
+export interface Column<T> {
+  key: string;
+  header: string;
+  cell: (item: T) => React.ReactNode;
+  /** Show this column in mobile card view (default: true) */
+  showOnMobile?: boolean;
+  /** Use as card title on mobile (only one column should have this) */
+  isTitle?: boolean;
+  /** Use as card subtitle on mobile (only one column should have this) */
+  isSubtitle?: boolean;
+  /** Custom class for table header */
+  headerClassName?: string;
+  /** Custom class for table cell */
+  cellClassName?: string;
+}
+
+export interface ResponsiveTableProps<T> {
+  data: T[];
+  columns: Column<T>[];
+  /** Function to get a unique key for each row */
+  getRowKey: (item: T) => string;
+  /** Called when a row is clicked */
+  onRowClick?: (item: T) => void;
+  /** Custom class for mobile card */
+  cardClassName?: string;
+  /** Custom class for table row */
+  rowClassName?: string;
+  /** Render custom actions for each row (displayed on both views) */
+  renderActions?: (item: T) => React.ReactNode;
+  /** Empty state component */
+  emptyState?: React.ReactNode;
+  /** Show loading skeleton */
+  isLoading?: boolean;
+}
+
+export function ResponsiveTable<T>({
+  data,
+  columns,
+  getRowKey,
+  onRowClick,
+  cardClassName,
+  rowClassName,
+  renderActions,
+  emptyState,
+  isLoading,
+}: ResponsiveTableProps<T>) {
+  const titleColumn = columns.find((col) => col.isTitle);
+  const subtitleColumn = columns.find((col) => col.isSubtitle);
+  const mobileColumns = columns.filter(
+    (col) => col.showOnMobile !== false && !col.isTitle && !col.isSubtitle
+  );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {/* Desktop skeleton */}
+        <div className="hidden sm:block">
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
+            ))}
+          </div>
+        </div>
+        {/* Mobile skeleton */}
+        <div className="sm:hidden space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4">
+                <div className="h-5 bg-muted rounded w-3/4 mb-2" />
+                <div className="h-4 bg-muted rounded w-1/2 mb-3" />
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded w-full" />
+                  <div className="h-4 bg-muted rounded w-2/3" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (data.length === 0 && emptyState) {
+    return <>{emptyState}</>;
+  }
+
+  return (
+    <>
+      {/* Desktop Table View */}
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((column) => (
+                <TableHead key={column.key} className={column.headerClassName}>
+                  {column.header}
+                </TableHead>
+              ))}
+              {renderActions && (
+                <TableHead className="text-end">{/* Actions */}</TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((item) => (
+              <TableRow
+                key={getRowKey(item)}
+                className={cn(
+                  onRowClick && "cursor-pointer hover:bg-muted/50",
+                  rowClassName
+                )}
+                onClick={() => onRowClick?.(item)}
+              >
+                {columns.map((column) => (
+                  <TableCell key={column.key} className={column.cellClassName}>
+                    {column.cell(item)}
+                  </TableCell>
+                ))}
+                {renderActions && (
+                  <TableCell className="text-end">
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex justify-end gap-1"
+                    >
+                      {renderActions(item)}
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="sm:hidden space-y-3">
+        {data.map((item) => (
+          <Card
+            key={getRowKey(item)}
+            className={cn(
+              onRowClick && "cursor-pointer hover:bg-muted/50 transition-colors",
+              cardClassName
+            )}
+            onClick={() => onRowClick?.(item)}
+          >
+            <CardContent className="p-4">
+              {/* Title & Subtitle */}
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="min-w-0 flex-1">
+                  {titleColumn && (
+                    <div className="font-semibold truncate">
+                      {titleColumn.cell(item)}
+                    </div>
+                  )}
+                  {subtitleColumn && (
+                    <div className="text-sm text-muted-foreground truncate">
+                      {subtitleColumn.cell(item)}
+                    </div>
+                  )}
+                </div>
+                {renderActions && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex gap-1 shrink-0"
+                  >
+                    {renderActions(item)}
+                  </div>
+                )}
+              </div>
+
+              {/* Other columns as key-value pairs */}
+              {mobileColumns.length > 0 && (
+                <div className="space-y-2 text-sm">
+                  {mobileColumns.map((column) => (
+                    <div
+                      key={column.key}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <span className="text-muted-foreground shrink-0">
+                        {column.header}
+                      </span>
+                      <span className="text-end truncate">{column.cell(item)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
+  );
+}
+
+export default ResponsiveTable;

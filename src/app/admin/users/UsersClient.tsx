@@ -38,7 +38,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Pencil, UserPlus, Link as LinkIcon, UserCheck, UserX } from 'lucide-react'
+import { Pencil, UserPlus, Link as LinkIcon, UserCheck, UserX, Users } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import type { ExtendedUser, UserRole, Church, Diocese } from '@/lib/types/sunday-school'
 import {
   updateUserRoleAction,
@@ -284,20 +285,20 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t('users.title')}</h1>
           <p className="text-muted-foreground mt-2">
             {t('users.subtitle')}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleOpenLinkDialog}>
-            <LinkIcon className="mr-2 h-4 w-4" />
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={handleOpenLinkDialog} className="w-full sm:w-auto">
+            <LinkIcon className="me-2 h-4 w-4" />
             {t('users.linkParent')}
           </Button>
-          <Button onClick={handleOpenCreateDialog}>
-            <UserPlus className="mr-2 h-4 w-4" />
+          <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+            <UserPlus className="me-2 h-4 w-4" />
             {t('users.createUser')}
           </Button>
         </div>
@@ -378,9 +379,15 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       {filteredUsers.length === 0 ? (
         <Card>
           <CardContent className="py-8">
-            <div className="text-center">
-              <p className="text-muted-foreground">{t('users.noUsers')}</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title={t('users.noUsers')}
+              description={t('users.noUsersDescription')}
+              action={{
+                label: t('users.createUser'),
+                onClick: handleOpenCreateDialog,
+              }}
+            />
           </CardContent>
         </Card>
       ) : (
@@ -442,7 +449,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleOpenRoleDialog(user)}
-                                      title={t('users.editUser')}
+                                      aria-label={t('users.editUser')}
                                     >
                                       <Pencil className="h-4 w-4" />
                                     </Button>
@@ -450,7 +457,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleToggleActive(user)}
-                                      title={user.is_active ? t('users.deactivateUser') : t('users.activateUser')}
+                                      aria-label={user.is_active ? t('users.deactivateUser') : t('users.activateUser')}
                                     >
                                       {user.is_active ? (
                                         <UserX className="h-4 w-4 text-destructive" />
@@ -574,7 +581,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('common.email')} *</Label>
                 <Input
@@ -598,7 +605,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Username</Label>
                 <Input
@@ -641,7 +648,7 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('users.optionalDiocese')}</Label>
                 <Select

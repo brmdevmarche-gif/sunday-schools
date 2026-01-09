@@ -3,13 +3,24 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -82,6 +93,36 @@ const ACTIVITY_TYPE_ICONS: Record<SpiritualActivityType, string> = {
   other: "sparkles",
 };
 
+const ACTIVITY_TYPES = [
+  "prayer",
+  "mass",
+  "confession",
+  "fasting",
+  "bible_reading",
+  "charity",
+  "other",
+] as const;
+
+const templateSchema = z.object({
+  activity_type: z.enum(ACTIVITY_TYPES, {
+    message: "Please select an activity type",
+  }),
+  name: z
+    .string()
+    .min(1, "Template name is required")
+    .max(100, "Name must be less than 100 characters"),
+  name_ar: z.string().max(100, "Arabic name must be less than 100 characters").optional(),
+  description: z.string().max(500, "Description must be less than 500 characters").optional(),
+  description_ar: z.string().max(500, "Arabic description must be less than 500 characters").optional(),
+  icon: z.string().optional(),
+  base_points: z.number().min(1, "Points must be at least 1").max(100, "Points must be at most 100"),
+  max_per_day: z.number().min(1, "Max per day must be at least 1").max(10, "Max per day must be at most 10").optional(),
+  requires_approval: z.boolean(),
+  is_active: z.boolean(),
+});
+
+type TemplateFormData = z.infer<typeof templateSchema>;
+
 export default function SpiritualNotesAdminClient({
   notes,
   templates,
@@ -102,18 +143,21 @@ export default function SpiritualNotesAdminClient({
   const [isReviewing, setIsReviewing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [templateForm, setTemplateForm] = useState({
-    activity_type: "prayer" as SpiritualActivityType,
-    name: "",
-    name_ar: "",
-    description: "",
-    description_ar: "",
-    icon: "sparkles",
-    base_points: 5,
-    max_per_day: 1,
-    requires_approval: true,
-    is_active: true,
+
+  const templateForm = useForm<TemplateFormData>({
+    resolver: zodResolver(templateSchema),
+    defaultValues: {
+      activity_type: "prayer",
+      name: "",
+      name_ar: "",
+      description: "",
+      description_ar: "",
+      icon: "sparkles",
+      base_points: 5,
+      max_per_day: 1,
+      requires_approval: true,
+      is_active: true,
+    },
   });
 
   // Filter notes
@@ -129,42 +173,24 @@ export default function SpiritualNotesAdminClient({
     return true;
   });
 
-  function resetTemplateForm() {
-    setTemplateForm({
-      activity_type: "prayer",
-      name: "",
-      name_ar: "",
-      description: "",
-      description_ar: "",
-      icon: "sparkles",
-      base_points: 5,
-      max_per_day: 1,
-      requires_approval: true,
-      is_active: true,
-    });
+  function handleDialogClose() {
+    setShowCreateDialog(false);
+    templateForm.reset();
   }
 
-  async function handleCreateTemplate() {
-    if (!templateForm.name) {
-      toast.error(
-        t("spiritualNotes.admin.nameRequired") || "Template name is required"
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
+  async function handleCreateTemplate(data: TemplateFormData) {
     try {
       const result = await createSpiritualActivityTemplateAction({
-        activity_type: templateForm.activity_type,
-        name: templateForm.name,
-        name_ar: templateForm.name_ar || null,
-        description: templateForm.description || null,
-        description_ar: templateForm.description_ar || null,
-        icon: templateForm.icon || null,
-        base_points: templateForm.base_points,
-        max_per_day: templateForm.max_per_day || null,
-        requires_approval: templateForm.requires_approval,
-        is_active: templateForm.is_active,
+        activity_type: data.activity_type,
+        name: data.name,
+        name_ar: data.name_ar || null,
+        description: data.description || null,
+        description_ar: data.description_ar || null,
+        icon: data.icon || null,
+        base_points: data.base_points,
+        max_per_day: typeof data.max_per_day === "number" ? data.max_per_day : null,
+        requires_approval: data.requires_approval,
+        is_active: data.is_active,
         diocese_id: null,
         church_id: null,
         class_id: null,
@@ -175,16 +201,13 @@ export default function SpiritualNotesAdminClient({
           t("spiritualNotes.admin.templateCreated") ||
             "Activity template created successfully"
         );
-        setShowCreateDialog(false);
-        resetTemplateForm();
+        handleDialogClose();
         router.refresh();
       } else {
         toast.error(result.error || "Failed to create template");
       }
     } catch (error) {
       toast.error("An error occurred");
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -644,7 +667,7 @@ export default function SpiritualNotesAdminClient({
 
           {selectedNote && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">
                     {t("spiritualNotes.admin.student") || "Student"}
@@ -744,7 +767,7 @@ export default function SpiritualNotesAdminClient({
       </Dialog>
 
       {/* Create Template Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -758,182 +781,207 @@ export default function SpiritualNotesAdminClient({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t("spiritualNotes.type") || "Activity Type"} *</Label>
-              <Select
-                value={templateForm.activity_type}
-                onValueChange={(value: SpiritualActivityType) =>
-                  setTemplateForm({ ...templateForm, activity_type: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="prayer">
-                    {t("spiritualNotes.types.prayer") || "Prayer"}
-                  </SelectItem>
-                  <SelectItem value="mass">
-                    {t("spiritualNotes.types.mass") || "Mass"}
-                  </SelectItem>
-                  <SelectItem value="confession">
-                    {t("spiritualNotes.types.confession") || "Confession"}
-                  </SelectItem>
-                  <SelectItem value="fasting">
-                    {t("spiritualNotes.types.fasting") || "Fasting"}
-                  </SelectItem>
-                  <SelectItem value="bible_reading">
-                    {t("spiritualNotes.types.bibleReading") || "Bible Reading"}
-                  </SelectItem>
-                  <SelectItem value="charity">
-                    {t("spiritualNotes.types.charity") || "Charity"}
-                  </SelectItem>
-                  <SelectItem value="other">
-                    {t("spiritualNotes.types.other") || "Other"}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("common.name") || "Name"} *</Label>
-                <Input
-                  placeholder={
-                    t("spiritualNotes.admin.templateNamePlaceholder") ||
-                    "e.g., Morning Prayer"
-                  }
-                  value={templateForm.name}
-                  onChange={(e) =>
-                    setTemplateForm({ ...templateForm, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("common.nameAr") || "Name (Arabic)"}</Label>
-                <Input
-                  placeholder={
-                    t("spiritualNotes.admin.templateNameArPlaceholder") ||
-                    "الاسم بالعربية"
-                  }
-                  value={templateForm.name_ar}
-                  onChange={(e) =>
-                    setTemplateForm({
-                      ...templateForm,
-                      name_ar: e.target.value,
-                    })
-                  }
-                  dir="rtl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t("common.description") || "Description"}</Label>
-              <Textarea
-                placeholder={
-                  t("spiritualNotes.admin.templateDescPlaceholder") ||
-                  "Describe this activity..."
-                }
-                value={templateForm.description}
-                onChange={(e) =>
-                  setTemplateForm({
-                    ...templateForm,
-                    description: e.target.value,
-                  })
-                }
-                rows={2}
+          <Form {...templateForm}>
+            <form onSubmit={templateForm.handleSubmit(handleCreateTemplate)} className="space-y-4">
+              <FormField
+                control={templateForm.control}
+                name="activity_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("spiritualNotes.type") || "Activity Type"} *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="prayer">
+                          {t("spiritualNotes.types.prayer") || "Prayer"}
+                        </SelectItem>
+                        <SelectItem value="mass">
+                          {t("spiritualNotes.types.mass") || "Mass"}
+                        </SelectItem>
+                        <SelectItem value="confession">
+                          {t("spiritualNotes.types.confession") || "Confession"}
+                        </SelectItem>
+                        <SelectItem value="fasting">
+                          {t("spiritualNotes.types.fasting") || "Fasting"}
+                        </SelectItem>
+                        <SelectItem value="bible_reading">
+                          {t("spiritualNotes.types.bibleReading") || "Bible Reading"}
+                        </SelectItem>
+                        <SelectItem value="charity">
+                          {t("spiritualNotes.types.charity") || "Charity"}
+                        </SelectItem>
+                        <SelectItem value="other">
+                          {t("spiritualNotes.types.other") || "Other"}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-amber-500" />
-                  {t("spiritualNotes.admin.basePoints") || "Base Points"}
-                </Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={templateForm.base_points}
-                  onChange={(e) =>
-                    setTemplateForm({
-                      ...templateForm,
-                      base_points: parseInt(e.target.value) || 5,
-                    })
-                  }
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={templateForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name") || "Name"} *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            t("spiritualNotes.admin.templateNamePlaceholder") ||
+                            "e.g., Morning Prayer"
+                          }
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={templateForm.control}
+                  name="name_ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.nameAr") || "Name (Arabic)"}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            t("spiritualNotes.admin.templateNameArPlaceholder") ||
+                            "الاسم بالعربية"
+                          }
+                          dir="rtl"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>
-                  {t("spiritualNotes.admin.maxPerDay") || "Max per Day"}
-                </Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={templateForm.max_per_day}
-                  onChange={(e) =>
-                    setTemplateForm({
-                      ...templateForm,
-                      max_per_day: parseInt(e.target.value) || 1,
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  {t("spiritualNotes.admin.maxPerDayHelp") ||
-                    "Limit submissions per student per day"}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
-                <Label>
-                  {t("spiritualNotes.admin.requiresApproval") ||
-                    "Requires Approval"}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("spiritualNotes.admin.requiresApprovalHelp") ||
-                    "If enabled, submissions need teacher approval"}
-                </p>
-              </div>
-              <Switch
-                checked={templateForm.requires_approval}
-                onCheckedChange={(checked) =>
-                  setTemplateForm({
-                    ...templateForm,
-                    requires_approval: checked,
-                  })
-                }
+              <FormField
+                control={templateForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.description") || "Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          t("spiritualNotes.admin.templateDescPlaceholder") ||
+                          "Describe this activity..."
+                        }
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  setShowCreateDialog(false);
-                  resetTemplateForm();
-                }}
-              >
-                {t("common.cancel") || "Cancel"}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleCreateTemplate}
-                disabled={isSubmitting}
-              >
-                {isSubmitting
-                  ? t("common.creating") || "Creating..."
-                  : t("spiritualNotes.admin.createTemplate") ||
-                    "Create Template"}
-              </Button>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={templateForm.control}
+                  name="base_points"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-amber-500" />
+                        {t("spiritualNotes.admin.basePoints") || "Base Points"}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={100}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={templateForm.control}
+                  name="max_per_day"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t("spiritualNotes.admin.maxPerDay") || "Max per Day"}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t("spiritualNotes.admin.maxPerDayHelp") ||
+                          "Limit submissions per student per day"}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={templateForm.control}
+                name="requires_approval"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="space-y-0.5">
+                      <FormLabel>
+                        {t("spiritualNotes.admin.requiresApproval") ||
+                          "Requires Approval"}
+                      </FormLabel>
+                      <FormDescription>
+                        {t("spiritualNotes.admin.requiresApprovalHelp") ||
+                          "If enabled, submissions need teacher approval"}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleDialogClose}
+                >
+                  {t("common.cancel") || "Cancel"}
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={templateForm.formState.isSubmitting}
+                >
+                  {templateForm.formState.isSubmitting
+                    ? t("common.creating") || "Creating..."
+                    : t("spiritualNotes.admin.createTemplate") ||
+                      "Create Template"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </>

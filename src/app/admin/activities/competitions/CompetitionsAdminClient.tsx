@@ -3,12 +3,23 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -83,6 +94,49 @@ interface CompetitionsAdminClientProps {
   userProfile: UserProfile;
 }
 
+const SUBMISSION_TYPES = ["text", "pdf_upload", "google_form"] as const;
+const STATUS_OPTIONS = ["draft", "active"] as const;
+
+const competitionSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Competition name is required")
+    .max(200, "Name must be less than 200 characters"),
+  name_ar: z.string().max(200, "Arabic name must be less than 200 characters").optional(),
+  description: z.string().max(1000, "Description must be less than 1000 characters").optional(),
+  description_ar: z.string().max(1000, "Arabic description must be less than 1000 characters").optional(),
+  submission_type: z.enum(SUBMISSION_TYPES, {
+    message: "Please select a submission type",
+  }),
+  google_form_url: z.string().max(500, "URL must be less than 500 characters").optional(),
+  instructions: z.string().max(2000, "Instructions must be less than 2000 characters").optional(),
+  submission_guidelines: z.string().max(2000, "Guidelines must be less than 2000 characters").optional(),
+  start_date: z.string().min(1, "Start date is required"),
+  end_date: z.string().min(1, "End date is required"),
+  base_points: z.number().min(0, "Points must be at least 0").max(1000, "Points must be at most 1000"),
+  first_place_bonus: z.number().min(0).max(1000).optional(),
+  second_place_bonus: z.number().min(0).max(1000).optional(),
+  third_place_bonus: z.number().min(0).max(1000).optional(),
+  status: z.enum(STATUS_OPTIONS),
+}).superRefine((data, ctx) => {
+  if (data.start_date && data.end_date && new Date(data.start_date) > new Date(data.end_date)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "End date must be after or equal to start date",
+      path: ["end_date"],
+    });
+  }
+  if (data.submission_type === "google_form" && (!data.google_form_url || !data.google_form_url.trim())) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Google Form URL is required for this submission type",
+      path: ["google_form_url"],
+    });
+  }
+});
+
+type CompetitionFormData = z.infer<typeof competitionSchema>;
+
 export default function CompetitionsAdminClient({
   competitions,
   pendingSubmissions,
@@ -91,7 +145,6 @@ export default function CompetitionsAdminClient({
   const t = useTranslations();
   const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "draft" | "completed"
@@ -100,22 +153,26 @@ export default function CompetitionsAdminClient({
   const [competitionToDelete, setCompetitionToDelete] =
     useState<CompetitionWithStats | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [formData, setFormData] = useState<CreateCompetitionInput>({
-    name: "",
-    name_ar: "",
-    description: "",
-    description_ar: "",
-    submission_type: "text",
-    google_form_url: "",
-    instructions: "",
-    submission_guidelines: "",
-    start_date: "",
-    end_date: "",
-    base_points: 10,
-    first_place_bonus: 50,
-    second_place_bonus: 30,
-    third_place_bonus: 20,
-    status: "draft",
+
+  const form = useForm<CompetitionFormData>({
+    resolver: zodResolver(competitionSchema),
+    defaultValues: {
+      name: "",
+      name_ar: "",
+      description: "",
+      description_ar: "",
+      submission_type: "text",
+      google_form_url: "",
+      instructions: "",
+      submission_guidelines: "",
+      start_date: "",
+      end_date: "",
+      base_points: 10,
+      first_place_bonus: 50,
+      second_place_bonus: 30,
+      third_place_bonus: 20,
+      status: "draft",
+    },
   });
 
   const activeCompetitions = competitions.filter((c) => c.status === "active");
@@ -138,73 +195,43 @@ export default function CompetitionsAdminClient({
     return matchesSearch && matchesStatus;
   });
 
-  function resetForm() {
-    setFormData({
-      name: "",
-      name_ar: "",
-      description: "",
-      description_ar: "",
-      submission_type: "text",
-      google_form_url: "",
-      instructions: "",
-      submission_guidelines: "",
-      start_date: "",
-      end_date: "",
-      base_points: 10,
-      first_place_bonus: 50,
-      second_place_bonus: 30,
-      third_place_bonus: 20,
-      status: "draft",
-    });
+  function handleDialogClose() {
+    setShowCreateDialog(false);
+    form.reset();
   }
 
-  async function handleCreateCompetition() {
-    if (!formData.name || !formData.start_date || !formData.end_date) {
-      toast.error(
-        t("competitions.admin.fillRequired") ||
-          "Please fill in all required fields"
-      );
-      return;
-    }
-
-    if (new Date(formData.start_date) > new Date(formData.end_date)) {
-      toast.error(
-        t("competitions.admin.invalidDates") ||
-          "End date must be after start date"
-      );
-      return;
-    }
-
-    if (
-      formData.submission_type === "google_form" &&
-      !formData.google_form_url
-    ) {
-      toast.error(
-        t("competitions.admin.googleFormRequired") ||
-          "Google Form URL is required for this submission type"
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
+  async function handleCreateCompetition(data: CompetitionFormData) {
     try {
-      const result = await createCompetitionAction(formData);
+      const result = await createCompetitionAction({
+        name: data.name,
+        name_ar: data.name_ar || undefined,
+        description: data.description || undefined,
+        description_ar: data.description_ar || undefined,
+        submission_type: data.submission_type,
+        google_form_url: data.google_form_url || undefined,
+        instructions: data.instructions || undefined,
+        submission_guidelines: data.submission_guidelines || undefined,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        base_points: data.base_points,
+        first_place_bonus: typeof data.first_place_bonus === "number" ? data.first_place_bonus : undefined,
+        second_place_bonus: typeof data.second_place_bonus === "number" ? data.second_place_bonus : undefined,
+        third_place_bonus: typeof data.third_place_bonus === "number" ? data.third_place_bonus : undefined,
+        status: data.status,
+      });
 
       if (result.success) {
         toast.success(
           t("competitions.admin.competitionCreated") ||
             "Competition created successfully"
         );
-        setShowCreateDialog(false);
-        resetForm();
+        handleDialogClose();
         router.refresh();
       } else {
         toast.error(result.error || "Failed to create competition");
       }
     } catch (error) {
       toast.error("An error occurred");
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -571,7 +598,7 @@ export default function CompetitionsAdminClient({
       </Tabs>
 
       {/* Create Competition Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -585,283 +612,317 @@ export default function CompetitionsAdminClient({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("common.name") || "Name"} *</Label>
-                <Input
-                  placeholder={
-                    t("competitions.admin.namePlaceholder") ||
-                    "e.g., Essay Writing Contest"
-                  }
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleCreateCompetition)} className="space-y-4">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name") || "Name"} *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            t("competitions.admin.namePlaceholder") ||
+                            "e.g., Essay Writing Contest"
+                          }
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.nameAr") || "Name (Arabic)"}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            t("competitions.admin.nameArPlaceholder") ||
+                            "الاسم بالعربية"
+                          }
+                          dir="rtl"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>{t("common.nameAr") || "Name (Arabic)"}</Label>
-                <Input
-                  placeholder={
-                    t("competitions.admin.nameArPlaceholder") ||
-                    "الاسم بالعربية"
-                  }
-                  value={formData.name_ar || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name_ar: e.target.value })
-                  }
-                  dir="rtl"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label>{t("common.description") || "Description"}</Label>
-              <Textarea
-                placeholder={
-                  t("competitions.admin.descriptionPlaceholder") ||
-                  "Describe the competition..."
-                }
-                value={formData.description || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={2}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.description") || "Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          t("competitions.admin.descriptionPlaceholder") ||
+                          "Describe the competition..."
+                        }
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Submission Type */}
-            <div className="space-y-2">
-              <Label>
-                {t("competitions.admin.submissionType") || "Submission Type"} *
-              </Label>
-              <Select
-                value={formData.submission_type}
-                onValueChange={(value: CompetitionSubmissionType) =>
-                  setFormData({ ...formData, submission_type: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="text">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      {t("competitions.admin.textSubmission") ||
-                        "Text Submission"}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="pdf_upload">
-                    <div className="flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      {t("competitions.admin.pdfUpload") || "PDF Upload"}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="google_form">
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="h-4 w-4" />
-                      {t("competitions.admin.googleForm") || "Google Form"}
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Google Form URL (conditional) */}
-            {formData.submission_type === "google_form" && (
-              <div className="space-y-2">
-                <Label>
-                  {t("competitions.admin.googleFormUrl") || "Google Form URL"} *
-                </Label>
-                <Input
-                  placeholder="https://forms.google.com/..."
-                  value={formData.google_form_url || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      google_form_url: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            )}
-
-            {/* Instructions */}
-            <div className="space-y-2">
-              <Label>{t("competitions.instructions") || "Instructions"}</Label>
-              <Textarea
-                placeholder={
-                  t("competitions.admin.instructionsPlaceholder") ||
-                  "Competition rules and requirements..."
-                }
-                value={formData.instructions || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, instructions: e.target.value })
-                }
-                rows={2}
+              {/* Submission Type */}
+              <FormField
+                control={form.control}
+                name="submission_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t("competitions.admin.submissionType") || "Submission Type"} *
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="text">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            {t("competitions.admin.textSubmission") ||
+                              "Text Submission"}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="pdf_upload">
+                          <div className="flex items-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            {t("competitions.admin.pdfUpload") || "PDF Upload"}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="google_form">
+                          <div className="flex items-center gap-2">
+                            <ExternalLink className="h-4 w-4" />
+                            {t("competitions.admin.googleForm") || "Google Form"}
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {t("competitions.startDate") || "Start Date"} *
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, start_date: e.target.value })
-                  }
+              {/* Google Form URL (conditional) */}
+              {form.watch("submission_type") === "google_form" && (
+                <FormField
+                  control={form.control}
+                  name="google_form_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t("competitions.admin.googleFormUrl") || "Google Form URL"} *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://forms.google.com/..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Instructions */}
+              <FormField
+                control={form.control}
+                name="instructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("competitions.instructions") || "Instructions"}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          t("competitions.admin.instructionsPlaceholder") ||
+                          "Competition rules and requirements..."
+                        }
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="start_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {t("competitions.startDate") || "Start Date"} *
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="end_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {t("competitions.endDate") || "End Date"} *
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {t("competitions.endDate") || "End Date"} *
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, end_date: e.target.value })
-                  }
-                />
-              </div>
-            </div>
 
-            {/* Points */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-amber-500" />
-                {t("competitions.admin.pointsConfig") || "Points Configuration"}
-              </Label>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">
-                    {t("competitions.basePoints") || "Base Points"}
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.base_points}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        base_points: parseInt(e.target.value) || 0,
-                      })
-                    }
+              {/* Points */}
+              <div className="space-y-3">
+                <FormLabel className="flex items-center gap-2">
+                  <Award className="h-4 w-4 text-amber-500" />
+                  {t("competitions.admin.pointsConfig") || "Points Configuration"}
+                </FormLabel>
+                <div className="grid grid-cols-4 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="base_points"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">
+                          {t("competitions.basePoints") || "Base Points"}
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-amber-600">
-                    1st Place Bonus
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.first_place_bonus || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        first_place_bonus:
-                          parseInt(e.target.value) || undefined,
-                      })
-                    }
+                  <FormField
+                    control={form.control}
+                    name="first_place_bonus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs text-amber-600">
+                          1st Place Bonus
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">
-                    2nd Place Bonus
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.second_place_bonus || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        second_place_bonus:
-                          parseInt(e.target.value) || undefined,
-                      })
-                    }
+                  <FormField
+                    control={form.control}
+                    name="second_place_bonus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs text-gray-500">
+                          2nd Place Bonus
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-orange-500">
-                    3rd Place Bonus
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.third_place_bonus || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        third_place_bonus:
-                          parseInt(e.target.value) || undefined,
-                      })
-                    }
+                  <FormField
+                    control={form.control}
+                    name="third_place_bonus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs text-orange-500">
+                          3rd Place Bonus
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Status */}
-            <div className="space-y-2">
-              <Label>{t("common.status") || "Status"}</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: ActivityStatus) =>
-                  setFormData({ ...formData, status: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">
-                    {t("common.draft") || "Draft"}
-                  </SelectItem>
-                  <SelectItem value="active">
-                    {t("common.active") || "Active"}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {t("competitions.admin.statusHelp") ||
-                  "Draft competitions are not visible to participants"}
-              </p>
-            </div>
+              {/* Status */}
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.status") || "Status"}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">
+                          {t("common.draft") || "Draft"}
+                        </SelectItem>
+                        <SelectItem value="active">
+                          {t("common.active") || "Active"}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {t("competitions.admin.statusHelp") ||
+                        "Draft competitions are not visible to participants"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  setShowCreateDialog(false);
-                  resetForm();
-                }}
-              >
-                {t("common.cancel") || "Cancel"}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleCreateCompetition}
-                disabled={isSubmitting}
-              >
-                {isSubmitting
-                  ? t("common.creating") || "Creating..."
-                  : t("competitions.admin.createCompetition") ||
-                    "Create Competition"}
-              </Button>
-            </div>
-          </div>
+              <div className="flex gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleDialogClose}
+                >
+                  {t("common.cancel") || "Cancel"}
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting
+                    ? t("common.creating") || "Creating..."
+                    : t("competitions.admin.createCompetition") ||
+                      "Create Competition"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 

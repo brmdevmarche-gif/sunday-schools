@@ -3,13 +3,24 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Table,
   TableBody,
@@ -44,6 +55,30 @@ interface ReadingsAdminClientProps {
   userProfile: UserProfile;
 }
 
+const readingScheduleSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Schedule name is required")
+    .max(200, "Name must be less than 200 characters"),
+  name_ar: z.string().max(200, "Arabic name must be less than 200 characters").optional(),
+  description: z.string().max(1000, "Description must be less than 1000 characters").optional(),
+  description_ar: z.string().max(1000, "Arabic description must be less than 1000 characters").optional(),
+  start_date: z.string().min(1, "Start date is required"),
+  end_date: z.string().min(1, "End date is required"),
+  points_per_reading: z.number().min(1, "Points must be at least 1").max(100, "Points must be at most 100"),
+  requires_approval: z.boolean(),
+}).superRefine((data, ctx) => {
+  if (data.start_date && data.end_date && new Date(data.start_date) > new Date(data.end_date)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "End date must be after or equal to start date",
+      path: ["end_date"],
+    });
+  }
+});
+
+type ReadingScheduleFormData = z.infer<typeof readingScheduleSchema>;
+
 export default function ReadingsAdminClient({
   schedules,
   userProfile,
@@ -51,16 +86,19 @@ export default function ReadingsAdminClient({
   const t = useTranslations();
   const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<CreateReadingScheduleInput>({
-    name: "",
-    name_ar: "",
-    description: "",
-    description_ar: "",
-    start_date: "",
-    end_date: "",
-    points_per_reading: 5,
-    requires_approval: false,
+
+  const form = useForm<ReadingScheduleFormData>({
+    resolver: zodResolver(readingScheduleSchema),
+    defaultValues: {
+      name: "",
+      name_ar: "",
+      description: "",
+      description_ar: "",
+      start_date: "",
+      end_date: "",
+      points_per_reading: 5,
+      requires_approval: false,
+    },
   });
 
   const now = new Date();
@@ -75,53 +113,36 @@ export default function ReadingsAdminClient({
   );
   const pastSchedules = schedules.filter((s) => new Date(s.end_date) < now);
 
-  function resetForm() {
-    setFormData({
-      name: "",
-      name_ar: "",
-      description: "",
-      description_ar: "",
-      start_date: "",
-      end_date: "",
-      points_per_reading: 5,
-      requires_approval: false,
-    });
+  function handleDialogClose() {
+    setShowCreateDialog(false);
+    form.reset();
   }
 
-  async function handleCreateSchedule() {
-    if (!formData.name || !formData.start_date || !formData.end_date) {
-      toast.error(
-        t("readings.admin.fillRequired") || "Please fill in all required fields"
-      );
-      return;
-    }
-
-    if (new Date(formData.start_date) > new Date(formData.end_date)) {
-      toast.error(
-        t("readings.admin.invalidDates") || "End date must be after start date"
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
+  async function handleCreateSchedule(data: ReadingScheduleFormData) {
     try {
-      const result = await createReadingScheduleAction(formData);
+      const result = await createReadingScheduleAction({
+        name: data.name,
+        name_ar: data.name_ar || undefined,
+        description: data.description || undefined,
+        description_ar: data.description_ar || undefined,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        points_per_reading: data.points_per_reading,
+        requires_approval: data.requires_approval,
+      });
 
       if (result.success) {
         toast.success(
           t("readings.admin.scheduleCreated") ||
             "Reading schedule created successfully"
         );
-        setShowCreateDialog(false);
-        resetForm();
+        handleDialogClose();
         router.refresh();
       } else {
         toast.error(result.error || "Failed to create schedule");
       }
     } catch (error) {
       toast.error("An error occurred");
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -279,7 +300,7 @@ export default function ReadingsAdminClient({
       </Card>
 
       {/* Create Schedule Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -292,144 +313,172 @@ export default function ReadingsAdminClient({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("common.name") || "Name"} *</Label>
-                <Input
-                  placeholder={
-                    t("readings.admin.namePlaceholder") ||
-                    "e.g., Lent Reading Plan"
-                  }
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleCreateSchedule)} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name") || "Name"} *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            t("readings.admin.namePlaceholder") ||
+                            "e.g., Lent Reading Plan"
+                          }
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.nameAr") || "Name (Arabic)"}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            t("readings.admin.nameArPlaceholder") || "الاسم بالعربية"
+                          }
+                          dir="rtl"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>{t("common.nameAr") || "Name (Arabic)"}</Label>
-                <Input
-                  placeholder={
-                    t("readings.admin.nameArPlaceholder") || "الاسم بالعربية"
-                  }
-                  value={formData.name_ar || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name_ar: e.target.value })
-                  }
-                  dir="rtl"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label>{t("common.description") || "Description"}</Label>
-              <Textarea
-                placeholder={
-                  t("readings.admin.descriptionPlaceholder") ||
-                  "Describe the reading schedule..."
-                }
-                value={formData.description || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={2}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.description") || "Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          t("readings.admin.descriptionPlaceholder") ||
+                          "Describe the reading schedule..."
+                        }
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {t("readings.admin.startDate") || "Start Date"} *
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, start_date: e.target.value })
-                  }
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="start_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {t("readings.admin.startDate") || "Start Date"} *
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="end_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {t("readings.admin.endDate") || "End Date"} *
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {t("readings.admin.endDate") || "End Date"} *
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, end_date: e.target.value })
-                  }
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-amber-500" />
-                {t("readings.admin.pointsPerReading") || "Points per Reading"}
-              </Label>
-              <Input
-                type="number"
-                min={1}
-                max={100}
-                value={formData.points_per_reading}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    points_per_reading: parseInt(e.target.value) || 5,
-                  })
-                }
+              <FormField
+                control={form.control}
+                name="points_per_reading"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Trophy className="h-4 w-4 text-amber-500" />
+                      {t("readings.admin.pointsPerReading") || "Points per Reading"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="number" min={1} max={100} {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      {t("readings.admin.pointsHelp") ||
+                        "Points awarded for each completed reading"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <p className="text-xs text-muted-foreground">
-                {t("readings.admin.pointsHelp") ||
-                  "Points awarded for each completed reading"}
-              </p>
-            </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
-                <Label>
-                  {t("readings.admin.requiresApproval") ||
-                    "Requires Teacher Approval"}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("readings.admin.requiresApprovalHelp") ||
-                    "If enabled, readings need teacher approval before points are awarded"}
-                </p>
-              </div>
-              <Switch
-                checked={formData.requires_approval}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, requires_approval: checked })
-                }
+              <FormField
+                control={form.control}
+                name="requires_approval"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="space-y-0.5">
+                      <FormLabel>
+                        {t("readings.admin.requiresApproval") ||
+                          "Requires Teacher Approval"}
+                      </FormLabel>
+                      <FormDescription>
+                        {t("readings.admin.requiresApprovalHelp") ||
+                          "If enabled, readings need teacher approval before points are awarded"}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  setShowCreateDialog(false);
-                  resetForm();
-                }}
-              >
-                {t("common.cancel") || "Cancel"}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleCreateSchedule}
-                disabled={isSubmitting}
-              >
-                {isSubmitting
-                  ? t("common.creating") || "Creating..."
-                  : t("readings.admin.createSchedule") || "Create Schedule"}
-              </Button>
-            </div>
-          </div>
+              <div className="flex gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleDialogClose}
+                >
+                  {t("common.cancel") || "Cancel"}
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting
+                    ? t("common.creating") || "Creating..."
+                    : t("readings.admin.createSchedule") || "Create Schedule"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

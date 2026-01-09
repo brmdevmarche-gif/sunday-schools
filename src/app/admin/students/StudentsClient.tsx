@@ -284,7 +284,7 @@ export default function StudentsClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Student Management</h1>
           <p className="text-muted-foreground mt-2">
@@ -292,8 +292,8 @@ export default function StudentsClient({
           </p>
         </div>
         {canCreate && (
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+            <Plus className="me-2 h-4 w-4" />
             Add Student
           </Button>
         )}
@@ -497,7 +497,7 @@ export default function StudentsClient({
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="full_name">Full Name *</Label>
                   <Input
@@ -543,7 +543,7 @@ export default function StudentsClient({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="diocese_id">Diocese *</Label>
                   <Select
@@ -593,7 +593,7 @@ export default function StudentsClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="date_of_birth">Date of Birth</Label>
                   <Input
@@ -630,7 +630,7 @@ export default function StudentsClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
                   <Input

@@ -152,7 +152,7 @@ export default function CreateActivityClient({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="points">{t("activities.points")} *</Label>
                     <Input
@@ -232,7 +232,7 @@ export default function CreateActivityClient({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="start_time">
                           {t("activities.startTime") || "Start Time"}

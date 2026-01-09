@@ -11,8 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
+import { DateTimePicker } from '@/components/ui/date-input'
 import { createAnnouncementAction, getAnnouncementTypesAction, updateAnnouncementAction } from './actions'
 
 type Mode = 'create' | 'edit'
@@ -61,13 +61,6 @@ function endOfCurrentMonthIso(fromIso: string) {
   const from = new Date(fromIso)
   const end = new Date(from.getFullYear(), from.getMonth() + 1, 0, 23, 59, 59, 999)
   return end.toISOString()
-}
-
-function formatLocalOrDash(v: string, locale: string, selectLabel: string) {
-  if (!v) return selectLabel
-  const d = new Date(v)
-  if (Number.isNaN(d.getTime())) return selectLabel
-  return d.toLocaleString(locale)
 }
 
 function toggleId(list: string[], id: string) {
@@ -166,34 +159,6 @@ export default function AnnouncementForm(props: {
     setClassIds(prev => prev.filter(id => validClassIds.has(id)))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [churchIds, filteredClasses])
-
-  const DateTimePicker = (p: { label: string; value: string; onChange: (v: string) => void; allowClear?: boolean }) => {
-    return (
-      <div className="grid gap-2">
-        <Label>{p.label}</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button type="button" variant="outline" className="justify-start">
-              {formatLocalOrDash(p.value, locale, t('announcements.date.select'))}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 space-y-2" align="start">
-            <Input type="datetime-local" value={p.value} onChange={(e) => p.onChange(e.target.value)} />
-            <div className="flex gap-2 justify-end">
-              {p.allowClear && (
-                <Button type="button" variant="outline" size="sm" onClick={() => p.onChange('')}>
-                  {t('common.clear')}
-                </Button>
-              )}
-              <Button type="button" size="sm" onClick={() => p.onChange(nowLocal)}>
-                {t('common.now')}
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-    )
-  }
 
   const applyQuickRange = (range: 'no_end' | 'week' | 'current_month' | 'one_month') => {
     const fromIso = dateTimeLocalToIso(publishFrom)
@@ -332,8 +297,28 @@ export default function AnnouncementForm(props: {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <DateTimePicker label={t('announcements.form.publishFrom')} value={publishFrom} onChange={setPublishFrom} />
-          <DateTimePicker label={t('announcements.form.publishTo')} value={publishTo} onChange={setPublishTo} allowClear />
+          <DateTimePicker
+            value={publishFrom}
+            onChange={setPublishFrom}
+            label={t('announcements.form.publishFrom')}
+            placeholder={t('announcements.date.select')}
+            showNow
+            nowText={t('common.now')}
+            sheetTitle={t('announcements.form.publishFrom')}
+            locale={locale}
+          />
+          <DateTimePicker
+            value={publishTo}
+            onChange={setPublishTo}
+            label={t('announcements.form.publishTo')}
+            placeholder={t('announcements.date.select')}
+            showClear
+            showNow
+            clearText={t('common.clear')}
+            nowText={t('common.now')}
+            sheetTitle={t('announcements.form.publishTo')}
+            locale={locale}
+          />
         </div>
 
         <div className="flex flex-wrap gap-2">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -306,18 +307,25 @@ function CompetitionCard({
   t: (key: string) => string;
 }) {
   const hasSubmitted = !!competition.my_submission;
+  const [imageError, setImageError] = useState(false);
 
   return (
     <Card className="overflow-hidden cursor-pointer hover:border-primary/50 transition-colors" onClick={onViewDetails}>
-      {competition.image_url && (
-        <div className="aspect-video bg-muted overflow-hidden">
+      {/* Image or Placeholder */}
+      <div className="aspect-video bg-muted overflow-hidden">
+        {competition.image_url && !imageError ? (
           <img
             src={competition.image_url}
             alt={competition.name}
             className="h-full w-full object-cover"
+            onError={() => setImageError(true)}
           />
-        </div>
-      )}
+        ) : (
+          <div className="h-full w-full flex items-center justify-center bg-linear-to-br from-amber-500/10 to-amber-600/20">
+            <Trophy className="h-12 w-12 text-amber-500/50" />
+          </div>
+        )}
+      </div>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>

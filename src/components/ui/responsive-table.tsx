@@ -36,6 +36,14 @@ export interface Column<T> {
   headerClassName?: string;
   /** Custom class for table cell */
   cellClassName?: string;
+  /**
+   * How to handle text overflow on mobile cards (default: 'truncate')
+   * - 'truncate': Single line with ellipsis
+   * - 'break': Break long words (good for emails, URLs)
+   * - 'wrap': Allow multiple lines
+   * - 'none': No overflow handling
+   */
+  textOverflow?: "truncate" | "break" | "wrap" | "none";
 }
 
 export interface SortOption {
@@ -69,6 +77,26 @@ export interface ResponsiveTableProps<T> {
   onSortChange?: (sortKey: string) => void;
   /** Sort label for mobile */
   sortLabel?: string;
+}
+
+/**
+ * Get CSS class for text overflow handling
+ */
+function getTextOverflowClass(
+  overflow: Column<unknown>["textOverflow"] = "truncate"
+): string {
+  switch (overflow) {
+    case "truncate":
+      return "truncate";
+    case "break":
+      return "break-all";
+    case "wrap":
+      return "whitespace-normal";
+    case "none":
+      return "";
+    default:
+      return "truncate";
+  }
 }
 
 export function ResponsiveTable<T>({
@@ -148,7 +176,7 @@ export function ResponsiveTable<T>({
               <TableRow
                 key={getRowKey(item)}
                 className={cn(
-                  onRowClick && "cursor-pointer hover:bg-muted/50",
+                  onRowClick && "cursor-pointer hover:bg-muted/50 active:bg-muted/70 transition-colors",
                   rowClassName
                 )}
                 onClick={() => onRowClick?.(item)}
@@ -199,7 +227,7 @@ export function ResponsiveTable<T>({
           <Card
             key={getRowKey(item)}
             className={cn(
-              onRowClick && "cursor-pointer hover:bg-muted/50 transition-colors",
+              onRowClick && "cursor-pointer hover:bg-muted/50 active:bg-muted/70 active:scale-[0.99] transition-all",
               cardClassName
             )}
             onClick={() => onRowClick?.(item)}
@@ -209,12 +237,22 @@ export function ResponsiveTable<T>({
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="min-w-0 flex-1">
                   {titleColumn && (
-                    <div className="font-semibold truncate">
+                    <div
+                      className={cn(
+                        "font-semibold",
+                        getTextOverflowClass(titleColumn.textOverflow)
+                      )}
+                    >
                       {titleColumn.cell(item)}
                     </div>
                   )}
                   {subtitleColumn && (
-                    <div className="text-sm text-muted-foreground truncate">
+                    <div
+                      className={cn(
+                        "text-sm text-muted-foreground",
+                        getTextOverflowClass(subtitleColumn.textOverflow)
+                      )}
+                    >
                       {subtitleColumn.cell(item)}
                     </div>
                   )}
@@ -240,7 +278,14 @@ export function ResponsiveTable<T>({
                       <span className="text-muted-foreground shrink-0">
                         {column.mobileLabel || column.header}
                       </span>
-                      <span className="text-end truncate">{column.cell(item)}</span>
+                      <span
+                        className={cn(
+                          "text-end min-w-0",
+                          getTextOverflowClass(column.textOverflow)
+                        )}
+                      >
+                        {column.cell(item)}
+                      </span>
                     </div>
                   ))}
                 </div>

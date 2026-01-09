@@ -23,13 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +47,8 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ResponsiveFilters } from "@/components/ui/filter-sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Pagination, usePagination } from "@/components/ui/pagination";
+import { OptimizedAvatar, getInitials } from "@/components/ui/optimized-avatar";
 import type {
   Class,
   CreateClassInput,
@@ -441,6 +436,20 @@ export default function ClassesClient({
       return sortDirection === "asc" ? comparison : -comparison;
     });
 
+  // Pagination
+  const {
+    paginatedData: paginatedClasses,
+    currentPage,
+    totalPages,
+    pageSize,
+    totalItems,
+    onPageChange,
+    onPageSizeChange,
+  } = usePagination({
+    data: filteredClasses,
+    initialPageSize: 20,
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -466,42 +475,40 @@ export default function ClassesClient({
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 min-w-[200px] space-y-1">
             <Label>{t("classes.diocese")}</Label>
-            <Select
+            <SearchableSelect
               value={selectedDioceseFilter}
               onValueChange={setSelectedDioceseFilter}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("classes.allDioceses")}</SelectItem>
-                {dioceses.map((diocese) => (
-                  <SelectItem key={diocese.id} value={diocese.id}>
-                    {diocese.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={dioceses.map((diocese) => ({
+                value: diocese.id,
+                label: diocese.name,
+              }))}
+              placeholder={t("classes.allDioceses")}
+              searchPlaceholder={t("common.search")}
+              emptyText={t("common.noResults")}
+              sheetTitle={t("classes.diocese")}
+              showClearOption
+              clearOptionLabel={t("classes.allDioceses")}
+              clearOptionValue="all"
+            />
           </div>
 
           <div className="flex-1 min-w-[200px] space-y-1">
             <Label>{t("classes.church")}</Label>
-            <Select
+            <SearchableSelect
               value={selectedChurchFilter}
               onValueChange={setSelectedChurchFilter}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("classes.allChurches")}</SelectItem>
-                {filteredChurches.map((church) => (
-                  <SelectItem key={church.id} value={church.id}>
-                    {church.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={filteredChurches.map((church) => ({
+                value: church.id,
+                label: church.name,
+              }))}
+              placeholder={t("classes.allChurches")}
+              searchPlaceholder={t("common.search")}
+              emptyText={t("common.noResults")}
+              sheetTitle={t("classes.church")}
+              showClearOption
+              clearOptionLabel={t("classes.allChurches")}
+              clearOptionValue="all"
+            />
           </div>
         </div>
       </ResponsiveFilters>
@@ -516,7 +523,7 @@ export default function ClassesClient({
         </CardHeader>
         <CardContent>
           <ResponsiveTable
-            data={filteredClasses}
+            data={paginatedClasses}
             columns={[
               {
                 key: "name",
@@ -690,6 +697,29 @@ export default function ClassesClient({
             onSortChange={handleMobileSortChange}
             sortLabel={t("common.sortBy")}
           />
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageSizeChange={onPageSizeChange}
+              showPageSize
+              showItemCount
+              labels={{
+                previous: t("common.previous"),
+                next: t("common.next"),
+                page: t("common.page"),
+                of: t("common.of"),
+                items: t("classes.classes"),
+                itemsPerPage: t("common.perPage"),
+              }}
+              className="mt-4"
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -713,25 +743,21 @@ export default function ClassesClient({
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="church_id">{t("classes.church")} *</Label>
-                <Select
+                <SearchableSelect
                   value={formData.church_id}
                   onValueChange={(value) =>
                     setFormData({ ...formData, church_id: value })
                   }
-                  required
                   disabled={isSubmitting}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("classes.selectChurch")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {churches.map((church) => (
-                      <SelectItem key={church.id} value={church.id}>
-                        {church.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={churches.map((church) => ({
+                    value: church.id,
+                    label: church.name,
+                  }))}
+                  placeholder={t("classes.selectChurch")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("classes.church")}
+                />
               </div>
 
               <div className="space-y-2">
@@ -912,20 +938,13 @@ export default function ClassesClient({
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage
-                            src={user.avatar_url || undefined}
-                            alt={user.full_name || user.email}
-                          />
-                          <AvatarFallback className="bg-primary/10">
-                            {(user.full_name || user.email)
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <OptimizedAvatar
+                          src={user.avatar_url}
+                          alt={user.full_name || user.email || ""}
+                          fallback={getInitials(user.full_name || user.email)}
+                          size="lg"
+                          fallbackClassName="bg-primary/10"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">
                             {user.full_name ||

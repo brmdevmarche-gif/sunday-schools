@@ -17,14 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { ResponsiveBreadcrumb } from "@/components/ui/responsive-breadcrumb";
 import {
   Table,
   TableBody,
@@ -42,7 +35,6 @@ import {
   Building2,
   Users,
   GraduationCap,
-  Home,
   Loader2,
 } from "lucide-react";
 import type { Diocese, Church, DioceseAdmin, ExtendedUser } from "@/lib/types";
@@ -116,27 +108,13 @@ export function DioceseDetailsClient({
   return (
     <div className="space-y-6 max-w-6xl mx-auto py-8 px-2 lg:px-6">
       {/* Breadcrumb Navigation */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin">
-                <Home className="h-4 w-4" />
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin/dioceses">{t("dioceses.title")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{diocese.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <ResponsiveBreadcrumb
+        items={[
+          { label: t("nav.dashboard"), href: "/admin" },
+          { label: t("dioceses.title"), href: "/admin/dioceses" },
+          { label: diocese.name },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex items-center justify-between">

@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { DateTimePicker } from "@/components/ui/date-input";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 import { createActivityAction } from "../actions";
@@ -227,48 +228,36 @@ export default function CreateActivityClient({
 
                 {formData.is_time_sensitive && (
                   <>
-                    <div className="space-y-2">
-                      <Label htmlFor="deadline">
-                        {t("activities.deadline")}
-                      </Label>
-                      <Input
-                        id="deadline"
-                        type="datetime-local"
-                        value={formData.deadline || ""}
-                        onChange={(e) =>
-                          handleInputChange("deadline", e.target.value)
-                        }
-                      />
-                    </div>
+                    <DateTimePicker
+                      value={formData.deadline || ""}
+                      onChange={(value) =>
+                        handleInputChange("deadline", value)
+                      }
+                      label={t("activities.deadline")}
+                      placeholder={t("activities.selectDateTime") || "Select date and time"}
+                      sheetTitle={t("activities.deadline")}
+                    />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="start_time">
-                          {t("activities.startTime") || "Start Time"}
-                        </Label>
-                        <Input
-                          id="start_time"
-                          type="datetime-local"
-                          value={formData.start_time || ""}
-                          onChange={(e) =>
-                            handleInputChange("start_time", e.target.value)
-                          }
-                        />
-                      </div>
+                      <DateTimePicker
+                        value={formData.start_time || ""}
+                        onChange={(value) =>
+                          handleInputChange("start_time", value)
+                        }
+                        label={t("activities.startTime") || "Start Time"}
+                        placeholder={t("activities.selectDateTime") || "Select date and time"}
+                        sheetTitle={t("activities.startTime") || "Start Time"}
+                      />
 
-                      <div className="space-y-2">
-                        <Label htmlFor="end_time">
-                          {t("activities.endTime") || "End Time"}
-                        </Label>
-                        <Input
-                          id="end_time"
-                          type="datetime-local"
-                          value={formData.end_time || ""}
-                          onChange={(e) =>
-                            handleInputChange("end_time", e.target.value)
-                          }
-                        />
-                      </div>
+                      <DateTimePicker
+                        value={formData.end_time || ""}
+                        onChange={(value) =>
+                          handleInputChange("end_time", value)
+                        }
+                        label={t("activities.endTime") || "End Time"}
+                        placeholder={t("activities.selectDateTime") || "Select date and time"}
+                        sheetTitle={t("activities.endTime") || "End Time"}
+                      />
                     </div>
                   </>
                 )}

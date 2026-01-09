@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OptimizedAvatar, getInitials } from "@/components/ui/optimized-avatar";
 import {
   Select,
   SelectContent,
@@ -357,20 +357,12 @@ export default function TripClassStudentsClient({
                       key={student.id}
                       className="flex items-center gap-3 p-3 border rounded-lg"
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={student.avatar_url || undefined}
-                          alt={student.full_name || student.email}
-                        />
-                        <AvatarFallback>
-                          {(student.full_name || student.email)
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={student.avatar_url}
+                        alt={student.full_name || student.email || ""}
+                        fallback={getInitials(student.full_name || student.email)}
+                        size="md"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">
                           {student.full_name || student.email}

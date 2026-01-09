@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { Badge } from "@/components/ui/badge";
 import DashboardNavbar from "./DashboardNavbar";
 import AnnouncementsWidget from "@/components/announcements/AnnouncementsWidget";
@@ -230,12 +230,14 @@ export default async function DashboardPage() {
         <div className="container mx-auto px-4">
           <div className="relative -mt-20 sm:-mt-24 flex flex-col sm:flex-row items-center sm:items-end gap-4 py-4 px-4 rounded-2xl bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50">
             {/* Profile Photo */}
-            <Avatar className="h-32 w-32 sm:h-36 sm:w-36 border-4 border-background shadow-xl">
-              <AvatarImage src={profile.avatar_url || undefined} />
-              <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
-                {getInitials(profile.full_name)}
-              </AvatarFallback>
-            </Avatar>
+            <OptimizedAvatar
+              src={profile.avatar_url}
+              alt={profile.full_name || profile.username || "User"}
+              fallback={getInitials(profile.full_name)}
+              size="xl"
+              className="h-32 w-32 sm:h-36 sm:w-36 border-4 border-background shadow-xl"
+              fallbackClassName="text-3xl bg-primary text-primary-foreground"
+            />
 
             {/* Name and Info */}
             <div className="flex-1 text-center sm:text-left pb-2">

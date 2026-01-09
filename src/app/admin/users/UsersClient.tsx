@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Accordion,
   AccordionContent,
@@ -404,44 +405,40 @@ export default function UsersClient({
 
           <div className="space-y-2">
             <Label>{t("users.diocese")}</Label>
-            <Select
+            <SearchableSelect
               value={dioceseFilter}
               onValueChange={(value) => handleFilterChange("diocese", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {t("users.filterByDiocese")}
-                </SelectItem>
-                {dioceses.map((diocese) => (
-                  <SelectItem key={diocese.id} value={diocese.id}>
-                    {diocese.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={dioceses.map((diocese) => ({
+                value: diocese.id,
+                label: diocese.name,
+              }))}
+              placeholder={t("users.filterByDiocese")}
+              searchPlaceholder={t("common.search")}
+              emptyText={t("common.noResults")}
+              sheetTitle={t("users.diocese")}
+              showClearOption
+              clearOptionLabel={t("users.filterByDiocese")}
+              clearOptionValue="all"
+            />
           </div>
 
           <div className="space-y-2">
             <Label>{t("users.church")}</Label>
-            <Select
+            <SearchableSelect
               value={churchFilter}
               onValueChange={(value) => handleFilterChange("church", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("users.filterByChurch")}</SelectItem>
-                {churches.map((church) => (
-                  <SelectItem key={church.id} value={church.id}>
-                    {church.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={churches.map((church) => ({
+                value: church.id,
+                label: church.name,
+              }))}
+              placeholder={t("users.filterByChurch")}
+              searchPlaceholder={t("common.search")}
+              emptyText={t("common.noResults")}
+              sheetTitle={t("users.church")}
+              showClearOption
+              clearOptionLabel={t("users.filterByChurch")}
+              clearOptionValue="all"
+            />
           </div>
         </div>
       </ResponsiveFilters>
@@ -636,23 +633,20 @@ export default function UsersClient({
             {roleFormData.role === "diocese_admin" && (
               <div className="space-y-2">
                 <Label>{t("users.diocese")}</Label>
-                <Select
+                <SearchableSelect
                   value={roleFormData.diocese_id}
                   onValueChange={(value) =>
                     setRoleFormData({ ...roleFormData, diocese_id: value })
                   }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("users.selectDiocese")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dioceses.map((diocese) => (
-                      <SelectItem key={diocese.id} value={diocese.id}>
-                        {diocese.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={dioceses.map((diocese) => ({
+                    value: diocese.id,
+                    label: diocese.name,
+                  }))}
+                  placeholder={t("users.selectDiocese")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.diocese")}
+                />
               </div>
             )}
 
@@ -661,23 +655,20 @@ export default function UsersClient({
             ) && (
               <div className="space-y-2">
                 <Label>{t("users.church")}</Label>
-                <Select
+                <SearchableSelect
                   value={roleFormData.church_id}
                   onValueChange={(value) =>
                     setRoleFormData({ ...roleFormData, church_id: value })
                   }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("users.selectChurch")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {churches.map((church) => (
-                      <SelectItem key={church.id} value={church.id}>
-                        {church.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={churches.map((church) => ({
+                    value: church.id,
+                    label: church.name,
+                  }))}
+                  placeholder={t("users.selectChurch")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.church")}
+                />
               </div>
             )}
           </div>
@@ -807,7 +798,7 @@ export default function UsersClient({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("users.optionalDiocese")}</Label>
-                <Select
+                <SearchableSelect
                   value={createFormData.diocese_id || "none"}
                   onValueChange={(value) =>
                     setCreateFormData({
@@ -816,24 +807,23 @@ export default function UsersClient({
                     })
                   }
                   disabled={isSubmitting}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("users.selectDiocese")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {dioceses.map((diocese) => (
-                      <SelectItem key={diocese.id} value={diocese.id}>
-                        {diocese.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={dioceses.map((diocese) => ({
+                    value: diocese.id,
+                    label: diocese.name,
+                  }))}
+                  placeholder={t("users.selectDiocese")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.diocese")}
+                  showClearOption
+                  clearOptionLabel="-"
+                  clearOptionValue="none"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("users.optionalChurch")}</Label>
-                <Select
+                <SearchableSelect
                   value={createFormData.church_id || "none"}
                   onValueChange={(value) =>
                     setCreateFormData({
@@ -842,25 +832,24 @@ export default function UsersClient({
                     })
                   }
                   disabled={isSubmitting}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("users.selectChurch")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {churches
-                      .filter(
-                        (c) =>
-                          !createFormData.diocese_id ||
-                          c.diocese_id === createFormData.diocese_id
-                      )
-                      .map((church) => (
-                        <SelectItem key={church.id} value={church.id}>
-                          {church.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  options={churches
+                    .filter(
+                      (c) =>
+                        !createFormData.diocese_id ||
+                        c.diocese_id === createFormData.diocese_id
+                    )
+                    .map((church) => ({
+                      value: church.id,
+                      label: church.name,
+                    }))}
+                  placeholder={t("users.selectChurch")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.church")}
+                  showClearOption
+                  clearOptionLabel="-"
+                  clearOptionValue="none"
+                />
               </div>
             </div>
           </div>

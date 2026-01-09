@@ -29,16 +29,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OptimizedAvatar, getInitials } from "@/components/ui/optimized-avatar";
 import { Input } from "@/components/ui/input";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { ResponsiveBreadcrumb } from "@/components/ui/responsive-breadcrumb";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -64,7 +57,6 @@ import {
   Bus,
   Cake,
   Coins,
-  Home,
 } from "lucide-react";
 import ClassPointsOverview from "@/components/ClassPointsOverview";
 import { toast } from "sonner";
@@ -446,27 +438,13 @@ export default function ClassDetailsClient({
   return (
     <div className="space-y-6">
       {/* Breadcrumb Navigation */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin">
-                <Home className="h-4 w-4" />
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin/classes">{t("classes.title")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{classData.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <ResponsiveBreadcrumb
+        items={[
+          { label: t("nav.dashboard"), href: "/admin" },
+          { label: t("classes.title"), href: "/admin/classes" },
+          { label: classData.name },
+        ]}
+      />
 
       {/* Header with Actions */}
       <div className="flex items-start justify-between gap-4">
@@ -667,22 +645,12 @@ export default function ClassDetailsClient({
                       key={assignment.id}
                       className="flex items-center gap-3 p-3 border rounded-lg"
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={assignment.user?.avatar_url || undefined}
-                          alt={assignment.user?.full_name}
-                        />
-                        <AvatarFallback>
-                          {(
-                            assignment.user?.full_name || assignment.user?.email
-                          )
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={assignment.user?.avatar_url}
+                        alt={assignment.user?.full_name || assignment.user?.email || ""}
+                        fallback={getInitials(assignment.user?.full_name || assignment.user?.email)}
+                        size="md"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">
                           {assignment.user?.full_name || assignment.user?.email}
@@ -743,22 +711,12 @@ export default function ClassDetailsClient({
                       key={assignment.id}
                       className="flex items-center gap-3 p-3 border rounded-lg"
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={assignment.user?.avatar_url || undefined}
-                          alt={assignment.user?.full_name}
-                        />
-                        <AvatarFallback>
-                          {(
-                            assignment.user?.full_name || assignment.user?.email
-                          )
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={assignment.user?.avatar_url}
+                        alt={assignment.user?.full_name || assignment.user?.email || ""}
+                        fallback={getInitials(assignment.user?.full_name || assignment.user?.email)}
+                        size="md"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">
                           {assignment.user?.full_name || assignment.user?.email}
@@ -1088,20 +1046,13 @@ export default function ClassDetailsClient({
                           key={student.id}
                           className="flex items-start gap-3 p-3 border rounded-lg"
                         >
-                          <Avatar className="h-10 w-10 mt-1">
-                            <AvatarImage
-                              src={student.avatar_url || undefined}
-                              alt={student.full_name}
-                            />
-                            <AvatarFallback>
-                              {(student.full_name || student.email)
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <OptimizedAvatar
+                            src={student.avatar_url}
+                            alt={student.full_name || student.email || ""}
+                            fallback={getInitials(student.full_name || student.email)}
+                            size="md"
+                            className="mt-1"
+                          />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium">
                               {student.full_name || student.email}
@@ -1300,20 +1251,12 @@ export default function ClassDetailsClient({
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage
-                          src={user.avatar_url || undefined}
-                          alt={user.full_name}
-                        />
-                        <AvatarFallback>
-                          {(user.full_name || user.email)
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={user.avatar_url}
+                        alt={user.full_name || user.email || ""}
+                        fallback={getInitials(user.full_name || user.email)}
+                        size="lg"
+                      />
                       <div className="flex-1">
                         <p className="font-medium">
                           {user.full_name || user.email}

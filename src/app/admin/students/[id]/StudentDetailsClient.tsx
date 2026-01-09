@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import {
   ArrowLeft,
   Trophy,
@@ -232,12 +232,14 @@ export default function StudentDetailsClient({
       <Card>
         <CardHeader>
           <div className="flex items-start gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={student.avatar_url || undefined} />
-              <AvatarFallback className="text-lg">
-                {getInitials(student.full_name)}
-              </AvatarFallback>
-            </Avatar>
+            <OptimizedAvatar
+              src={student.avatar_url}
+              alt={student.full_name || "Student"}
+              fallback={getInitials(student.full_name)}
+              size="xl"
+              className="h-20 w-20"
+              fallbackClassName="text-lg"
+            />
             <div className="flex-1">
               <CardTitle className="text-2xl">
                 {student.full_name || "Unknown Student"}

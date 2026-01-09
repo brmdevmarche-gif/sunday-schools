@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { DateTimePicker } from "@/components/ui/date-input";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Plus, Trash2, MapPin } from "lucide-react";
 import { updateTripAction } from "../actions";
@@ -336,31 +337,25 @@ export default function EditTripClient({
                 <CardTitle>Date & Time</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="start_datetime">Start Date & Time *</Label>
-                  <Input
-                    id="start_datetime"
-                    type="datetime-local"
-                    value={formData.start_datetime}
-                    onChange={(e) =>
-                      handleInputChange("start_datetime", e.target.value)
-                    }
-                    required
-                  />
-                </div>
+                <DateTimePicker
+                  value={formData.start_datetime || ""}
+                  onChange={(value) =>
+                    handleInputChange("start_datetime", value)
+                  }
+                  label={`${t("startDate")} *`}
+                  placeholder={t("selectDateTime")}
+                  sheetTitle={t("startDate")}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="end_datetime">End Date & Time *</Label>
-                  <Input
-                    id="end_datetime"
-                    type="datetime-local"
-                    value={formData.end_datetime}
-                    onChange={(e) =>
-                      handleInputChange("end_datetime", e.target.value)
-                    }
-                    required
-                  />
-                </div>
+                <DateTimePicker
+                  value={formData.end_datetime || ""}
+                  onChange={(value) =>
+                    handleInputChange("end_datetime", value)
+                  }
+                  label={`${t("endDate")} *`}
+                  placeholder={t("selectDateTime")}
+                  sheetTitle={t("endDate")}
+                />
               </CardContent>
             </Card>
 

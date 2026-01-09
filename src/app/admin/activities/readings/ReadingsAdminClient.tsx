@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { DateInput } from "@/components/ui/date-input";
 import {
   Form,
   FormControl,
@@ -388,7 +389,11 @@ export default function ReadingsAdminClient({
                         {t("readings.admin.startDate") || "Start Date"} *
                       </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DateInput
+                          type="date"
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -404,7 +409,11 @@ export default function ReadingsAdminClient({
                         {t("readings.admin.endDate") || "End Date"} *
                       </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DateInput
+                          type="date"
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

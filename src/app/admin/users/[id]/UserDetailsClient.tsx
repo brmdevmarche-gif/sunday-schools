@@ -181,11 +181,12 @@ export default function UserDetailsClient({
   };
 
   const getStatusBadge = (status: AttendanceStatus) => {
+    // Ensure proper color contrast for WCAG 2.1 AA compliance
     const variants = {
-      present: { variant: "default" as const, className: "bg-green-500" },
+      present: { variant: "default" as const, className: "bg-green-600 text-white" },
       absent: { variant: "destructive" as const, className: "" },
-      excused: { variant: "secondary" as const, className: "bg-yellow-500" },
-      late: { variant: "secondary" as const, className: "bg-orange-500" },
+      excused: { variant: "secondary" as const, className: "bg-yellow-400 text-yellow-900" },
+      late: { variant: "secondary" as const, className: "bg-orange-500 text-white" },
     };
     return variants[status] || { variant: "secondary" as const, className: "" };
   };
@@ -955,8 +956,8 @@ export default function UserDetailsClient({
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  size="icon-sm"
+                  className="absolute end-1 top-1/2 -translate-y-1/2"
                   onClick={() => setShowAdminPassword(!showAdminPassword)}
                 >
                   {showAdminPassword ? (
@@ -989,8 +990,8 @@ export default function UserDetailsClient({
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  size="icon-sm"
+                  className="absolute end-1 top-1/2 -translate-y-1/2"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                 >
                   {showNewPassword ? (

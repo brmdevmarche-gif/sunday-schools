@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, UserPlus, X, Search } from "lucide-react";
 import { ResponsiveFilters } from "@/components/ui/filter-sheet";
+import { Pagination, usePagination } from "@/components/ui/pagination";
 import type {
   UserWithClassAssignments,
   Diocese,
@@ -301,6 +302,20 @@ export default function StudentsClient({
     return matchesSearch && matchesDiocese && matchesChurch;
   });
 
+  // Pagination
+  const {
+    paginatedData: paginatedStudents,
+    currentPage,
+    totalPages,
+    pageSize,
+    totalItems,
+    onPageChange,
+    onPageSizeChange,
+  } = usePagination({
+    data: filteredStudents,
+    initialPageSize: 20,
+  });
+
   // Filter available classes for assignment (only from student's church)
   const availableClasses = selectedStudent
     ? classes.filter((c) => c.church_id === selectedStudent.church_id)
@@ -402,6 +417,7 @@ export default function StudentsClient({
               <p className="text-muted-foreground">No students found</p>
             </div>
           ) : (
+            <div className="space-y-4">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -416,7 +432,7 @@ export default function StudentsClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.map((student) => {
+                {paginatedStudents.map((student) => {
                   const age = student.date_of_birth
                     ? new Date().getFullYear() -
                       new Date(student.date_of_birth).getFullYear()
@@ -510,6 +526,29 @@ export default function StudentsClient({
                 })}
               </TableBody>
             </Table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageSizeChange={onPageSizeChange}
+                showPageSize
+                showItemCount
+                labels={{
+                  previous: t("common.previous"),
+                  next: t("common.next"),
+                  page: t("common.page"),
+                  of: t("common.of"),
+                  items: t("students.students"),
+                  itemsPerPage: t("common.perPage"),
+                }}
+              />
+            )}
+            </div>
           )}
         </CardContent>
       </Card>

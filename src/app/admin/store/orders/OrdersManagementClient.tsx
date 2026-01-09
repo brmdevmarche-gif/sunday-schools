@@ -43,6 +43,7 @@ import {
   Search,
 } from "lucide-react";
 import { ResponsiveFilters } from "@/components/ui/filter-sheet";
+import { Pagination, usePagination } from "@/components/ui/pagination";
 import {
   updateOrderStatusAction,
   bulkUpdateOrderStatusAction,
@@ -232,6 +233,20 @@ export default function OrdersManagementClient({
     classFilter,
     searchQuery,
   ]);
+
+  // Pagination
+  const {
+    paginatedData: paginatedOrders,
+    currentPage,
+    totalPages,
+    pageSize,
+    totalItems,
+    onPageChange,
+    onPageSizeChange,
+  } = usePagination({
+    data: filteredOrders,
+    initialPageSize: 20,
+  });
 
   function getStatusColor(status: string) {
     switch (status) {
@@ -583,7 +598,7 @@ export default function OrdersManagementClient({
           </Card>
         ) : (
           <div className="space-y-4">
-            {filteredOrders.map((order) => (
+            {paginatedOrders.map((order) => (
               <Card key={order.id}>
                 <CardHeader>
                   <div className="flex items-start gap-4">
@@ -703,6 +718,28 @@ export default function OrdersManagementClient({
                 </CardContent>
               </Card>
             ))}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageSizeChange={onPageSizeChange}
+                showPageSize
+                showItemCount
+                labels={{
+                  previous: t("common.previous"),
+                  next: t("common.next"),
+                  page: t("common.page"),
+                  of: t("common.of"),
+                  items: t("store.orders"),
+                  itemsPerPage: t("common.perPage"),
+                }}
+              />
+            )}
           </div>
         )}
       </div>

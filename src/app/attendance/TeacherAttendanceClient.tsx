@@ -390,7 +390,7 @@ export default function TeacherAttendanceClient({
                 </Badge>
                 {stats.marked > 0 && (
                   <>
-                    <Badge className="bg-green-500 text-base py-1 px-3">
+                    <Badge className="bg-green-600 text-white text-base py-1 px-3">
                       {t("attendance.present")}: {stats.present}
                     </Badge>
                     <Badge
@@ -399,10 +399,10 @@ export default function TeacherAttendanceClient({
                     >
                       {t("attendance.absent")}: {stats.absent}
                     </Badge>
-                    <Badge className="bg-yellow-500 text-base py-1 px-3">
+                    <Badge className="bg-yellow-400 text-yellow-900 text-base py-1 px-3">
                       {t("attendance.excused")}: {stats.excused}
                     </Badge>
-                    <Badge className="bg-orange-500 text-base py-1 px-3">
+                    <Badge className="bg-orange-500 text-white text-base py-1 px-3">
                       {t("attendance.late")}: {stats.late}
                     </Badge>
                   </>

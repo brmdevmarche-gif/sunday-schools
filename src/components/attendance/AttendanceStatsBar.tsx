@@ -32,16 +32,16 @@ export function AttendanceStatsBar({ stats, showDetailed = true }: AttendanceSta
       </div>
       {showDetailed && stats.marked > 0 && (
         <div className="flex items-center gap-2">
-          <Badge className="bg-green-500">
+          <Badge className="bg-green-600 text-white">
             {t("attendance.present")}: {stats.present}
           </Badge>
           <Badge variant="destructive">
             {t("attendance.absent")}: {stats.absent}
           </Badge>
-          <Badge className="bg-yellow-500">
+          <Badge className="bg-yellow-400 text-yellow-900">
             {t("attendance.excused")}: {stats.excused}
           </Badge>
-          <Badge className="bg-orange-500">
+          <Badge className="bg-orange-500 text-white">
             {t("attendance.late")}: {stats.late}
           </Badge>
         </div>

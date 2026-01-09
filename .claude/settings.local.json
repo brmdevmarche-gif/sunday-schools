@@ -40,7 +40,10 @@
       "Bash(fi)",
       "Bash(done)",
       "Skill(BMad:agents:ux-expert)",
-      "Bash(timeout 15 npm run dev:*)"
+      "Bash(timeout 15 npm run dev:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add time localization and accessibility improvements\n\n- Add locale-aware date formatting for Arabic \\(ar-EG\\) and English \\(en-US\\)\n- Add formatDate helper function to CompetitionsClient, ReadingsClient, SpiritualNotesClient\n- Add focus-visible styles and keyboard navigation to clickable competition cards\n- Add tabIndex, role=\"button\", and aria-label for screen reader support\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

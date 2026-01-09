@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -36,10 +36,19 @@ export default function ReadingsClient({
   userProfile,
 }: ReadingsClientProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
 
   const now = new Date();
   const today = now.toISOString().split("T")[0];
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   function isCurrentSchedule(schedule: ReadingScheduleWithStats) {
     return (
@@ -158,6 +167,7 @@ export default function ReadingsClient({
                     key={schedule.id}
                     schedule={schedule}
                     t={t}
+                    formatDate={formatDate}
                     onViewDetails={() => router.push(`/activities/readings/${schedule.id}`)}
                   />
                 ))}
@@ -182,6 +192,7 @@ export default function ReadingsClient({
                     key={schedule.id}
                     schedule={schedule}
                     t={t}
+                    formatDate={formatDate}
                     isUpcoming
                   />
                 ))}
@@ -206,6 +217,7 @@ export default function ReadingsClient({
                     key={schedule.id}
                     schedule={schedule}
                     t={t}
+                    formatDate={formatDate}
                     isPast
                   />
                 ))}
@@ -221,12 +233,14 @@ export default function ReadingsClient({
 function ReadingScheduleCard({
   schedule,
   t,
+  formatDate,
   isUpcoming,
   isPast,
   onViewDetails,
 }: {
   schedule: ReadingScheduleWithStats;
   t: (key: string) => string;
+  formatDate: (dateString: string) => string;
   isUpcoming?: boolean;
   isPast?: boolean;
   onViewDetails?: () => void;
@@ -278,8 +292,8 @@ function ReadingScheduleCard({
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span>
-              {new Date(schedule.start_date).toLocaleDateString()} -{" "}
-              {new Date(schedule.end_date).toLocaleDateString()}
+              {formatDate(schedule.start_date)} -{" "}
+              {formatDate(schedule.end_date)}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -307,7 +321,7 @@ function ReadingScheduleCard({
         {isUpcoming && (
           <p className="text-sm text-muted-foreground">
             {t("readings.startsOn") || "Starts on"}{" "}
-            {new Date(schedule.start_date).toLocaleDateString()}
+            {formatDate(schedule.start_date)}
           </p>
         )}
 

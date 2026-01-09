@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -43,9 +43,18 @@ export default function CompetitionsClient({
   userProfile,
 }: CompetitionsClientProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
 
   const now = new Date();
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   function isActive(comp: CompetitionWithStats) {
     return (
@@ -229,6 +238,7 @@ export default function CompetitionsClient({
                     timeRemaining={getTimeRemaining(comp.end_date)}
                     onViewDetails={() => router.push(`/activities/competitions/${comp.id}`)}
                     t={t}
+                    formatDate={formatDate}
                   />
                 ))}
               </div>
@@ -260,7 +270,7 @@ export default function CompetitionsClient({
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {t("competitions.submittedOn") || "Submitted"}:{" "}
-                            {new Date(submission.submitted_at).toLocaleDateString()}
+                            {formatDate(submission.submitted_at)}
                           </p>
                           {submission.feedback && (
                             <p className="text-sm text-muted-foreground mt-2">
@@ -300,17 +310,26 @@ function CompetitionCard({
   timeRemaining,
   onViewDetails,
   t,
+  formatDate,
 }: {
   competition: CompetitionWithStats;
   timeRemaining: string;
   onViewDetails: () => void;
   t: (key: string) => string;
+  formatDate: (dateString: string) => string;
 }) {
   const hasSubmitted = !!competition.my_submission;
   const [imageError, setImageError] = useState(false);
 
   return (
-    <Card className="overflow-hidden cursor-pointer hover:border-primary/50 transition-colors" onClick={onViewDetails}>
+    <Card
+      className="overflow-hidden cursor-pointer hover:border-primary/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      onClick={onViewDetails}
+      onKeyDown={(e) => e.key === "Enter" && onViewDetails()}
+      tabIndex={0}
+      role="button"
+      aria-label={`${competition.name} - ${t("competitions.clickToParticipate") || "Click to view details"}`}
+    >
       {/* Image or Placeholder */}
       <div className="aspect-video bg-muted overflow-hidden">
         {competition.image_url && !imageError ? (
@@ -347,7 +366,7 @@ function CompetitionCard({
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4" />
             <span>
-              {t("competitions.ends") || "Ends"}: {new Date(competition.end_date).toLocaleDateString()}
+              {t("competitions.ends") || "Ends"}: {formatDate(competition.end_date)}
             </span>
           </div>
         </div>

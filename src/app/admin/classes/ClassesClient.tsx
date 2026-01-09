@@ -48,7 +48,9 @@ import {
   User as UserIcon,
   Mail,
   Phone,
+  Loader2,
 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type {
   Class,
@@ -120,6 +122,14 @@ export default function ClassesClient({
   );
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    classItem: Class | null;
+  }>({ open: false, classItem: null });
+  const [removeUserConfirm, setRemoveUserConfirm] = useState<{
+    open: boolean;
+    assignmentId: string | null;
+  }>({ open: false, assignmentId: null });
 
   const [formData, setFormData] = useState<CreateClassInput>({
     church_id: "",
@@ -276,16 +286,21 @@ export default function ClassesClient({
     }
   }
 
-  async function handleRemoveUser(assignmentId: string) {
-    if (!confirm(t("classes.removeUserConfirm"))) return;
+  function handleRemoveUser(assignmentId: string) {
+    setRemoveUserConfirm({ open: true, assignmentId });
+  }
+
+  async function confirmRemoveUser() {
+    if (!removeUserConfirm.assignmentId) return;
 
     try {
-      await removeUserFromClassAction(assignmentId, selectedClass?.id);
+      await removeUserFromClassAction(removeUserConfirm.assignmentId, selectedClass?.id);
       toast.success(t("classes.userRemoved"));
       if (selectedClass) {
         const roster = await getClassAssignmentsData(selectedClass.id);
         setClassRoster(roster as Assignment[]);
       }
+      setRemoveUserConfirm({ open: false, assignmentId: null });
       startTransition(() => {
         router.refresh();
       });
@@ -294,14 +309,17 @@ export default function ClassesClient({
     }
   }
 
-  async function handleDelete(cls: Class) {
-    if (!confirm(t("classes.deleteConfirm", { name: cls.name }))) {
-      return;
-    }
+  function handleDelete(cls: Class) {
+    setDeleteConfirm({ open: true, classItem: cls });
+  }
+
+  async function confirmDelete() {
+    if (!deleteConfirm.classItem) return;
 
     try {
-      await deleteClassAction(cls.id);
+      await deleteClassAction(deleteConfirm.classItem.id);
       toast.success(t("classes.classDeleted"));
+      setDeleteConfirm({ open: false, classItem: null });
       startTransition(() => {
         router.refresh();
       });
@@ -341,7 +359,7 @@ export default function ClassesClient({
           <p className="text-muted-foreground mt-2">{t("classes.subtitle")}</p>
         </div>
         <Button onClick={() => handleOpenDialog()}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t("classes.addClass")}
         </Button>
       </div>
@@ -470,6 +488,7 @@ export default function ClassesClient({
                             handleOpenRoster(cls);
                           }}
                           title={t("classes.viewRoster")}
+                          aria-label={t("classes.viewRoster")}
                         >
                           <Users className="h-4 w-4" />
                         </Button>
@@ -481,6 +500,7 @@ export default function ClassesClient({
                             handleOpenAssignDialog(cls, "student");
                           }}
                           title={t("classes.assignStudent")}
+                          aria-label={t("classes.assignStudent")}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <UserPlus className="h-4 w-4" />
@@ -493,6 +513,7 @@ export default function ClassesClient({
                             handleOpenAssignDialog(cls, "teacher");
                           }}
                           title={t("classes.assignTeacher")}
+                          aria-label={t("classes.assignTeacher")}
                           className="text-green-600 hover:text-green-700"
                         >
                           <UserIcon className="h-4 w-4" />
@@ -504,6 +525,8 @@ export default function ClassesClient({
                             e.stopPropagation();
                             handleOpenDialog(cls);
                           }}
+                          title={t("common.edit")}
+                          aria-label={t("common.edit")}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -514,6 +537,8 @@ export default function ClassesClient({
                             e.stopPropagation();
                             handleDelete(cls);
                           }}
+                          title={t("common.delete")}
+                          aria-label={t("common.delete")}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -851,7 +876,7 @@ export default function ClassesClient({
                     handleOpenAssignDialog(selectedClass, "teacher")
                   }
                 >
-                  <Plus className="h-3 w-3 mr-1" />
+                  <Plus className="h-3 w-3 me-1" />
                   {t("classes.addTeacher")}
                 </Button>
               </div>
@@ -877,6 +902,8 @@ export default function ClassesClient({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRemoveUser(assignment.id)}
+                                title={t("common.remove")}
+                                aria-label={t("common.remove")}
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -901,7 +928,7 @@ export default function ClassesClient({
                     handleOpenAssignDialog(selectedClass, "student")
                   }
                 >
-                  <Plus className="h-3 w-3 mr-1" />
+                  <Plus className="h-3 w-3 me-1" />
                   {t("classes.addStudent")}
                 </Button>
               </div>
@@ -927,6 +954,8 @@ export default function ClassesClient({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRemoveUser(assignment.id)}
+                                title={t("common.remove")}
+                                aria-label={t("common.remove")}
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -947,6 +976,36 @@ export default function ClassesClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Class Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) =>
+          setDeleteConfirm({ open, classItem: open ? deleteConfirm.classItem : null })
+        }
+        title={t("classes.deleteClassTitle")}
+        description={t("classes.deleteConfirm", {
+          name: deleteConfirm.classItem?.name ?? "",
+        })}
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
+
+      {/* Remove User Confirmation Dialog */}
+      <ConfirmDialog
+        open={removeUserConfirm.open}
+        onOpenChange={(open) =>
+          setRemoveUserConfirm({ open, assignmentId: open ? removeUserConfirm.assignmentId : null })
+        }
+        title={t("classes.removeUserTitle")}
+        description={t("classes.removeUserConfirm")}
+        confirmText={t("common.remove")}
+        cancelText={t("common.cancel")}
+        onConfirm={confirmRemoveUser}
+        variant="destructive"
+      />
     </div>
   );
 }

@@ -281,7 +281,7 @@ export default function AnnouncementsClient(props: {
     setRepublishOpen(true)
   }
 
-  const computeRepublishToIso = (fromLocal: string, preset: 'week' | 'current_month' | 'one_month') => {
+  const computeRepublishToIso = (fromLocal: string, preset: 'week' | 'current_month' | 'one_month'): string => {
     const fromIso = dateTimeLocalToIso(fromLocal)
     const from = new Date(fromIso)
     if (preset === 'week') {
@@ -292,9 +292,8 @@ export default function AnnouncementsClient(props: {
       d.setMonth(d.getMonth() + 1)
       return d.toISOString()
     }
-    if (preset === 'current_month') {
-      return endOfCurrentMonthIso(fromIso)
-    }
+    // preset === 'current_month'
+    return endOfCurrentMonthIso(fromIso)
   }
 
   const confirmRepublish = async () => {

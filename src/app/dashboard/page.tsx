@@ -228,7 +228,7 @@ export default async function DashboardPage() {
 
         {/* Profile Section - overlapping cover */}
         <div className="container mx-auto px-4">
-          <div className="relative -mt-20 sm:-mt-24 flex flex-col sm:flex-row items-center sm:items-end gap-4 py-4 px-2 rounded-2xl p-4bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50">
+          <div className="relative -mt-20 sm:-mt-24 flex flex-col sm:flex-row items-center sm:items-end gap-4 py-4 px-4 rounded-2xl bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50">
             {/* Profile Photo */}
             <Avatar className="h-32 w-32 sm:h-36 sm:w-36 border-4 border-background shadow-xl">
               <AvatarImage src={profile.avatar_url || undefined} />

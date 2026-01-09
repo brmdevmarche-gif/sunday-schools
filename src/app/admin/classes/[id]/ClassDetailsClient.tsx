@@ -30,6 +30,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import Link from "next/link";
 import {
   ArrowLeft,
   Users,
@@ -54,6 +64,7 @@ import {
   Bus,
   Cake,
   Coins,
+  Home,
 } from "lucide-react";
 import ClassPointsOverview from "@/components/ClassPointsOverview";
 import { toast } from "sonner";
@@ -434,6 +445,29 @@ export default function ClassDetailsClient({
 
   return (
     <div className="space-y-6">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/admin">
+                <Home className="h-4 w-4" />
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/admin/classes">{t("classes.title")}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{classData.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       {/* Header with Actions */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4 flex-1">
@@ -442,7 +476,7 @@ export default function ClassDetailsClient({
             size="sm"
             onClick={() => router.push("/admin/classes")}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 me-2" />
             {t("common.back")}
           </Button>
           <div className="flex-1">
@@ -586,11 +620,11 @@ export default function ClassDetailsClient({
       <Tabs defaultValue="roster" className="w-full">
         <TabsList>
           <TabsTrigger value="roster">
-            <Users className="h-4 w-4 mr-2" />
+            <Users className="h-4 w-4 me-2" />
             {t("classes.roster")} ({teachers.length + students.length})
           </TabsTrigger>
           <TabsTrigger value="activities">
-            <Calendar className="h-4 w-4 mr-2" />
+            <Calendar className="h-4 w-4 me-2" />
             {t("classes.activities")} ({activitiesData.length})
           </TabsTrigger>
           <TabsTrigger
@@ -601,11 +635,11 @@ export default function ClassDetailsClient({
               }
             }}
           >
-            <Bus className="h-4 w-4 mr-2" />
+            <Bus className="h-4 w-4 me-2" />
             {t("trips.title")}{trips.length > 0 && ` (${trips.length})`}
           </TabsTrigger>
           <TabsTrigger value="points">
-            <Coins className="h-4 w-4 mr-2" />
+            <Coins className="h-4 w-4 me-2" />
             {t("points.classPoints")}
           </TabsTrigger>
         </TabsList>
@@ -976,7 +1010,7 @@ export default function ClassDetailsClient({
                         size="sm"
                         onClick={() => exportToCSV()}
                       >
-                        <Download className="h-4 w-4 mr-2" />
+                        <Download className="h-4 w-4 me-2" />
                         {t("trips.classDetails.exportCSV")}
                       </Button>
                     )}
@@ -1150,12 +1184,12 @@ export default function ClassDetailsClient({
                                   >
                                     {approvingParticipantId === student.participant_id ? (
                                       <>
-                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        <Loader2 className="h-3 w-3 me-1 animate-spin" />
                                         {t("trips.classDetails.processing")}
                                       </>
                                     ) : (
                                       <>
-                                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                                        <CheckCircle2 className="h-3 w-3 me-1" />
                                         {t("trips.classDetails.approve")}
                                       </>
                                     )}
@@ -1174,7 +1208,7 @@ export default function ClassDetailsClient({
                                   >
                                     {markingPaidParticipantId === student.participant_id ? (
                                       <>
-                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        <Loader2 className="h-3 w-3 me-1 animate-spin" />
                                         {t("trips.classDetails.processing")}
                                       </>
                                     ) : (
@@ -1202,12 +1236,12 @@ export default function ClassDetailsClient({
                                 >
                                   {subscribingStudentId === student.id ? (
                                     <>
-                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      <Loader2 className="h-3 w-3 me-1 animate-spin" />
                                       {t("trips.classDetails.subscribing")}
                                     </>
                                   ) : (
                                     <>
-                                      <UserPlus className="h-3 w-3 mr-1" />
+                                      <UserPlus className="h-3 w-3 me-1" />
                                       {t("trips.classDetails.subscribe")}
                                     </>
                                   )}
@@ -1246,12 +1280,11 @@ export default function ClassDetailsClient({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <input
+            <Input
               type="text"
               placeholder={t("common.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg"
             />
 
             <div className="space-y-2 max-h-[400px] overflow-y-auto">

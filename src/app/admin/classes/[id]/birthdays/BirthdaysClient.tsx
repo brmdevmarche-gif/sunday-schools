@@ -161,7 +161,7 @@ export default function BirthdaysClient({
             size="sm"
             onClick={() => router.push(`/admin/classes/${classData.id}`)}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 me-2" />
             {t("common.back")}
           </Button>
           <div className="flex-1">
@@ -266,9 +266,9 @@ export default function BirthdaysClient({
                             className="text-xs"
                           >
                             {user.assignment_type === "teacher" ? (
-                              <GraduationCap className="h-3 w-3 mr-1" />
+                              <GraduationCap className="h-3 w-3 me-1" />
                             ) : (
-                              <Users className="h-3 w-3 mr-1" />
+                              <Users className="h-3 w-3 me-1" />
                             )}
                             {user.assignment_type === "teacher"
                               ? t("roles.teacher")

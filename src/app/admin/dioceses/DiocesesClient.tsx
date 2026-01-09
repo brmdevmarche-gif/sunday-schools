@@ -30,9 +30,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Shield, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Shield, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Building2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Diocese, CreateDioceseInput } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   createDioceseAction,
   updateDioceseAction,
@@ -49,6 +51,9 @@ interface DiocesesClientProps {
   initialDioceses: DioceseWithCount[];
 }
 
+type SortColumn = "name" | "location" | "churchCount";
+type SortDirection = "asc" | "desc";
+
 export default function DiocesesClient({
   initialDioceses,
 }: DiocesesClientProps) {
@@ -62,6 +67,11 @@ export default function DiocesesClient({
     null
   );
   const [isAssignAdminOpen, setIsAssignAdminOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [dioceseToDelete, setDioceseToDelete] = useState<Diocese | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [sortColumn, setSortColumn] = useState<SortColumn>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [formData, setFormData] = useState<CreateDioceseInput>({
     name: "",
     description: "",
@@ -71,6 +81,38 @@ export default function DiocesesClient({
     cover_image_url: "",
     logo_image_url: "",
   });
+
+  function handleSort(column: SortColumn) {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }
+
+  const sortedDioceses = [...initialDioceses].sort((a, b) => {
+    let comparison = 0;
+    if (sortColumn === "name") {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortColumn === "location") {
+      comparison = (a.location || "").localeCompare(b.location || "");
+    } else if (sortColumn === "churchCount") {
+      comparison = a.churchCount - b.churchCount;
+    }
+    return sortDirection === "asc" ? comparison : -comparison;
+  });
+
+  function SortIcon({ column }: { column: SortColumn }) {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-4 w-4 ms-1" />;
+    }
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-4 w-4 ms-1" />
+    ) : (
+      <ArrowDown className="h-4 w-4 ms-1" />
+    );
+  }
 
   function handleOpenDialog(diocese?: Diocese) {
     if (diocese) {
@@ -126,20 +168,28 @@ export default function DiocesesClient({
     }
   }
 
-  async function handleDelete(diocese: Diocese) {
-    if (!confirm(t("dioceses.deleteConfirm", { name: diocese.name }))) {
-      return;
-    }
+  function openDeleteDialog(diocese: Diocese) {
+    setDioceseToDelete(diocese);
+    setDeleteDialogOpen(true);
+  }
 
+  async function handleConfirmDelete() {
+    if (!dioceseToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await deleteDioceseAction(diocese.id);
+      await deleteDioceseAction(dioceseToDelete.id);
       toast.success(t("dioceses.dioceseDeleted"));
+      setDeleteDialogOpen(false);
+      setDioceseToDelete(null);
       startTransition(() => {
         router.refresh();
       });
     } catch (error) {
       console.error("Error deleting diocese:", error);
       toast.error(t("dioceses.deleteFailed"));
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -170,20 +220,46 @@ export default function DiocesesClient({
           </CardHeader>
           <CardContent>
             {initialDioceses.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  {t("dioceses.noDioceses")}
-                </p>
-              </div>
+              <EmptyState
+                icon={Building2}
+                title={t("dioceses.noDioceses")}
+                description={t("dioceses.noDiocesesDescription")}
+                action={{
+                  label: t("dioceses.addDiocese"),
+                  onClick: () => handleOpenDialog(),
+                }}
+              />
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("common.name")}</TableHead>
-                    <TableHead>{t("dioceses.location")}</TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort("name")}
+                        className="flex items-center hover:text-foreground transition-colors"
+                      >
+                        {t("common.name")}
+                        <SortIcon column="name" />
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort("location")}
+                        className="flex items-center hover:text-foreground transition-colors"
+                      >
+                        {t("dioceses.location")}
+                        <SortIcon column="location" />
+                      </button>
+                    </TableHead>
                     <TableHead>{t("dioceses.contact")}</TableHead>
                     <TableHead className="text-right">
-                      {t("dioceses.churches")}
+                      <button
+                        onClick={() => handleSort("churchCount")}
+                        className="flex items-center justify-end hover:text-foreground transition-colors w-full"
+                      >
+                        {t("dioceses.churches")}
+                        <SortIcon column="churchCount" />
+                      </button>
                     </TableHead>
                     <TableHead className="text-right">
                       {t("common.actions")}
@@ -191,7 +267,7 @@ export default function DiocesesClient({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {initialDioceses.map((diocese) => (
+                  {sortedDioceses.map((diocese) => (
                     <TableRow
                       key={diocese.id}
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -228,7 +304,7 @@ export default function DiocesesClient({
                               e.stopPropagation();
                               setSelectedDioceseId(diocese.id);
                             }}
-                            title={t("dioceses.manageAdmins")}
+                            aria-label={t("dioceses.manageAdmins")}
                           >
                             <Shield className="h-4 w-4" />
                           </Button>
@@ -239,6 +315,7 @@ export default function DiocesesClient({
                               e.stopPropagation();
                               handleOpenDialog(diocese);
                             }}
+                            aria-label={t("common.edit")}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -247,8 +324,9 @@ export default function DiocesesClient({
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(diocese);
+                              openDeleteDialog(diocese);
                             }}
+                            aria-label={t("common.delete")}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
@@ -259,7 +337,7 @@ export default function DiocesesClient({
                               e.stopPropagation();
                               router.push(`/admin/dioceses/${diocese.id}`);
                             }}
-                            title="View details"
+                            aria-label={t("common.viewDetails")}
                           >
                             <ChevronRight className="h-4 w-4 rtl:rotate-180" />
                           </Button>
@@ -440,6 +518,26 @@ export default function DiocesesClient({
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setDioceseToDelete(null);
+        }}
+        title={t("dioceses.deleteDiocese")}
+        description={
+          dioceseToDelete
+            ? t("dioceses.deleteConfirm", { name: dioceseToDelete.name })
+            : ""
+        }
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
+        onConfirm={handleConfirmDelete}
+        variant="destructive"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

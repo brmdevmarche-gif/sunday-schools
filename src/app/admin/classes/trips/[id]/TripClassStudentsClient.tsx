@@ -142,7 +142,7 @@ export default function TripClassStudentsClient({
             size="sm"
             onClick={() => router.push("/admin/classes")}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 me-2" />
             {t("tripClassStudents.backToClasses")}
           </Button>
           <div className="flex-1">
@@ -233,7 +233,7 @@ export default function TripClassStudentsClient({
             <div className="flex flex-wrap gap-2">
               {trip.destinations.map((dest: any) => (
                 <Badge key={dest.id} variant="outline" className="text-sm">
-                  <MapPin className="h-3 w-3 mr-1" />
+                  <MapPin className="h-3 w-3 me-1" />
                   {dest.destination_name}
                 </Badge>
               ))}
@@ -374,7 +374,7 @@ export default function TripClassStudentsClient({
                               {student.payment_status && (
                                 <Badge
                                   variant="outline"
-                                  className="mt-1 text-xs ml-1"
+                                  className="mt-1 text-xs ms-1"
                                 >
                                   {student.payment_status}
                                 </Badge>

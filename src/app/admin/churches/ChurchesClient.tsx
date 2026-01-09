@@ -37,9 +37,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Church as ChurchIcon } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Church, CreateChurchInput, Diocese } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   createChurchAction,
   updateChurchAction,
@@ -55,6 +57,9 @@ interface ChurchesClientProps {
   dioceses: Diocese[];
 }
 
+type SortColumn = "name" | "diocese" | "city" | "classCount";
+type SortDirection = "asc" | "desc";
+
 export default function ChurchesClient({
   initialChurches,
   dioceses,
@@ -67,6 +72,11 @@ export default function ChurchesClient({
   const [editingChurch, setEditingChurch] = useState<Church | null>(null);
   const [selectedDioceseFilter, setSelectedDioceseFilter] =
     useState<string>("all");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [churchToDelete, setChurchToDelete] = useState<Church | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [sortColumn, setSortColumn] = useState<SortColumn>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [formData, setFormData] = useState<CreateChurchInput>({
     diocese_id: "",
     name: "",
@@ -78,6 +88,26 @@ export default function ChurchesClient({
     cover_image_url: "",
     logo_image_url: "",
   });
+
+  function handleSort(column: SortColumn) {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }
+
+  function SortIcon({ column }: { column: SortColumn }) {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-4 w-4 ms-1" />;
+    }
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-4 w-4 ms-1" />
+    ) : (
+      <ArrowDown className="h-4 w-4 ms-1" />
+    );
+  }
 
   function handleOpenDialog(church?: Church) {
     if (church) {
@@ -137,20 +167,28 @@ export default function ChurchesClient({
     }
   }
 
-  async function handleDelete(church: Church) {
-    if (!confirm(t("churches.deleteConfirm", { name: church.name }))) {
-      return;
-    }
+  function openDeleteDialog(church: Church) {
+    setChurchToDelete(church);
+    setDeleteDialogOpen(true);
+  }
 
+  async function handleConfirmDelete() {
+    if (!churchToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await deleteChurchAction(church.id);
+      await deleteChurchAction(churchToDelete.id);
       toast.success(t("churches.churchDeleted"));
+      setDeleteDialogOpen(false);
+      setChurchToDelete(null);
       startTransition(() => {
         router.refresh();
       });
     } catch (error) {
       console.error("Error deleting church:", error);
       toast.error(t("churches.deleteFailed"));
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -160,11 +198,24 @@ export default function ChurchesClient({
     return diocese?.name || "-";
   }
 
-  // Filter churches
-  const filteredChurches =
+  // Filter and sort churches
+  const filteredChurches = (
     selectedDioceseFilter === "all"
       ? initialChurches
-      : initialChurches.filter((c) => c.diocese_id === selectedDioceseFilter);
+      : initialChurches.filter((c) => c.diocese_id === selectedDioceseFilter)
+  ).sort((a, b) => {
+    let comparison = 0;
+    if (sortColumn === "name") {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortColumn === "diocese") {
+      comparison = getDioceseName(a.diocese_id).localeCompare(getDioceseName(b.diocese_id));
+    } else if (sortColumn === "city") {
+      comparison = (a.city || "").localeCompare(b.city || "");
+    } else if (sortColumn === "classCount") {
+      comparison = a.classCount - b.classCount;
+    }
+    return sortDirection === "asc" ? comparison : -comparison;
+  });
 
   return (
     <div className="space-y-6">
@@ -222,21 +273,55 @@ export default function ChurchesClient({
         </CardHeader>
         <CardContent>
           {filteredChurches.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                {t("churches.noChurches")}
-              </p>
-            </div>
+            <EmptyState
+              icon={ChurchIcon}
+              title={t("churches.noChurches")}
+              description={t("churches.noChurchesDescription")}
+              action={{
+                label: t("churches.addChurch"),
+                onClick: () => handleOpenDialog(),
+              }}
+            />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("common.name")}</TableHead>
-                  <TableHead>{t("churches.diocese")}</TableHead>
-                  <TableHead>{t("churches.location")}</TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => handleSort("name")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t("common.name")}
+                      <SortIcon column="name" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => handleSort("diocese")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t("churches.diocese")}
+                      <SortIcon column="diocese" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => handleSort("city")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t("churches.location")}
+                      <SortIcon column="city" />
+                    </button>
+                  </TableHead>
                   <TableHead>{t("churches.contact")}</TableHead>
                   <TableHead className="text-right">
-                    {t("churches.classes")}
+                    <button
+                      onClick={() => handleSort("classCount")}
+                      className="flex items-center justify-end hover:text-foreground transition-colors w-full"
+                    >
+                      {t("churches.classes")}
+                      <SortIcon column="classCount" />
+                    </button>
                   </TableHead>
                   <TableHead className="text-right">
                     {t("common.actions")}
@@ -286,6 +371,7 @@ export default function ChurchesClient({
                             e.stopPropagation();
                             handleOpenDialog(church);
                           }}
+                          aria-label={t("common.edit")}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -294,8 +380,9 @@ export default function ChurchesClient({
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(church);
+                            openDeleteDialog(church);
                           }}
+                          aria-label={t("common.delete")}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -306,7 +393,7 @@ export default function ChurchesClient({
                             e.stopPropagation();
                             router.push(`/admin/churches/${church.id}`);
                           }}
-                          title="View details"
+                          aria-label={t("common.viewDetails")}
                         >
                           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
                         </Button>
@@ -500,6 +587,26 @@ export default function ChurchesClient({
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setChurchToDelete(null);
+        }}
+        title={t("churches.deleteChurch")}
+        description={
+          churchToDelete
+            ? t("churches.deleteConfirm", { name: churchToDelete.name })
+            : ""
+        }
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
+        onConfirm={handleConfirmDelete}
+        variant="destructive"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

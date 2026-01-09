@@ -541,9 +541,9 @@ export default function AnnouncementsClient(props: {
 
               <div className="grid gap-2">
                 <Label>Who can see it</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {ALL_ROLES.map(r => (
-                    <label key={r.role} className="flex items-center gap-2 text-sm">
+                    <label key={r.role} className="flex items-center gap-2 text-sm py-1">
                       <Checkbox checked={targetRoles.includes(r.role)} onCheckedChange={() => toggleRole(r.role)} />
                       <span>{roleLabel(r.role)}</span>
                     </label>
@@ -597,11 +597,11 @@ export default function AnnouncementsClient(props: {
                           <span>Select all</span>
                         </label>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
                         {props.dioceses.map(d => (
-                          <label key={d.id} className="flex items-center gap-2 text-sm">
+                          <label key={d.id} className="flex items-center gap-2 text-sm py-1">
                             <Checkbox checked={dioceseIds.includes(d.id)} onCheckedChange={() => setDioceseIds(prev => toggleId(prev, d.id))} />
-                            <span>{d.name}</span>
+                            <span className="truncate">{d.name}</span>
                           </label>
                         ))}
                       </div>
@@ -625,15 +625,15 @@ export default function AnnouncementsClient(props: {
                       {dioceseIds.length === 0 ? (
                         <p className="text-xs text-muted-foreground">Select diocese first to load churches.</p>
                       ) : (
-                        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
                           {filteredChurches.map(c => (
-                            <label key={c.id} className="flex items-center gap-2 text-sm">
+                            <label key={c.id} className="flex items-center gap-2 text-sm py-1">
                               <Checkbox checked={churchIds.includes(c.id)} onCheckedChange={() => setChurchIds(prev => toggleId(prev, c.id))} />
-                              <span>{c.name}</span>
+                              <span className="truncate">{c.name}</span>
                             </label>
                           ))}
                           {filteredChurches.length === 0 && (
-                            <p className="col-span-2 text-xs text-muted-foreground">{t('common.noResults')}</p>
+                            <p className="col-span-full text-xs text-muted-foreground">{t('common.noResults')}</p>
                           )}
                         </div>
                       )}
@@ -657,15 +657,15 @@ export default function AnnouncementsClient(props: {
                       {churchIds.length === 0 ? (
                         <p className="text-xs text-muted-foreground">Select church first to load classes.</p>
                       ) : (
-                        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
                           {filteredClasses.map(c => (
-                            <label key={c.id} className="flex items-center gap-2 text-sm">
+                            <label key={c.id} className="flex items-center gap-2 text-sm py-1">
                               <Checkbox checked={classIds.includes(c.id)} onCheckedChange={() => setClassIds(prev => toggleId(prev, c.id))} />
-                              <span>{c.name}</span>
+                              <span className="truncate">{c.name}</span>
                             </label>
                           ))}
                           {filteredClasses.length === 0 && (
-                            <p className="col-span-2 text-xs text-muted-foreground">{t('common.noResults')}</p>
+                            <p className="col-span-full text-xs text-muted-foreground">{t('common.noResults')}</p>
                           )}
                         </div>
                       )}

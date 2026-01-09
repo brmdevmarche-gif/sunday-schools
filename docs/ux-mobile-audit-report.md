@@ -29,9 +29,10 @@
 | FilterSheet component | P2 | DONE |
 | Filter collapsing implementation | P2 | PARTIAL (6 pages done) |
 | Checkbox touch targets | P1 | DONE |
-| Table to card migration | P2 | DONE (4 pages migrated) |
-| Tooltip mobile handling | P3 | TODO |
-| Breadcrumb truncation | P3 | TODO |
+| Table to card migration | P2 | DONE (5 pages migrated) |
+| Tooltip mobile handling | P3 | DONE |
+| Breadcrumb truncation | P3 | DONE |
+| UserDetailsClient attendance/login tables | P2 | DONE |
 
 ---
 
@@ -91,16 +92,20 @@ This audit identifies UX/UI issues across the Knasty Portal with emphasis on mob
 
 #### 1.5 Missing Mobile-Specific Loading States
 **Issue:** Loading skeletons designed for desktop layouts look cramped on mobile.
-**Status:** PARTIAL - Updated grid breakpoints for loading skeletons
-**Recommendation:** Create mobile-optimized skeleton layouts with stacked cards instead of grids
+**Status:** DONE
+**Fix Applied:**
+- Updated loading.tsx files for dioceses, classes, churches, users
+- Desktop: Shows table skeleton
+- Mobile: Shows card-based skeleton matching the ResponsiveTable card view
+- Mobile filter button skeleton shown instead of filter card
 
 ### P3 - Minor
 
 #### 1.6 Tooltip Not Mobile-Friendly
 **Location:** `src/components/ui/tooltip.tsx`
 **Issue:** Tooltips rely on hover which doesn't work on touch devices.
-**Status:** TODO
-**Recommendation:** Disable tooltips on mobile or convert to tap-to-reveal
+**Status:** DONE
+**Fix Applied:** Added CSS media query `@media(hover:hover) and (pointer:fine)` to only show tooltips on devices with hover capability (desktop/laptop with mouse). Tooltips are hidden on touch devices.
 
 ---
 
@@ -144,10 +149,12 @@ This audit identifies UX/UI issues across the Knasty Portal with emphasis on mob
 #### 2.4 Breadcrumbs Can Be Truncated
 **Location:** Various detail pages
 **Issue:** Long breadcrumb trails may overflow on mobile.
-**Status:** TODO
-**Recommendation:**
-- Show only last 2 items with "..." collapse on mobile
-- Or use back button instead of breadcrumbs on mobile
+**Status:** DONE
+**Fix Applied:**
+- Created ResponsiveBreadcrumb component at `src/components/ui/responsive-breadcrumb.tsx`
+- On mobile: Shows first item (home) > ... > last item (current page)
+- On desktop: Shows all breadcrumb items
+- Migrated UserDetailsClient.tsx as example
 
 ---
 
@@ -242,7 +249,7 @@ This audit identifies UX/UI issues across the Knasty Portal with emphasis on mob
 
 | Issue | Priority | Status | Location |
 |-------|----------|--------|----------|
-| Roster dialog table scrolling | P2 | TODO | ClassesClient.tsx |
+| Roster dialog table scrolling | P2 | DONE | ClassesClient.tsx |
 | Stats cards grid | P3 | DONE | ClassDetailsClient.tsx |
 
 ### Users Module
@@ -250,16 +257,17 @@ This audit identifies UX/UI issues across the Knasty Portal with emphasis on mob
 | Issue | Priority | Status | Location |
 |-------|----------|--------|----------|
 | Tabs with icons overflow | P2 | DONE | tabs.tsx (global fix) |
-| Login history table | P2 | TODO | UserDetailsClient.tsx |
+| Login history table | P2 | DONE | UserDetailsClient.tsx |
+| Attendance history table | P2 | DONE | UserDetailsClient.tsx |
 | 5-column stats grid | P2 | DONE | UserDetailsClient.tsx |
 
 ### Announcements Module
 
 | Issue | Priority | Status | Location |
 |-------|----------|--------|----------|
-| Complex form with many checkboxes | P1 | TODO | AnnouncementsClient.tsx |
+| Complex form with many checkboxes | P1 | DONE | AnnouncementsClient.tsx |
 | Status tabs + table | P2 | DONE | tabs.tsx (global fix) |
-| Target role checkboxes | P3 | TODO | AnnouncementsClient.tsx |
+| Target role checkboxes | P3 | DONE | AnnouncementsClient.tsx |
 
 ### Attendance Module
 
@@ -381,9 +389,57 @@ Full-screen bottom sheet for forms/dialogs on mobile.
 </ResponsiveFilters>
 ```
 
-### 9.4 FloatingActionButton Component
-**Status:** TODO
-For primary actions on mobile list pages.
+### 9.4 ResponsiveBreadcrumb Component
+**Location:** `src/components/ui/responsive-breadcrumb.tsx`
+**Status:** DONE
+**Features:**
+- Shows all breadcrumb items on desktop
+- On mobile: Shows first item > ... > last item
+- Automatic home icon for first item pointing to "/admin"
+- RTL support for separators
+- Truncation for long page titles
+
+**Usage Example:**
+```tsx
+<ResponsiveBreadcrumb
+  items={[
+    { label: "Dashboard", href: "/admin" },
+    { label: "Users", href: "/admin/users" },
+    { label: "John Doe" }, // Current page (no href)
+  ]}
+/>
+```
+
+### 9.5 FloatingActionButton Component
+**Location:** `src/components/ui/floating-action-button.tsx`
+**Status:** DONE
+**Features:**
+- Fixed position at bottom-right of screen on mobile
+- 56px touch target (Material Design standard)
+- Active scale animation for touch feedback
+- Supports icon-only and extended (icon + label) modes
+- Hidden on desktop by default (where header buttons are used)
+- Safe area support for notched devices
+- Variant support: default, secondary, destructive
+
+**Usage Example:**
+```tsx
+import { FloatingActionButton } from "@/components/ui/floating-action-button";
+import { Plus } from "lucide-react";
+
+<FloatingActionButton
+  icon={<Plus />}
+  onClick={() => setOpen(true)}
+  aria-label="Add new item"
+/>
+
+// Extended FAB with label
+<FloatingActionButton
+  icon={<Plus />}
+  label="Add Class"
+  onClick={() => setOpen(true)}
+/>
+```
 
 ---
 
@@ -408,9 +464,11 @@ For primary actions on mobile list pages.
 - [x] Mobile sort dropdown support added to ResponsiveTable
 - [ ] Mobile-optimized detail pages (PARTIAL)
 
-### Phase 4 (Polish) - TODO
-- [ ] Performance optimizations
-- [ ] Accessibility improvements
+### Phase 4 (Polish) - PARTIAL
+- [x] Mobile-optimized loading skeletons
+- [x] FloatingActionButton component created
+- [ ] Performance optimizations (pagination/virtualization)
+- [ ] Accessibility improvements (focus states, color contrast)
 - [ ] Animation refinements
 
 ---
@@ -422,8 +480,11 @@ For primary actions on mobile list pages.
 - checkbox.tsx - Touch targets increased (44px invisible hit area)
 - dialog.tsx - Scroll handling added
 - tabs.tsx - Horizontal scroll added
+- tooltip.tsx - Hidden on touch devices (hover:hover media query)
 - responsive-table.tsx - NEW COMPONENT
 - filter-sheet.tsx - NEW COMPONENT
+- responsive-breadcrumb.tsx - NEW COMPONENT
+- floating-action-button.tsx - NEW COMPONENT
 
 ### Layout Components
 - AdminSidebar.tsx - Translations added
@@ -450,6 +511,7 @@ For primary actions on mobile list pages.
 - SpiritualNotesAdminClient.tsx
 - CreateActivityClient.tsx
 - EditActivityClient.tsx
+- AnnouncementsClient.tsx - Checkbox grids responsive (single-column on mobile)
 
 ### Client Pages (Grids Fixed)
 - UserDetailsClient.tsx
@@ -466,9 +528,21 @@ For primary actions on mobile list pages.
 
 ### Client Pages (ResponsiveTable Migrated)
 - DiocesesClient.tsx - Table → ResponsiveTable with mobile sort
-- ClassesClient.tsx - Table → ResponsiveTable with mobile sort
+- ClassesClient.tsx - Table → ResponsiveTable with mobile sort, roster dialogs converted to div-based lists
 - AnnouncementsClient.tsx - Table → ResponsiveTable with card view
 - UsersClient.tsx - Accordion tables → ResponsiveTable with card view
+
+### Detail Pages (Tables Converted to Cards)
+- UserDetailsClient.tsx - Attendance/login history tables → card-based lists
+
+### Detail Pages (ResponsiveBreadcrumb Migrated)
+- UserDetailsClient.tsx - First page migrated to ResponsiveBreadcrumb
+
+### Loading Skeletons (Mobile-Friendly)
+- dioceses/loading.tsx - Card skeleton on mobile, table on desktop
+- classes/loading.tsx - Card skeleton on mobile, filter button skeleton
+- churches/loading.tsx - Card skeleton on mobile, filter button skeleton
+- users/loading.tsx - Card skeleton for accordion items on mobile
 
 ---
 

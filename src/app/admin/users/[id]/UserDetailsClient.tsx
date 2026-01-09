@@ -29,22 +29,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   User,
   Mail,
-  MapPin,
   Calendar,
   CheckCircle,
-  XCircle,
   Clock,
   BookOpen,
   Users,
@@ -57,17 +47,8 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
-  Home,
 } from "lucide-react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import Link from "next/link";
+import { ResponsiveBreadcrumb } from "@/components/ui/responsive-breadcrumb";
 import { toast } from "sonner";
 import type {
   ExtendedUser,
@@ -334,29 +315,13 @@ export default function UserDetailsClient({
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Breadcrumb */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin">
-                <Home className="h-4 w-4" />
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator className="rtl:rotate-180" />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin/users">{t("users.title")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator className="rtl:rotate-180" />
-          <BreadcrumbItem>
-            <BreadcrumbPage>
-              {user.full_name || user.username || user.email}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <ResponsiveBreadcrumb
+        items={[
+          { label: t("users.title"), href: "/admin" },
+          { label: t("users.title"), href: "/admin/users" },
+          { label: user.full_name || user.username || user.email },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
@@ -664,42 +629,45 @@ export default function UserDetailsClient({
                     {t("userDetails.noAttendanceRecords")}
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("common.date")}</TableHead>
-                        <TableHead>{t("classes.class")}</TableHead>
-                        <TableHead>{t("common.status")}</TableHead>
-                        <TableHead>{t("userDetails.notes")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {attendanceRecords.map((record) => {
-                        const statusBadge = getStatusBadge(record.status);
-                        return (
-                          <TableRow key={record.id}>
-                            <TableCell>
-                              {new Date(
-                                record.attendance_date
-                              ).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>{record.class?.name || "-"}</TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={statusBadge.variant}
-                                className={statusBadge.className}
-                              >
-                                {t(`attendance.${record.status}`)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {record.notes || "-"}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-3">
+                    {attendanceRecords.map((record) => {
+                      const statusBadge = getStatusBadge(record.status);
+                      return (
+                        <div
+                          key={record.id}
+                          className="border rounded-lg p-4 space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">
+                                {new Date(
+                                  record.attendance_date
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <Badge
+                              variant={statusBadge.variant}
+                              className={statusBadge.className}
+                            >
+                              {t(`attendance.${record.status}`)}
+                            </Badge>
+                          </div>
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">
+                              {t("classes.class")}:{" "}
+                            </span>
+                            <span>{record.class?.name || "-"}</span>
+                          </div>
+                          {record.notes && (
+                            <div className="text-sm text-muted-foreground">
+                              {record.notes}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -773,30 +741,34 @@ export default function UserDetailsClient({
                   {t("userDetails.noLoginHistory")}
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("userDetails.loginTime")}</TableHead>
-                      <TableHead>{t("userDetails.ipAddress")}</TableHead>
-                      <TableHead>{t("userDetails.device")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loginHistory.map((login) => (
-                      <TableRow key={login.id}>
-                        <TableCell>
+                <div className="space-y-3">
+                  {loginHistory.map((login) => (
+                    <div
+                      key={login.id}
+                      className="border rounded-lg p-4 space-y-2"
+                    >
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">
                           {new Date(login.login_at).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">
+                          {t("userDetails.ipAddress")}:{" "}
+                        </span>
+                        <span className="font-mono">
                           {login.ip_address || "-"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-md truncate">
-                          {login.user_agent || "-"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </span>
+                      </div>
+                      {login.user_agent && (
+                        <div className="text-sm text-muted-foreground break-all">
+                          {login.user_agent}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>

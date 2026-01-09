@@ -83,7 +83,7 @@ export default function TripClassStudentsClient({
 
   // Get currency symbol based on locale
   const getCurrencySymbol = () => {
-    return locale === 'ar' ? 'ج.م' : 'E.L';
+    return locale === "ar" ? "ج.م" : "E.L";
   };
 
   function formatDate(dateString: string | null) {
@@ -149,9 +149,7 @@ export default function TripClassStudentsClient({
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">{trip.name}</h1>
               <Badge
-                variant={
-                  trip.status === "active" ? "default" : "secondary"
-                }
+                variant={trip.status === "active" ? "default" : "secondary"}
               >
                 {trip.status || "active"}
               </Badge>
@@ -170,16 +168,22 @@ export default function TripClassStudentsClient({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{t("tripClassStudents.stats.totalStudents")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("tripClassStudents.stats.totalStudents")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalStudents}</div>
-            <p className="text-xs text-muted-foreground">{t("tripClassStudents.stats.acrossAllClasses")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("tripClassStudents.stats.acrossAllClasses")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{t("tripClassStudents.stats.subscribed")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("tripClassStudents.stats.subscribed")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
@@ -187,9 +191,10 @@ export default function TripClassStudentsClient({
             </div>
             <p className="text-xs text-muted-foreground">
               {t("tripClassStudents.stats.percentOfTotal", {
-                percent: totalStudents > 0
-                  ? Math.round((subscribedStudents / totalStudents) * 100)
-                  : 0
+                percent:
+                  totalStudents > 0
+                    ? Math.round((subscribedStudents / totalStudents) * 100)
+                    : 0,
               })}
             </p>
           </CardContent>
@@ -217,7 +222,10 @@ export default function TripClassStudentsClient({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{getCurrencySymbol()}{trip.price_normal}</div>
+              <div className="text-2xl font-bold">
+                {getCurrencySymbol()}
+                {trip.price_normal}
+              </div>
             </CardContent>
           </Card>
         )}
@@ -253,13 +261,17 @@ export default function TripClassStudentsClient({
         <CardContent>
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px] space-y-1">
-              <label className="text-sm font-medium">{t("tripClassStudents.filters.class")}</label>
+              <label className="text-sm font-medium">
+                {t("tripClassStudents.filters.class")}
+              </label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("tripClassStudents.filters.allClasses")}</SelectItem>
+                  <SelectItem value="all">
+                    {t("tripClassStudents.filters.allClasses")}
+                  </SelectItem>
                   {classes.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id}>
                       {cls.name} ({cls.students.length})
@@ -269,23 +281,33 @@ export default function TripClassStudentsClient({
               </Select>
             </div>
             <div className="flex-1 min-w-[200px] space-y-1">
-              <label className="text-sm font-medium">{t("tripClassStudents.filters.subscriptionStatus")}</label>
+              <label className="text-sm font-medium">
+                {t("tripClassStudents.filters.subscriptionStatus")}
+              </label>
               <Select
                 value={subscriptionFilter}
                 onValueChange={(value: any) => setSubscriptionFilter(value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("tripClassStudents.filters.allStudents")}</SelectItem>
-                  <SelectItem value="subscribed">{t("tripClassStudents.filters.subscribed")}</SelectItem>
-                  <SelectItem value="unsubscribed">{t("tripClassStudents.filters.notSubscribed")}</SelectItem>
+                  <SelectItem value="all">
+                    {t("tripClassStudents.filters.allStudents")}
+                  </SelectItem>
+                  <SelectItem value="subscribed">
+                    {t("tripClassStudents.filters.subscribed")}
+                  </SelectItem>
+                  <SelectItem value="unsubscribed">
+                    {t("tripClassStudents.filters.notSubscribed")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex-1 min-w-[200px] space-y-1">
-              <label className="text-sm font-medium">{t("tripClassStudents.filters.search")}</label>
+              <label className="text-sm font-medium">
+                {t("tripClassStudents.filters.search")}
+              </label>
               <Input
                 placeholder={t("tripClassStudents.filters.searchPlaceholder")}
                 value={searchQuery}
@@ -315,10 +337,17 @@ export default function TripClassStudentsClient({
                   {cls.name}
                 </CardTitle>
                 <CardDescription>
-                  {t("tripClassStudents.studentCount", { count: cls.students.length })}
+                  {t("tripClassStudents.studentCount", {
+                    count: cls.students.length,
+                  })}
                   {" - "}
-                  {t("tripClassStudents.subscribedCount", { count: cls.students.filter((s) => s.isSubscribed).length })},{" "}
-                  {t("tripClassStudents.notSubscribedCount", { count: cls.students.filter((s) => !s.isSubscribed).length })}
+                  {t("tripClassStudents.subscribedCount", {
+                    count: cls.students.filter((s) => s.isSubscribed).length,
+                  })}
+                  ,{" "}
+                  {t("tripClassStudents.notSubscribedCount", {
+                    count: cls.students.filter((s) => !s.isSubscribed).length,
+                  })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -401,4 +430,3 @@ export default function TripClassStudentsClient({
     </div>
   );
 }
-

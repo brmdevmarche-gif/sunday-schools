@@ -317,7 +317,7 @@ export default function CreateTripClient({
                       }
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -355,7 +355,7 @@ export default function CreateTripClient({
                         handleInputChange("status", value)
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -758,7 +758,9 @@ export default function CreateTripClient({
                                 }
                                 className="w-4 h-4"
                               />
-                              <span className="text-sm">Select All Classes</span>
+                              <span className="text-sm">
+                                Select All Classes
+                              </span>
                             </label>
                           </div>
                           <div className="border rounded p-2 max-h-40 overflow-y-auto">

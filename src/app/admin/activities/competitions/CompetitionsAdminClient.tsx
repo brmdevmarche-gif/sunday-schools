@@ -97,43 +97,73 @@ interface CompetitionsAdminClientProps {
 const SUBMISSION_TYPES = ["text", "pdf_upload", "google_form"] as const;
 const STATUS_OPTIONS = ["draft", "active"] as const;
 
-const competitionSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Competition name is required")
-    .max(200, "Name must be less than 200 characters"),
-  name_ar: z.string().max(200, "Arabic name must be less than 200 characters").optional(),
-  description: z.string().max(1000, "Description must be less than 1000 characters").optional(),
-  description_ar: z.string().max(1000, "Arabic description must be less than 1000 characters").optional(),
-  submission_type: z.enum(SUBMISSION_TYPES, {
-    message: "Please select a submission type",
-  }),
-  google_form_url: z.string().max(500, "URL must be less than 500 characters").optional(),
-  instructions: z.string().max(2000, "Instructions must be less than 2000 characters").optional(),
-  submission_guidelines: z.string().max(2000, "Guidelines must be less than 2000 characters").optional(),
-  start_date: z.string().min(1, "Start date is required"),
-  end_date: z.string().min(1, "End date is required"),
-  base_points: z.number().min(0, "Points must be at least 0").max(1000, "Points must be at most 1000"),
-  first_place_bonus: z.number().min(0).max(1000).optional(),
-  second_place_bonus: z.number().min(0).max(1000).optional(),
-  third_place_bonus: z.number().min(0).max(1000).optional(),
-  status: z.enum(STATUS_OPTIONS),
-}).superRefine((data, ctx) => {
-  if (data.start_date && data.end_date && new Date(data.start_date) > new Date(data.end_date)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "End date must be after or equal to start date",
-      path: ["end_date"],
-    });
-  }
-  if (data.submission_type === "google_form" && (!data.google_form_url || !data.google_form_url.trim())) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Google Form URL is required for this submission type",
-      path: ["google_form_url"],
-    });
-  }
-});
+const competitionSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "Competition name is required")
+      .max(200, "Name must be less than 200 characters"),
+    name_ar: z
+      .string()
+      .max(200, "Arabic name must be less than 200 characters")
+      .optional(),
+    description: z
+      .string()
+      .max(1000, "Description must be less than 1000 characters")
+      .optional(),
+    description_ar: z
+      .string()
+      .max(1000, "Arabic description must be less than 1000 characters")
+      .optional(),
+    submission_type: z.enum(SUBMISSION_TYPES, {
+      message: "Please select a submission type",
+    }),
+    google_form_url: z
+      .string()
+      .max(500, "URL must be less than 500 characters")
+      .optional(),
+    instructions: z
+      .string()
+      .max(2000, "Instructions must be less than 2000 characters")
+      .optional(),
+    submission_guidelines: z
+      .string()
+      .max(2000, "Guidelines must be less than 2000 characters")
+      .optional(),
+    start_date: z.string().min(1, "Start date is required"),
+    end_date: z.string().min(1, "End date is required"),
+    base_points: z
+      .number()
+      .min(0, "Points must be at least 0")
+      .max(1000, "Points must be at most 1000"),
+    first_place_bonus: z.number().min(0).max(1000).optional(),
+    second_place_bonus: z.number().min(0).max(1000).optional(),
+    third_place_bonus: z.number().min(0).max(1000).optional(),
+    status: z.enum(STATUS_OPTIONS),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.start_date &&
+      data.end_date &&
+      new Date(data.start_date) > new Date(data.end_date)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End date must be after or equal to start date",
+        path: ["end_date"],
+      });
+    }
+    if (
+      data.submission_type === "google_form" &&
+      (!data.google_form_url || !data.google_form_url.trim())
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Google Form URL is required for this submission type",
+        path: ["google_form_url"],
+      });
+    }
+  });
 
 type CompetitionFormData = z.infer<typeof competitionSchema>;
 
@@ -214,9 +244,18 @@ export default function CompetitionsAdminClient({
         start_date: data.start_date,
         end_date: data.end_date,
         base_points: data.base_points,
-        first_place_bonus: typeof data.first_place_bonus === "number" ? data.first_place_bonus : undefined,
-        second_place_bonus: typeof data.second_place_bonus === "number" ? data.second_place_bonus : undefined,
-        third_place_bonus: typeof data.third_place_bonus === "number" ? data.third_place_bonus : undefined,
+        first_place_bonus:
+          typeof data.first_place_bonus === "number"
+            ? data.first_place_bonus
+            : undefined,
+        second_place_bonus:
+          typeof data.second_place_bonus === "number"
+            ? data.second_place_bonus
+            : undefined,
+        third_place_bonus:
+          typeof data.third_place_bonus === "number"
+            ? data.third_place_bonus
+            : undefined,
         status: data.status,
       });
 
@@ -613,7 +652,10 @@ export default function CompetitionsAdminClient({
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleCreateCompetition)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleCreateCompetition)}
+              className="space-y-4"
+            >
               {/* Basic Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
@@ -640,7 +682,9 @@ export default function CompetitionsAdminClient({
                   name="name_ar"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("common.nameAr") || "Name (Arabic)"}</FormLabel>
+                      <FormLabel>
+                        {t("common.nameAr") || "Name (Arabic)"}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder={
@@ -662,7 +706,9 @@ export default function CompetitionsAdminClient({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("common.description") || "Description"}</FormLabel>
+                    <FormLabel>
+                      {t("common.description") || "Description"}
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={
@@ -685,11 +731,16 @@ export default function CompetitionsAdminClient({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {t("competitions.admin.submissionType") || "Submission Type"} *
+                      {t("competitions.admin.submissionType") ||
+                        "Submission Type"}{" "}
+                      *
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
@@ -710,7 +761,8 @@ export default function CompetitionsAdminClient({
                         <SelectItem value="google_form">
                           <div className="flex items-center gap-2">
                             <ExternalLink className="h-4 w-4" />
-                            {t("competitions.admin.googleForm") || "Google Form"}
+                            {t("competitions.admin.googleForm") ||
+                              "Google Form"}
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -728,7 +780,9 @@ export default function CompetitionsAdminClient({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {t("competitions.admin.googleFormUrl") || "Google Form URL"} *
+                        {t("competitions.admin.googleFormUrl") ||
+                          "Google Form URL"}{" "}
+                        *
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -748,7 +802,9 @@ export default function CompetitionsAdminClient({
                 name="instructions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("competitions.instructions") || "Instructions"}</FormLabel>
+                    <FormLabel>
+                      {t("competitions.instructions") || "Instructions"}
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={
@@ -804,7 +860,8 @@ export default function CompetitionsAdminClient({
               <div className="space-y-3">
                 <FormLabel className="flex items-center gap-2">
                   <Award className="h-4 w-4 text-amber-500" />
-                  {t("competitions.admin.pointsConfig") || "Points Configuration"}
+                  {t("competitions.admin.pointsConfig") ||
+                    "Points Configuration"}
                 </FormLabel>
                 <div className="grid grid-cols-4 gap-3">
                   <FormField
@@ -877,9 +934,12 @@ export default function CompetitionsAdminClient({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("common.status") || "Status"}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>

@@ -301,7 +301,7 @@ export default function SpiritualNotesClient({
                             }}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="w-full">
                                 <SelectValue />
                               </SelectTrigger>
                             </FormControl>
@@ -356,7 +356,7 @@ export default function SpiritualNotesClient({
                                 }
                               >
                                 <FormControl>
-                                  <SelectTrigger>
+                                  <SelectTrigger className="w-full">
                                     <SelectValue
                                       placeholder={
                                         t("spiritualNotes.selectTemplate") ||

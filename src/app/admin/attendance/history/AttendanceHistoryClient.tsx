@@ -176,7 +176,7 @@ export default function AttendanceHistoryClient({
                 value={selectedClassId}
                 onValueChange={setSelectedClassId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t("attendance.selectClass")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -228,7 +228,7 @@ export default function AttendanceHistoryClient({
             <div className="space-y-2">
               <Label>{t("attendance.filterByStatus")}</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -338,7 +338,11 @@ export default function AttendanceHistoryClient({
                               {record.user.full_name || record.user.email}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {record.user.user_code && <span className="font-mono mr-2">ID: {record.user.user_code}</span>}
+                              {record.user.user_code && (
+                                <span className="font-mono mr-2">
+                                  ID: {record.user.user_code}
+                                </span>
+                              )}
                               {record.user.email}
                             </p>
                           </div>

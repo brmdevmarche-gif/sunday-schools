@@ -11,10 +11,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface Column<T> {
   key: string;
-  header: string;
+  /** Header content - can be string or ReactNode (for sortable headers) */
+  header: React.ReactNode;
+  /** Plain text label used for mobile card view labels */
+  mobileLabel?: string;
   cell: (item: T) => React.ReactNode;
   /** Show this column in mobile card view (default: true) */
   showOnMobile?: boolean;
@@ -26,6 +36,12 @@ export interface Column<T> {
   headerClassName?: string;
   /** Custom class for table cell */
   cellClassName?: string;
+}
+
+export interface SortOption {
+  key: string;
+  label: string;
+  direction: "asc" | "desc";
 }
 
 export interface ResponsiveTableProps<T> {
@@ -45,6 +61,14 @@ export interface ResponsiveTableProps<T> {
   emptyState?: React.ReactNode;
   /** Show loading skeleton */
   isLoading?: boolean;
+  /** Mobile sort options */
+  sortOptions?: SortOption[];
+  /** Current sort key */
+  currentSort?: string;
+  /** Called when sort changes */
+  onSortChange?: (sortKey: string) => void;
+  /** Sort label for mobile */
+  sortLabel?: string;
 }
 
 export function ResponsiveTable<T>({
@@ -57,6 +81,10 @@ export function ResponsiveTable<T>({
   renderActions,
   emptyState,
   isLoading,
+  sortOptions,
+  currentSort,
+  onSortChange,
+  sortLabel = "Sort by",
 }: ResponsiveTableProps<T>) {
   const titleColumn = columns.find((col) => col.isTitle);
   const subtitleColumn = columns.find((col) => col.isSubtitle);
@@ -148,6 +176,25 @@ export function ResponsiveTable<T>({
 
       {/* Mobile Card View */}
       <div className="sm:hidden space-y-3">
+        {/* Mobile Sort Dropdown */}
+        {sortOptions && sortOptions.length > 0 && onSortChange && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{sortLabel}:</span>
+            <Select value={currentSort} onValueChange={onSortChange}>
+              <SelectTrigger className="w-auto min-w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((option) => (
+                  <SelectItem key={option.key} value={option.key}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {data.map((item) => (
           <Card
             key={getRowKey(item)}
@@ -191,7 +238,7 @@ export function ResponsiveTable<T>({
                       className="flex items-center justify-between gap-2"
                     >
                       <span className="text-muted-foreground shrink-0">
-                        {column.header}
+                        {column.mobileLabel || column.header}
                       </span>
                       <span className="text-end truncate">{column.cell(item)}</span>
                     </div>

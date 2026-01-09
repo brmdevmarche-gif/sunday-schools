@@ -190,7 +190,7 @@ export default function AttendanceStatsClient({
                 value={selectedClassId}
                 onValueChange={setSelectedClassId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t("attendance.selectClass")} />
                 </SelectTrigger>
                 <SelectContent>

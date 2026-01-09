@@ -12,13 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  ResponsiveTable,
+  type Column,
+  type SortOption,
+} from "@/components/ui/responsive-table";
 import {
   Dialog,
   DialogContent,
@@ -82,6 +79,9 @@ export default function DiocesesClient({
     logo_image_url: "",
   });
 
+  // Combined sort key for mobile dropdown
+  const currentSortKey = `${sortColumn}-${sortDirection}`;
+
   function handleSort(column: SortColumn) {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -90,6 +90,21 @@ export default function DiocesesClient({
       setSortDirection("asc");
     }
   }
+
+  function handleMobileSortChange(sortKey: string) {
+    const [col, dir] = sortKey.split("-") as [SortColumn, SortDirection];
+    setSortColumn(col);
+    setSortDirection(dir);
+  }
+
+  const sortOptions: SortOption[] = [
+    { key: "name-asc", label: t("common.name") + " (A-Z)", direction: "asc" },
+    { key: "name-desc", label: t("common.name") + " (Z-A)", direction: "desc" },
+    { key: "location-asc", label: t("dioceses.location") + " (A-Z)", direction: "asc" },
+    { key: "location-desc", label: t("dioceses.location") + " (Z-A)", direction: "desc" },
+    { key: "churchCount-asc", label: t("dioceses.churches") + " ↑", direction: "asc" },
+    { key: "churchCount-desc", label: t("dioceses.churches") + " ↓", direction: "desc" },
+  ];
 
   const sortedDioceses = [...initialDioceses].sort((a, b) => {
     let comparison = 0;
@@ -219,135 +234,139 @@ export default function DiocesesClient({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {initialDioceses.length === 0 ? (
-              <EmptyState
-                icon={Building2}
-                title={t("dioceses.noDioceses")}
-                description={t("dioceses.noDiocesesDescription")}
-                action={{
-                  label: t("dioceses.addDiocese"),
-                  onClick: () => handleOpenDialog(),
-                }}
-              />
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>
-                      <button
-                        onClick={() => handleSort("name")}
-                        className="flex items-center hover:text-foreground transition-colors"
-                      >
-                        {t("common.name")}
-                        <SortIcon column="name" />
-                      </button>
-                    </TableHead>
-                    <TableHead>
-                      <button
-                        onClick={() => handleSort("location")}
-                        className="flex items-center hover:text-foreground transition-colors"
-                      >
-                        {t("dioceses.location")}
-                        <SortIcon column="location" />
-                      </button>
-                    </TableHead>
-                    <TableHead>{t("dioceses.contact")}</TableHead>
-                    <TableHead className="text-right">
-                      <button
-                        onClick={() => handleSort("churchCount")}
-                        className="flex items-center justify-end hover:text-foreground transition-colors w-full"
-                      >
-                        {t("dioceses.churches")}
-                        <SortIcon column="churchCount" />
-                      </button>
-                    </TableHead>
-                    <TableHead className="text-right">
-                      {t("common.actions")}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedDioceses.map((diocese) => (
-                    <TableRow
-                      key={diocese.id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() =>
-                        router.push(`/admin/dioceses/${diocese.id}`)
-                      }
+            <ResponsiveTable
+              data={sortedDioceses}
+              columns={[
+                {
+                  key: "name",
+                  header: (
+                    <button
+                      onClick={() => handleSort("name")}
+                      className="flex items-center hover:text-foreground transition-colors"
                     >
-                      <TableCell className="font-medium">
-                        {diocese.name}
-                      </TableCell>
-                      <TableCell>{diocese.location || "-"}</TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {diocese.contact_email && (
-                            <div>{diocese.contact_email}</div>
-                          )}
-                          {diocese.contact_phone && (
-                            <div>{diocese.contact_phone}</div>
-                          )}
-                          {!diocese.contact_email &&
-                            !diocese.contact_phone &&
-                            "-"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {diocese.churchCount}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedDioceseId(diocese.id);
-                            }}
-                            aria-label={t("dioceses.manageAdmins")}
-                          >
-                            <Shield className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenDialog(diocese);
-                            }}
-                            aria-label={t("common.edit")}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openDeleteDialog(diocese);
-                            }}
-                            aria-label={t("common.delete")}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/admin/dioceses/${diocese.id}`);
-                            }}
-                            aria-label={t("common.viewDetails")}
-                          >
-                            <ChevronRight className="h-4 w-4 rtl:rotate-180" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+                      {t("common.name")}
+                      <SortIcon column="name" />
+                    </button>
+                  ),
+                  mobileLabel: t("common.name"),
+                  cell: (diocese) => diocese.name,
+                  isTitle: true,
+                },
+                {
+                  key: "location",
+                  header: (
+                    <button
+                      onClick={() => handleSort("location")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t("dioceses.location")}
+                      <SortIcon column="location" />
+                    </button>
+                  ),
+                  mobileLabel: t("dioceses.location"),
+                  cell: (diocese) => diocese.location || "-",
+                  isSubtitle: true,
+                },
+                {
+                  key: "contact",
+                  header: t("dioceses.contact"),
+                  mobileLabel: t("dioceses.contact"),
+                  cell: (diocese) => (
+                    <div className="text-sm">
+                      {diocese.contact_email && (
+                        <div className="truncate">{diocese.contact_email}</div>
+                      )}
+                      {diocese.contact_phone && (
+                        <div>{diocese.contact_phone}</div>
+                      )}
+                      {!diocese.contact_email && !diocese.contact_phone && "-"}
+                    </div>
+                  ),
+                },
+                {
+                  key: "churchCount",
+                  header: (
+                    <button
+                      onClick={() => handleSort("churchCount")}
+                      className="flex items-center justify-end hover:text-foreground transition-colors w-full"
+                    >
+                      {t("dioceses.churches")}
+                      <SortIcon column="churchCount" />
+                    </button>
+                  ),
+                  mobileLabel: t("dioceses.churches"),
+                  cell: (diocese) => diocese.churchCount,
+                  headerClassName: "text-right",
+                  cellClassName: "text-right",
+                },
+              ]}
+              getRowKey={(diocese) => diocese.id}
+              onRowClick={(diocese) => router.push(`/admin/dioceses/${diocese.id}`)}
+              renderActions={(diocese) => (
+                <div className="flex gap-1 justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedDioceseId(diocese.id);
+                    }}
+                    aria-label={t("dioceses.manageAdmins")}
+                  >
+                    <Shield className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenDialog(diocese);
+                    }}
+                    aria-label={t("common.edit")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDeleteDialog(diocese);
+                    }}
+                    aria-label={t("common.delete")}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/admin/dioceses/${diocese.id}`);
+                    }}
+                    aria-label={t("common.viewDetails")}
+                    className="hidden sm:flex"
+                  >
+                    <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                  </Button>
+                </div>
+              )}
+              emptyState={
+                <EmptyState
+                  icon={Building2}
+                  title={t("dioceses.noDioceses")}
+                  description={t("dioceses.noDiocesesDescription")}
+                  action={{
+                    label: t("dioceses.addDiocese"),
+                    onClick: () => handleOpenDialog(),
+                  }}
+                />
+              }
+              sortOptions={sortOptions}
+              currentSort={currentSortKey}
+              onSortChange={handleMobileSortChange}
+              sortLabel={t("common.sortBy")}
+            />
           </CardContent>
         </Card>
       )}

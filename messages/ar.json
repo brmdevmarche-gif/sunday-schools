@@ -29,6 +29,7 @@
     "close": "إغلاق",
     "clear": "مسح",
     "clearAll": "مسح الكل",
+    "sortBy": "ترتيب حسب",
     "now": "الآن",
     "submit": "إرسال",
     "submitting": "جاري الإرسال...",
@@ -1730,6 +1731,10 @@
   "trips": {
     "title": "الرحلات",
     "subtitle": "إدارة الرحلات والتسجيلات",
+    "searchPlaceholder": "البحث في الرحلات...",
+    "allStatuses": "كل الحالات",
+    "allTypes": "كل الأنواع",
+    "type": "النوع",
     "createTrip": "إنشاء رحلة",
     "editTrip": "تعديل الرحلة",
     "tripDetails": "تفاصيل الرحلة",

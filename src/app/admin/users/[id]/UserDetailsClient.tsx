@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -18,17 +18,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -36,8 +36,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   User,
   Mail,
@@ -58,7 +58,7 @@ import {
   EyeOff,
   AlertTriangle,
   Home,
-} from 'lucide-react'
+} from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -66,85 +66,89 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import Link from 'next/link'
-import { toast } from 'sonner'
-import type { ExtendedUser, UserRole, AttendanceStatus } from '@/lib/types/sunday-school'
+} from "@/components/ui/breadcrumb";
+import Link from "next/link";
+import { toast } from "sonner";
+import type {
+  ExtendedUser,
+  UserRole,
+  AttendanceStatus,
+} from "@/lib/types/sunday-school";
 import {
   updateUserRoleAction,
   activateUserAction,
   deactivateUserAction,
   changeUserPasswordAction,
-} from '../actions'
+} from "../actions";
 
 interface ClassAssignment {
-  id: string
-  assignment_type: 'student' | 'teacher'
+  id: string;
+  assignment_type: "student" | "teacher";
   class: {
-    id: string
-    name: string
-    grade_level: string | null
+    id: string;
+    name: string;
+    grade_level: string | null;
     church: {
-      name: string
-    } | null
-  } | null
+      name: string;
+    } | null;
+  } | null;
 }
 
 interface AttendanceRecord {
-  id: string
-  attendance_date: string
-  status: AttendanceStatus
-  notes: string | null
+  id: string;
+  attendance_date: string;
+  status: AttendanceStatus;
+  notes: string | null;
   class: {
-    name: string
-  } | null
+    name: string;
+  } | null;
 }
 
 interface Relationship {
-  id: string
-  relationship_type: string
+  id: string;
+  relationship_type: string;
   parent: {
-    id: string
-    full_name: string | null
-    email: string
-  } | null
+    id: string;
+    full_name: string | null;
+    email: string;
+  } | null;
   student: {
-    id: string
-    full_name: string | null
-    email: string
-  } | null
+    id: string;
+    full_name: string | null;
+    email: string;
+  } | null;
 }
 
 interface LoginRecord {
-  id: string
-  login_at: string
-  ip_address: string | null
-  user_agent: string | null
+  id: string;
+  login_at: string;
+  ip_address: string | null;
+  user_agent: string | null;
 }
 
 interface Church {
-  id: string
-  name: string
-  diocese_id: string | null
+  id: string;
+  name: string;
+  diocese_id: string | null;
 }
 
 interface Diocese {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface UserDetailsClientProps {
   user: ExtendedUser & {
-    diocese: { id: string; name: string } | null
-    church: { id: string; name: string } | null
-  }
-  classAssignments: ClassAssignment[]
-  attendanceRecords: AttendanceRecord[]
-  relationships: Relationship[]
-  loginHistory: LoginRecord[]
-  currentUserRole: UserRole
-  churches: Church[]
-  dioceses: Diocese[]
+    diocese: { id: string; name: string } | null;
+    church: { id: string; name: string } | null;
+  };
+  classAssignments: ClassAssignment[];
+  attendanceRecords: AttendanceRecord[];
+  relationships: Relationship[];
+  loginHistory: LoginRecord[];
+  currentUserRole: UserRole;
+  churches: Church[];
+  dioceses: Diocese[];
 }
 
 export default function UserDetailsClient({
@@ -157,56 +161,56 @@ export default function UserDetailsClient({
   churches,
   dioceses,
 }: UserDetailsClientProps) {
-  const router = useRouter()
-  const t = useTranslations()
+  const router = useRouter();
+  const t = useTranslations();
 
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editFormData, setEditFormData] = useState({
-    full_name: user.full_name || '',
-    username: user.username || '',
+    full_name: user.full_name || "",
+    username: user.username || "",
     email: user.email,
     role: user.role,
-    diocese_id: user.diocese_id || '',
-    church_id: user.church_id || '',
-  })
+    diocese_id: user.diocese_id || "",
+    church_id: user.church_id || "",
+  });
   const [passwordFormData, setPasswordFormData] = useState({
-    adminPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  })
-  const [showAdminPassword, setShowAdminPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [identityVerified, setIdentityVerified] = useState(false)
+    adminPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [identityVerified, setIdentityVerified] = useState(false);
 
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
-      case 'super_admin':
-        return 'destructive'
-      case 'diocese_admin':
-        return 'default'
-      case 'church_admin':
-        return 'secondary'
-      case 'teacher':
-        return 'outline'
+      case "super_admin":
+        return "destructive";
+      case "diocese_admin":
+        return "default";
+      case "church_admin":
+        return "secondary";
+      case "teacher":
+        return "outline";
       default:
-        return 'secondary'
+        return "secondary";
     }
-  }
+  };
 
   const getStatusBadge = (status: AttendanceStatus) => {
     const variants = {
-      present: { variant: 'default' as const, className: 'bg-green-500' },
-      absent: { variant: 'destructive' as const, className: '' },
-      excused: { variant: 'secondary' as const, className: 'bg-yellow-500' },
-      late: { variant: 'secondary' as const, className: 'bg-orange-500' },
-    }
-    return variants[status] || { variant: 'secondary' as const, className: '' }
-  }
+      present: { variant: "default" as const, className: "bg-green-500" },
+      absent: { variant: "destructive" as const, className: "" },
+      excused: { variant: "secondary" as const, className: "bg-yellow-500" },
+      late: { variant: "secondary" as const, className: "bg-orange-500" },
+    };
+    return variants[status] || { variant: "secondary" as const, className: "" };
+  };
 
   async function handleUpdateUser() {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       await updateUserRoleAction(
         user.id,
@@ -215,107 +219,117 @@ export default function UserDetailsClient({
         editFormData.church_id || null,
         editFormData.full_name,
         editFormData.username
-      )
-      toast.success(t('users.userUpdated'))
-      setIsEditDialogOpen(false)
-      router.refresh()
+      );
+      toast.success(t("users.userUpdated"));
+      setIsEditDialogOpen(false);
+      router.refresh();
     } catch (error) {
-      console.error('Error updating user:', error)
-      toast.error(t('users.updateFailed'))
+      console.error("Error updating user:", error);
+      toast.error(t("users.updateFailed"));
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
   async function handleToggleActive() {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       if (user.is_active) {
-        await deactivateUserAction(user.id)
-        toast.success(t('users.userDeactivated'))
+        await deactivateUserAction(user.id);
+        toast.success(t("users.userDeactivated"));
       } else {
-        await activateUserAction(user.id)
-        toast.success(t('users.userActivated'))
+        await activateUserAction(user.id);
+        toast.success(t("users.userActivated"));
       }
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Error toggling user status:', error)
-      toast.error(t('users.updateFailed'))
+      console.error("Error toggling user status:", error);
+      toast.error(t("users.updateFailed"));
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
   function handleOpenEditDialog() {
     setEditFormData({
-      full_name: user.full_name || '',
-      username: user.username || '',
+      full_name: user.full_name || "",
+      username: user.username || "",
       email: user.email,
       role: user.role,
-      diocese_id: user.diocese_id || '',
-      church_id: user.church_id || '',
-    })
-    setIsEditDialogOpen(true)
+      diocese_id: user.diocese_id || "",
+      church_id: user.church_id || "",
+    });
+    setIsEditDialogOpen(true);
   }
 
   function handleOpenPasswordDialog() {
     setPasswordFormData({
-      adminPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    })
-    setShowAdminPassword(false)
-    setShowNewPassword(false)
-    setIdentityVerified(false)
-    setIsPasswordDialogOpen(true)
+      adminPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setShowAdminPassword(false);
+    setShowNewPassword(false);
+    setIdentityVerified(false);
+    setIsPasswordDialogOpen(true);
   }
 
   async function handleChangePassword() {
     if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
-      toast.error(t('users.passwordMismatch'))
-      return
+      toast.error(t("users.passwordMismatch"));
+      return;
     }
 
     if (passwordFormData.newPassword.length < 6) {
-      toast.error(t('users.passwordTooShort'))
-      return
+      toast.error(t("users.passwordTooShort"));
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const result = await changeUserPasswordAction(
         user.id,
         passwordFormData.newPassword,
         passwordFormData.adminPassword
-      )
+      );
 
       if (result.success) {
-        toast.success(t('users.passwordChanged'))
-        setIsPasswordDialogOpen(false)
+        toast.success(t("users.passwordChanged"));
+        setIsPasswordDialogOpen(false);
       } else {
-        toast.error(result.error || t('users.passwordChangeFailed'))
+        toast.error(result.error || t("users.passwordChangeFailed"));
       }
     } catch (error) {
-      console.error('Error changing password:', error)
-      toast.error(t('users.passwordChangeFailed'))
+      console.error("Error changing password:", error);
+      toast.error(t("users.passwordChangeFailed"));
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
-  const canChangePassword = ['super_admin', 'diocese_admin', 'church_admin', 'teacher'].includes(currentUserRole)
+  const canChangePassword = [
+    "super_admin",
+    "diocese_admin",
+    "church_admin",
+    "teacher",
+  ].includes(currentUserRole);
 
-  const attendanceStats = attendanceRecords.length > 0 ? {
-    total: attendanceRecords.length,
-    present: attendanceRecords.filter((r) => r.status === 'present').length,
-    absent: attendanceRecords.filter((r) => r.status === 'absent').length,
-    excused: attendanceRecords.filter((r) => r.status === 'excused').length,
-    late: attendanceRecords.filter((r) => r.status === 'late').length,
-  } : null
+  const attendanceStats =
+    attendanceRecords.length > 0
+      ? {
+          total: attendanceRecords.length,
+          present: attendanceRecords.filter((r) => r.status === "present")
+            .length,
+          absent: attendanceRecords.filter((r) => r.status === "absent").length,
+          excused: attendanceRecords.filter((r) => r.status === "excused")
+            .length,
+          late: attendanceRecords.filter((r) => r.status === "late").length,
+        }
+      : null;
 
   const attendanceRate = attendanceStats
     ? Math.round((attendanceStats.present / attendanceStats.total) * 100)
-    : 0
+    : 0;
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -332,12 +346,14 @@ export default function UserDetailsClient({
           <BreadcrumbSeparator className="rtl:rotate-180" />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/admin/users">{t('users.title')}</Link>
+              <Link href="/admin/users">{t("users.title")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="rtl:rotate-180" />
           <BreadcrumbItem>
-            <BreadcrumbPage>{user.full_name || user.username || user.email}</BreadcrumbPage>
+            <BreadcrumbPage>
+              {user.full_name || user.username || user.email}
+            </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -347,12 +363,12 @@ export default function UserDetailsClient({
         <div className="flex-1">
           <h1 className="text-3xl font-bold flex items-center gap-3">
             {user.full_name || user.username || user.email}
-            <Badge variant={user.is_active ? 'default' : 'secondary'}>
-              {user.is_active ? t('common.active') : t('common.inactive')}
+            <Badge variant={user.is_active ? "default" : "secondary"}>
+              {user.is_active ? t("common.active") : t("common.inactive")}
             </Badge>
           </h1>
           <p className="text-muted-foreground mt-1">
-            {t('users.userDetails')} - {t(`roles.${user.role}`)}
+            {t("users.userDetails")} - {t(`roles.${user.role}`)}
           </p>
         </div>
         <div className="flex gap-2">
@@ -364,18 +380,18 @@ export default function UserDetailsClient({
             {user.is_active ? (
               <>
                 <UserX className="me-2 h-4 w-4" />
-                {t('users.deactivateUser')}
+                {t("users.deactivateUser")}
               </>
             ) : (
               <>
                 <UserCheck className="me-2 h-4 w-4" />
-                {t('users.activateUser')}
+                {t("users.activateUser")}
               </>
             )}
           </Button>
           <Button variant="outline" onClick={handleOpenEditDialog}>
             <Pencil className="me-2 h-4 w-4" />
-            {t('common.edit')}
+            {t("common.edit")}
           </Button>
         </div>
       </div>
@@ -384,25 +400,25 @@ export default function UserDetailsClient({
         <TabsList>
           <TabsTrigger value="overview">
             <User className="me-2 h-4 w-4" />
-            {t('userDetails.overview')}
+            {t("userDetails.overview")}
           </TabsTrigger>
           <TabsTrigger value="classes">
             <BookOpen className="me-2 h-4 w-4" />
-            {t('userDetails.classes')}
+            {t("userDetails.classes")}
           </TabsTrigger>
-          {user.role === 'student' && (
+          {user.role === "student" && (
             <TabsTrigger value="attendance">
               <CheckCircle className="me-2 h-4 w-4" />
-              {t('userDetails.attendance')}
+              {t("userDetails.attendance")}
             </TabsTrigger>
           )}
           <TabsTrigger value="relationships">
             <Users className="me-2 h-4 w-4" />
-            {t('userDetails.relationships')}
+            {t("userDetails.relationships")}
           </TabsTrigger>
           <TabsTrigger value="activity">
             <Activity className="me-2 h-4 w-4" />
-            {t('userDetails.activity')}
+            {t("userDetails.activity")}
           </TabsTrigger>
         </TabsList>
 
@@ -414,21 +430,21 @@ export default function UserDetailsClient({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  {t('userDetails.personalInfo')}
+                  {t("userDetails.personalInfo")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <div className="text-sm text-muted-foreground">
-                    {t('common.name')}
+                    {t("common.name")}
                   </div>
                   <div className="font-medium">
-                    {user.full_name || user.username || '-'}
+                    {user.full_name || user.username || "-"}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">
-                    {t('common.email')}
+                    {t("common.email")}
                   </div>
                   <div className="font-medium flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
@@ -437,7 +453,7 @@ export default function UserDetailsClient({
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">
-                    {t('users.role')}
+                    {t("users.role")}
                   </div>
                   <Badge variant={getRoleBadgeVariant(user.role)}>
                     {t(`roles.${user.role}`)}
@@ -446,7 +462,7 @@ export default function UserDetailsClient({
                 {user.diocese && (
                   <div>
                     <div className="text-sm text-muted-foreground">
-                      {t('users.diocese')}
+                      {t("users.diocese")}
                     </div>
                     <div className="font-medium">{user.diocese.name}</div>
                   </div>
@@ -454,7 +470,7 @@ export default function UserDetailsClient({
                 {user.church && (
                   <div>
                     <div className="text-sm text-muted-foreground">
-                      {t('users.church')}
+                      {t("users.church")}
                     </div>
                     <div className="font-medium">{user.church.name}</div>
                   </div>
@@ -467,7 +483,7 @@ export default function UserDetailsClient({
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  {t('userDetails.accountInfo')}
+                  {t("userDetails.accountInfo")}
                 </CardTitle>
                 {canChangePassword && (
                   <Button
@@ -476,7 +492,7 @@ export default function UserDetailsClient({
                     onClick={handleOpenPasswordDialog}
                   >
                     <Key className="me-2 h-4 w-4" />
-                    {t('users.changePassword')}
+                    {t("users.changePassword")}
                   </Button>
                 )}
               </CardHeader>
@@ -484,28 +500,30 @@ export default function UserDetailsClient({
                 {user.user_code && (
                   <div>
                     <div className="text-sm text-muted-foreground">
-                      {t('users.userCode')}
+                      {t("users.userCode")}
                     </div>
-                    <div className="font-mono text-lg font-bold">{user.user_code}</div>
+                    <div className="font-mono text-lg font-bold">
+                      {user.user_code}
+                    </div>
                   </div>
                 )}
                 <div>
                   <div className="text-sm text-muted-foreground">
-                    {t('userDetails.userId')}
+                    {t("userDetails.userId")}
                   </div>
                   <div className="font-mono text-xs break-all">{user.id}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">
-                    {t('common.status')}
+                    {t("common.status")}
                   </div>
-                  <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                    {user.is_active ? t('common.active') : t('common.inactive')}
+                  <Badge variant={user.is_active ? "default" : "secondary"}>
+                    {user.is_active ? t("common.active") : t("common.inactive")}
                   </Badge>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">
-                    {t('userDetails.accountCreated')}
+                    {t("userDetails.accountCreated")}
                   </div>
                   <div className="font-medium flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -515,7 +533,7 @@ export default function UserDetailsClient({
                 {loginHistory.length > 0 && (
                   <div>
                     <div className="text-sm text-muted-foreground">
-                      {t('userDetails.lastLogin')}
+                      {t("userDetails.lastLogin")}
                     </div>
                     <div className="font-medium flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
@@ -528,19 +546,17 @@ export default function UserDetailsClient({
           </div>
 
           {/* Quick Stats for Students */}
-          {user.role === 'student' && attendanceStats && (
+          {user.role === "student" && attendanceStats && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('userDetails.attendanceStats')}</CardTitle>
-                <CardDescription>
-                  {t('userDetails.last30Days')}
-                </CardDescription>
+                <CardTitle>{t("userDetails.attendanceStats")}</CardTitle>
+                <CardDescription>{t("userDetails.last30Days")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">
-                      {t('attendance.total')}
+                      {t("attendance.total")}
                     </div>
                     <div className="text-2xl font-bold">
                       {attendanceStats.total}
@@ -548,7 +564,7 @@ export default function UserDetailsClient({
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">
-                      {t('attendance.present')}
+                      {t("attendance.present")}
                     </div>
                     <div className="text-2xl font-bold text-green-600">
                       {attendanceStats.present}
@@ -556,7 +572,7 @@ export default function UserDetailsClient({
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">
-                      {t('attendance.absent')}
+                      {t("attendance.absent")}
                     </div>
                     <div className="text-2xl font-bold text-red-600">
                       {attendanceStats.absent}
@@ -564,7 +580,7 @@ export default function UserDetailsClient({
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">
-                      {t('attendance.excused')}
+                      {t("attendance.excused")}
                     </div>
                     <div className="text-2xl font-bold text-yellow-600">
                       {attendanceStats.excused}
@@ -572,7 +588,7 @@ export default function UserDetailsClient({
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">
-                      {t('userDetails.attendanceRate')}
+                      {t("userDetails.attendanceRate")}
                     </div>
                     <div className="text-2xl font-bold">{attendanceRate}%</div>
                   </div>
@@ -586,18 +602,18 @@ export default function UserDetailsClient({
         <TabsContent value="classes">
           <Card>
             <CardHeader>
-              <CardTitle>{t('userDetails.classAssignments')}</CardTitle>
+              <CardTitle>{t("userDetails.classAssignments")}</CardTitle>
               <CardDescription>
-                {classAssignments.length}{' '}
+                {classAssignments.length}{" "}
                 {classAssignments.length === 1
-                  ? t('userDetails.classAssigned')
-                  : t('userDetails.classesAssigned')}
+                  ? t("userDetails.classAssigned")
+                  : t("userDetails.classesAssigned")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {classAssignments.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {t('userDetails.noClassAssignments')}
+                  {t("userDetails.noClassAssignments")}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -609,7 +625,7 @@ export default function UserDetailsClient({
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
                           <div className="font-semibold">
-                            {assignment.class?.name || '-'}
+                            {assignment.class?.name || "-"}
                           </div>
                           {assignment.class?.church && (
                             <div className="text-sm text-muted-foreground">
@@ -635,33 +651,31 @@ export default function UserDetailsClient({
         </TabsContent>
 
         {/* Attendance Tab (for students) */}
-        {user.role === 'student' && (
+        {user.role === "student" && (
           <TabsContent value="attendance">
             <Card>
               <CardHeader>
-                <CardTitle>{t('userDetails.attendanceHistory')}</CardTitle>
-                <CardDescription>
-                  {t('userDetails.last30Days')}
-                </CardDescription>
+                <CardTitle>{t("userDetails.attendanceHistory")}</CardTitle>
+                <CardDescription>{t("userDetails.last30Days")}</CardDescription>
               </CardHeader>
               <CardContent>
                 {attendanceRecords.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    {t('userDetails.noAttendanceRecords')}
+                    {t("userDetails.noAttendanceRecords")}
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t('common.date')}</TableHead>
-                        <TableHead>{t('classes.class')}</TableHead>
-                        <TableHead>{t('common.status')}</TableHead>
-                        <TableHead>{t('userDetails.notes')}</TableHead>
+                        <TableHead>{t("common.date")}</TableHead>
+                        <TableHead>{t("classes.class")}</TableHead>
+                        <TableHead>{t("common.status")}</TableHead>
+                        <TableHead>{t("userDetails.notes")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {attendanceRecords.map((record) => {
-                        const statusBadge = getStatusBadge(record.status)
+                        const statusBadge = getStatusBadge(record.status);
                         return (
                           <TableRow key={record.id}>
                             <TableCell>
@@ -669,7 +683,7 @@ export default function UserDetailsClient({
                                 record.attendance_date
                               ).toLocaleDateString()}
                             </TableCell>
-                            <TableCell>{record.class?.name || '-'}</TableCell>
+                            <TableCell>{record.class?.name || "-"}</TableCell>
                             <TableCell>
                               <Badge
                                 variant={statusBadge.variant}
@@ -679,10 +693,10 @@ export default function UserDetailsClient({
                               </Badge>
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
-                              {record.notes || '-'}
+                              {record.notes || "-"}
                             </TableCell>
                           </TableRow>
-                        )
+                        );
                       })}
                     </TableBody>
                   </Table>
@@ -696,33 +710,36 @@ export default function UserDetailsClient({
         <TabsContent value="relationships">
           <Card>
             <CardHeader>
-              <CardTitle>{t('userDetails.relationships')}</CardTitle>
+              <CardTitle>{t("userDetails.relationships")}</CardTitle>
               <CardDescription>
-                {t('userDetails.familyConnections')}
+                {t("userDetails.familyConnections")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {relationships.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {t('userDetails.noRelationships')}
+                  {t("userDetails.noRelationships")}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {relationships.map((rel) => {
-                    const isParent = rel.parent?.id === user.id
-                    const relatedUser = isParent ? rel.student : rel.parent
+                    const isParent = rel.parent?.id === user.id;
+                    const relatedUser = isParent ? rel.student : rel.parent;
                     return (
                       <div
                         key={rel.id}
                         className="border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer"
                         onClick={() =>
-                          relatedUser && router.push(`/admin/users/${relatedUser.id}`)
+                          relatedUser &&
+                          router.push(`/admin/users/${relatedUser.id}`)
                         }
                       >
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold">
-                              {relatedUser?.full_name || relatedUser?.email || '-'}
+                              {relatedUser?.full_name ||
+                                relatedUser?.email ||
+                                "-"}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {relatedUser?.email}
@@ -730,12 +747,12 @@ export default function UserDetailsClient({
                           </div>
                           <Badge variant="outline">
                             {isParent
-                              ? t('userDetails.child')
-                              : t('userDetails.parent')}
+                              ? t("userDetails.child")
+                              : t("userDetails.parent")}
                           </Badge>
                         </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -747,23 +764,21 @@ export default function UserDetailsClient({
         <TabsContent value="activity">
           <Card>
             <CardHeader>
-              <CardTitle>{t('userDetails.loginHistory')}</CardTitle>
-              <CardDescription>
-                {t('userDetails.recentLogins')}
-              </CardDescription>
+              <CardTitle>{t("userDetails.loginHistory")}</CardTitle>
+              <CardDescription>{t("userDetails.recentLogins")}</CardDescription>
             </CardHeader>
             <CardContent>
               {loginHistory.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {t('userDetails.noLoginHistory')}
+                  {t("userDetails.noLoginHistory")}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('userDetails.loginTime')}</TableHead>
-                      <TableHead>{t('userDetails.ipAddress')}</TableHead>
-                      <TableHead>{t('userDetails.device')}</TableHead>
+                      <TableHead>{t("userDetails.loginTime")}</TableHead>
+                      <TableHead>{t("userDetails.ipAddress")}</TableHead>
+                      <TableHead>{t("userDetails.device")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -773,10 +788,10 @@ export default function UserDetailsClient({
                           {new Date(login.login_at).toLocaleString()}
                         </TableCell>
                         <TableCell className="font-mono text-sm">
-                          {login.ip_address || '-'}
+                          {login.ip_address || "-"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-md truncate">
-                          {login.user_agent || '-'}
+                          {login.user_agent || "-"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -792,19 +807,22 @@ export default function UserDetailsClient({
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{t('users.editUser')}</DialogTitle>
+            <DialogTitle>{t("users.editUser")}</DialogTitle>
             <DialogDescription>
-              {t('users.subtitle')}: {user.full_name || user.email}
+              {t("users.subtitle")}: {user.full_name || user.email}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>{t('users.fullName')}</Label>
+              <Label>{t("users.fullName")}</Label>
               <Input
                 value={editFormData.full_name}
                 onChange={(e) =>
-                  setEditFormData({ ...editFormData, full_name: e.target.value })
+                  setEditFormData({
+                    ...editFormData,
+                    full_name: e.target.value,
+                  })
                 }
                 placeholder="John Doe"
                 disabled={isSubmitting}
@@ -824,7 +842,7 @@ export default function UserDetailsClient({
             </div>
 
             <div className="space-y-2">
-              <Label>{t('users.role')} *</Label>
+              <Label>{t("users.role")} *</Label>
               <Select
                 value={editFormData.role}
                 onValueChange={(value) =>
@@ -832,29 +850,29 @@ export default function UserDetailsClient({
                 }
                 disabled={isSubmitting}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="super_admin">
-                    {t('roles.super_admin')}
+                    {t("roles.super_admin")}
                   </SelectItem>
                   <SelectItem value="diocese_admin">
-                    {t('roles.diocese_admin')}
+                    {t("roles.diocese_admin")}
                   </SelectItem>
                   <SelectItem value="church_admin">
-                    {t('roles.church_admin')}
+                    {t("roles.church_admin")}
                   </SelectItem>
-                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
-                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
-                  <SelectItem value="student">{t('roles.student')}</SelectItem>
+                  <SelectItem value="teacher">{t("roles.teacher")}</SelectItem>
+                  <SelectItem value="parent">{t("roles.parent")}</SelectItem>
+                  <SelectItem value="student">{t("roles.student")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {editFormData.role === 'diocese_admin' && (
+            {editFormData.role === "diocese_admin" && (
               <div className="space-y-2">
-                <Label>{t('users.diocese')}</Label>
+                <Label>{t("users.diocese")}</Label>
                 <Select
                   value={editFormData.diocese_id}
                   onValueChange={(value) =>
@@ -862,8 +880,8 @@ export default function UserDetailsClient({
                   }
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('users.selectDiocese')} />
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("users.selectDiocese")} />
                   </SelectTrigger>
                   <SelectContent>
                     {dioceses.map((diocese) => (
@@ -876,11 +894,11 @@ export default function UserDetailsClient({
               </div>
             )}
 
-            {['church_admin', 'teacher', 'parent', 'student'].includes(
+            {["church_admin", "teacher", "parent", "student"].includes(
               editFormData.role
             ) && (
               <div className="space-y-2">
-                <Label>{t('users.church')}</Label>
+                <Label>{t("users.church")}</Label>
                 <Select
                   value={editFormData.church_id}
                   onValueChange={(value) =>
@@ -888,8 +906,8 @@ export default function UserDetailsClient({
                   }
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('users.selectChurch')} />
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("users.selectChurch")} />
                   </SelectTrigger>
                   <SelectContent>
                     {churches.map((church) => (
@@ -909,25 +927,28 @@ export default function UserDetailsClient({
               onClick={() => setIsEditDialogOpen(false)}
               disabled={isSubmitting}
             >
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleUpdateUser} disabled={isSubmitting}>
-              {isSubmitting ? t('common.saving') : t('common.update')}
+              {isSubmitting ? t("common.saving") : t("common.update")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Change Password Dialog */}
-      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+      <Dialog
+        open={isPasswordDialogOpen}
+        onOpenChange={setIsPasswordDialogOpen}
+      >
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="h-5 w-5" />
-              {t('users.changePassword')}
+              {t("users.changePassword")}
             </DialogTitle>
             <DialogDescription>
-              {t('users.changePasswordFor')}: {user.full_name || user.email}
+              {t("users.changePasswordFor")}: {user.full_name || user.email}
             </DialogDescription>
           </DialogHeader>
 
@@ -936,19 +957,19 @@ export default function UserDetailsClient({
             <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
               <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                {t('users.passwordSecurityWarning')}
+                {t("users.passwordSecurityWarning")}
               </p>
             </div>
 
             {/* Admin Password Verification */}
             <div className="space-y-2">
-              <Label>{t('users.yourPassword')}</Label>
+              <Label>{t("users.yourPassword")}</Label>
               <p className="text-xs text-muted-foreground">
-                {t('users.confirmIdentity')}
+                {t("users.confirmIdentity")}
               </p>
               <div className="relative">
                 <Input
-                  type={showAdminPassword ? 'text' : 'password'}
+                  type={showAdminPassword ? "text" : "password"}
                   value={passwordFormData.adminPassword}
                   onChange={(e) =>
                     setPasswordFormData({
@@ -979,10 +1000,10 @@ export default function UserDetailsClient({
 
             {/* New Password */}
             <div className="space-y-2">
-              <Label>{t('users.newPassword')}</Label>
+              <Label>{t("users.newPassword")}</Label>
               <div className="relative">
                 <Input
-                  type={showNewPassword ? 'text' : 'password'}
+                  type={showNewPassword ? "text" : "password"}
                   value={passwordFormData.newPassword}
                   onChange={(e) =>
                     setPasswordFormData({
@@ -1008,15 +1029,15 @@ export default function UserDetailsClient({
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                {t('users.passwordMinLength')}
+                {t("users.passwordMinLength")}
               </p>
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <Label>{t('users.confirmNewPassword')}</Label>
+              <Label>{t("users.confirmNewPassword")}</Label>
               <Input
-                type={showNewPassword ? 'text' : 'password'}
+                type={showNewPassword ? "text" : "password"}
                 value={passwordFormData.confirmPassword}
                 onChange={(e) =>
                   setPasswordFormData({
@@ -1028,9 +1049,10 @@ export default function UserDetailsClient({
                 disabled={isSubmitting}
               />
               {passwordFormData.confirmPassword &&
-                passwordFormData.newPassword !== passwordFormData.confirmPassword && (
+                passwordFormData.newPassword !==
+                  passwordFormData.confirmPassword && (
                   <p className="text-xs text-destructive">
-                    {t('users.passwordMismatch')}
+                    {t("users.passwordMismatch")}
                   </p>
                 )}
             </div>
@@ -1042,7 +1064,7 @@ export default function UserDetailsClient({
               onClick={() => setIsPasswordDialogOpen(false)}
               disabled={isSubmitting}
             >
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleChangePassword}
@@ -1051,14 +1073,15 @@ export default function UserDetailsClient({
                 !passwordFormData.adminPassword ||
                 !passwordFormData.newPassword ||
                 !passwordFormData.confirmPassword ||
-                passwordFormData.newPassword !== passwordFormData.confirmPassword
+                passwordFormData.newPassword !==
+                  passwordFormData.confirmPassword
               }
             >
-              {isSubmitting ? t('common.saving') : t('users.changePassword')}
+              {isSubmitting ? t("common.saving") : t("users.changePassword")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

@@ -37,7 +37,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Church as ChurchIcon } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Church as ChurchIcon,
+} from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ResponsiveFilters } from "@/components/ui/filter-sheet";
 import type { Church, CreateChurchInput, Diocese } from "@/lib/types";
@@ -216,7 +225,9 @@ export default function ChurchesClient({
     if (sortColumn === "name") {
       comparison = a.name.localeCompare(b.name);
     } else if (sortColumn === "diocese") {
-      comparison = getDioceseName(a.diocese_id).localeCompare(getDioceseName(b.diocese_id));
+      comparison = getDioceseName(a.diocese_id).localeCompare(
+        getDioceseName(b.diocese_id)
+      );
     } else if (sortColumn === "city") {
       comparison = (a.city || "").localeCompare(b.city || "");
     } else if (sortColumn === "classCount") {
@@ -252,13 +263,11 @@ export default function ChurchesClient({
             value={selectedDioceseFilter}
             onValueChange={setSelectedDioceseFilter}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">
-                {t("churches.allDioceses")}
-              </SelectItem>
+              <SelectItem value="all">{t("churches.allDioceses")}</SelectItem>
               {dioceses.map((diocese) => (
                 <SelectItem key={diocese.id} value={diocese.id}>
                   {diocese.name}
@@ -441,7 +450,7 @@ export default function ChurchesClient({
                   required
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder={t("churches.selectDiocese")} />
                   </SelectTrigger>
                   <SelectContent>

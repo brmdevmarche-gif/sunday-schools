@@ -111,12 +111,28 @@ const templateSchema = z.object({
     .string()
     .min(1, "Template name is required")
     .max(100, "Name must be less than 100 characters"),
-  name_ar: z.string().max(100, "Arabic name must be less than 100 characters").optional(),
-  description: z.string().max(500, "Description must be less than 500 characters").optional(),
-  description_ar: z.string().max(500, "Arabic description must be less than 500 characters").optional(),
+  name_ar: z
+    .string()
+    .max(100, "Arabic name must be less than 100 characters")
+    .optional(),
+  description: z
+    .string()
+    .max(500, "Description must be less than 500 characters")
+    .optional(),
+  description_ar: z
+    .string()
+    .max(500, "Arabic description must be less than 500 characters")
+    .optional(),
   icon: z.string().optional(),
-  base_points: z.number().min(1, "Points must be at least 1").max(100, "Points must be at most 100"),
-  max_per_day: z.number().min(1, "Max per day must be at least 1").max(10, "Max per day must be at most 10").optional(),
+  base_points: z
+    .number()
+    .min(1, "Points must be at least 1")
+    .max(100, "Points must be at most 100"),
+  max_per_day: z
+    .number()
+    .min(1, "Max per day must be at least 1")
+    .max(10, "Max per day must be at most 10")
+    .optional(),
   requires_approval: z.boolean(),
   is_active: z.boolean(),
 });
@@ -188,7 +204,8 @@ export default function SpiritualNotesAdminClient({
         description_ar: data.description_ar || null,
         icon: data.icon || null,
         base_points: data.base_points,
-        max_per_day: typeof data.max_per_day === "number" ? data.max_per_day : null,
+        max_per_day:
+          typeof data.max_per_day === "number" ? data.max_per_day : null,
         requires_approval: data.requires_approval,
         is_active: data.is_active,
         diocese_id: null,
@@ -782,16 +799,24 @@ export default function SpiritualNotesAdminClient({
           </DialogHeader>
 
           <Form {...templateForm}>
-            <form onSubmit={templateForm.handleSubmit(handleCreateTemplate)} className="space-y-4">
+            <form
+              onSubmit={templateForm.handleSubmit(handleCreateTemplate)}
+              className="space-y-4"
+            >
               <FormField
                 control={templateForm.control}
                 name="activity_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("spiritualNotes.type") || "Activity Type"} *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>
+                      {t("spiritualNotes.type") || "Activity Type"} *
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
@@ -809,7 +834,8 @@ export default function SpiritualNotesAdminClient({
                           {t("spiritualNotes.types.fasting") || "Fasting"}
                         </SelectItem>
                         <SelectItem value="bible_reading">
-                          {t("spiritualNotes.types.bibleReading") || "Bible Reading"}
+                          {t("spiritualNotes.types.bibleReading") ||
+                            "Bible Reading"}
                         </SelectItem>
                         <SelectItem value="charity">
                           {t("spiritualNotes.types.charity") || "Charity"}
@@ -849,12 +875,15 @@ export default function SpiritualNotesAdminClient({
                   name="name_ar"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("common.nameAr") || "Name (Arabic)"}</FormLabel>
+                      <FormLabel>
+                        {t("common.nameAr") || "Name (Arabic)"}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder={
-                            t("spiritualNotes.admin.templateNameArPlaceholder") ||
-                            "الاسم بالعربية"
+                            t(
+                              "spiritualNotes.admin.templateNameArPlaceholder"
+                            ) || "الاسم بالعربية"
                           }
                           dir="rtl"
                           {...field}
@@ -871,7 +900,9 @@ export default function SpiritualNotesAdminClient({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("common.description") || "Description"}</FormLabel>
+                    <FormLabel>
+                      {t("common.description") || "Description"}
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={
@@ -898,12 +929,7 @@ export default function SpiritualNotesAdminClient({
                         {t("spiritualNotes.admin.basePoints") || "Base Points"}
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={100}
-                          {...field}
-                        />
+                        <Input type="number" min={1} max={100} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -918,12 +944,7 @@ export default function SpiritualNotesAdminClient({
                         {t("spiritualNotes.admin.maxPerDay") || "Max per Day"}
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={10}
-                          {...field}
-                        />
+                        <Input type="number" min={1} max={10} {...field} />
                       </FormControl>
                       <FormDescription>
                         {t("spiritualNotes.admin.maxPerDayHelp") ||

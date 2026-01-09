@@ -113,7 +113,10 @@ export default function EditTripClient({
     }
   }, [trip]);
 
-  function handleInputChange(field: string, value: string | number | boolean | undefined) {
+  function handleInputChange(
+    field: string,
+    value: string | number | boolean | undefined
+  ) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -204,7 +207,9 @@ export default function EditTripClient({
       router.push("/admin/trips");
     } catch (error) {
       console.error("Error updating trip:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to update trip");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update trip"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -271,7 +276,7 @@ export default function EditTripClient({
                       }
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -309,7 +314,7 @@ export default function EditTripClient({
                         handleInputChange("status", value)
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

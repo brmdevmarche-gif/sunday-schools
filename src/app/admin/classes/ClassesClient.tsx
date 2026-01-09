@@ -12,13 +12,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  ResponsiveTable,
+  type SortOption,
+} from "@/components/ui/responsive-table";
 import {
   Dialog,
   DialogContent,
@@ -305,7 +301,10 @@ export default function ClassesClient({
     if (!removeUserConfirm.assignmentId) return;
 
     try {
-      await removeUserFromClassAction(removeUserConfirm.assignmentId, selectedClass?.id);
+      await removeUserFromClassAction(
+        removeUserConfirm.assignmentId,
+        selectedClass?.id
+      );
       toast.success(t("classes.userRemoved"));
       if (selectedClass) {
         const roster = await getClassAssignmentsData(selectedClass.id);
@@ -346,6 +345,9 @@ export default function ClassesClient({
     return church?.name || "-";
   }
 
+  // Combined sort key for mobile dropdown
+  const currentSortKey = `${sortColumn}-${sortDirection}`;
+
   function handleSort(column: SortColumn) {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -354,6 +356,37 @@ export default function ClassesClient({
       setSortDirection("asc");
     }
   }
+
+  function handleMobileSortChange(sortKey: string) {
+    const [col, dir] = sortKey.split("-") as [SortColumn, SortDirection];
+    setSortColumn(col);
+    setSortDirection(dir);
+  }
+
+  const sortOptions: SortOption[] = [
+    { key: "name-asc", label: t("common.name") + " (A-Z)", direction: "asc" },
+    { key: "name-desc", label: t("common.name") + " (Z-A)", direction: "desc" },
+    {
+      key: "church-asc",
+      label: t("classes.church") + " (A-Z)",
+      direction: "asc",
+    },
+    {
+      key: "church-desc",
+      label: t("classes.church") + " (Z-A)",
+      direction: "desc",
+    },
+    {
+      key: "studentCount-asc",
+      label: t("classes.students") + " ↑",
+      direction: "asc",
+    },
+    {
+      key: "studentCount-desc",
+      label: t("classes.students") + " ↓",
+      direction: "desc",
+    },
+  ];
 
   function SortIcon({ column }: { column: SortColumn }) {
     if (sortColumn !== column) {
@@ -397,7 +430,9 @@ export default function ClassesClient({
       if (sortColumn === "name") {
         comparison = a.name.localeCompare(b.name);
       } else if (sortColumn === "church") {
-        comparison = getChurchName(a.church_id).localeCompare(getChurchName(b.church_id));
+        comparison = getChurchName(a.church_id).localeCompare(
+          getChurchName(b.church_id)
+        );
       } else if (sortColumn === "gradeLevel") {
         comparison = (a.grade_level || "").localeCompare(b.grade_level || "");
       } else if (sortColumn === "studentCount") {
@@ -435,13 +470,11 @@ export default function ClassesClient({
               value={selectedDioceseFilter}
               onValueChange={setSelectedDioceseFilter}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  {t("classes.allDioceses")}
-                </SelectItem>
+                <SelectItem value="all">{t("classes.allDioceses")}</SelectItem>
                 {dioceses.map((diocese) => (
                   <SelectItem key={diocese.id} value={diocese.id}>
                     {diocese.name}
@@ -457,13 +490,11 @@ export default function ClassesClient({
               value={selectedChurchFilter}
               onValueChange={setSelectedChurchFilter}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  {t("classes.allChurches")}
-                </SelectItem>
+                <SelectItem value="all">{t("classes.allChurches")}</SelectItem>
                 {filteredChurches.map((church) => (
                   <SelectItem key={church.id} value={church.id}>
                     {church.name}
@@ -484,164 +515,181 @@ export default function ClassesClient({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredClasses.length === 0 ? (
-            <EmptyState
-              icon={GraduationCap}
-              title={t("classes.noClasses")}
-              description={t("classes.noClassesDescription")}
-              action={{
-                label: t("classes.addClass"),
-                onClick: () => handleOpenDialog(),
-              }}
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort("name")}
-                      className="flex items-center hover:text-foreground transition-colors"
-                    >
-                      {t("common.name")}
-                      <SortIcon column="name" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort("church")}
-                      className="flex items-center hover:text-foreground transition-colors"
-                    >
-                      {t("classes.church")}
-                      <SortIcon column="church" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort("gradeLevel")}
-                      className="flex items-center hover:text-foreground transition-colors"
-                    >
-                      {t("classes.gradeLevel")}
-                      <SortIcon column="gradeLevel" />
-                    </button>
-                  </TableHead>
-                  <TableHead>{t("classes.academicYear")}</TableHead>
-                  <TableHead>{t("classes.schedule")}</TableHead>
-                  <TableHead className="text-center">
-                    <button
-                      onClick={() => handleSort("studentCount")}
-                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
-                    >
-                      {t("classes.students")}
-                      <SortIcon column="studentCount" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="text-center">
-                    {t("common.status")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("common.actions")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredClasses.map((cls) => (
-                  <TableRow
-                    key={cls.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/admin/classes/${cls.id}`)}
+          <ResponsiveTable
+            data={filteredClasses}
+            columns={[
+              {
+                key: "name",
+                header: (
+                  <button
+                    onClick={() => handleSort("name")}
+                    className="flex items-center hover:text-foreground transition-colors"
                   >
-                    <TableCell className="font-medium">{cls.name}</TableCell>
-                    <TableCell>{getChurchName(cls.church_id)}</TableCell>
-                    <TableCell>{cls.grade_level || "-"}</TableCell>
-                    <TableCell>{cls.academic_year || "-"}</TableCell>
-                    <TableCell className="text-sm">
-                      {cls.schedule || "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {cls.studentCount}/{cls.capacity || "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={cls.is_active ? "default" : "secondary"}>
-                        {cls.is_active
-                          ? t("common.active")
-                          : t("common.inactive")}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div
-                        className="flex justify-end gap-1 flex-wrap"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenRoster(cls);
-                          }}
-                          title={t("classes.viewRoster")}
-                          aria-label={t("classes.viewRoster")}
-                        >
-                          <Users className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenAssignDialog(cls, "student");
-                          }}
-                          title={t("classes.assignStudent")}
-                          aria-label={t("classes.assignStudent")}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenAssignDialog(cls, "teacher");
-                          }}
-                          title={t("classes.assignTeacher")}
-                          aria-label={t("classes.assignTeacher")}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          <UserIcon className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenDialog(cls);
-                          }}
-                          title={t("common.edit")}
-                          aria-label={t("common.edit")}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(cls);
-                          }}
-                          title={t("common.delete")}
-                          aria-label={t("common.delete")}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                    {t("common.name")}
+                    <SortIcon column="name" />
+                  </button>
+                ),
+                mobileLabel: t("common.name"),
+                cell: (cls) => cls.name,
+                isTitle: true,
+              },
+              {
+                key: "church",
+                header: (
+                  <button
+                    onClick={() => handleSort("church")}
+                    className="flex items-center hover:text-foreground transition-colors"
+                  >
+                    {t("classes.church")}
+                    <SortIcon column="church" />
+                  </button>
+                ),
+                mobileLabel: t("classes.church"),
+                cell: (cls) => getChurchName(cls.church_id),
+                isSubtitle: true,
+              },
+              {
+                key: "gradeLevel",
+                header: (
+                  <button
+                    onClick={() => handleSort("gradeLevel")}
+                    className="flex items-center hover:text-foreground transition-colors"
+                  >
+                    {t("classes.gradeLevel")}
+                    <SortIcon column="gradeLevel" />
+                  </button>
+                ),
+                mobileLabel: t("classes.gradeLevel"),
+                cell: (cls) => cls.grade_level || "-",
+              },
+              {
+                key: "academicYear",
+                header: t("classes.academicYear"),
+                mobileLabel: t("classes.academicYear"),
+                cell: (cls) => cls.academic_year || "-",
+                showOnMobile: false,
+              },
+              {
+                key: "schedule",
+                header: t("classes.schedule"),
+                mobileLabel: t("classes.schedule"),
+                cell: (cls) => cls.schedule || "-",
+                showOnMobile: false,
+              },
+              {
+                key: "studentCount",
+                header: (
+                  <button
+                    onClick={() => handleSort("studentCount")}
+                    className="flex items-center justify-center hover:text-foreground transition-colors w-full"
+                  >
+                    {t("classes.students")}
+                    <SortIcon column="studentCount" />
+                  </button>
+                ),
+                mobileLabel: t("classes.students"),
+                cell: (cls) => `${cls.studentCount}/${cls.capacity || "-"}`,
+                headerClassName: "text-center",
+                cellClassName: "text-center",
+              },
+              {
+                key: "status",
+                header: t("common.status"),
+                mobileLabel: t("common.status"),
+                cell: (cls) => (
+                  <Badge variant={cls.is_active ? "default" : "secondary"}>
+                    {cls.is_active ? t("common.active") : t("common.inactive")}
+                  </Badge>
+                ),
+                headerClassName: "text-center",
+                cellClassName: "text-center",
+              },
+            ]}
+            getRowKey={(cls) => cls.id}
+            onRowClick={(cls) => router.push(`/admin/classes/${cls.id}`)}
+            renderActions={(cls) => (
+              <div className="flex justify-end gap-1 flex-wrap">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenRoster(cls);
+                  }}
+                  title={t("classes.viewRoster")}
+                  aria-label={t("classes.viewRoster")}
+                >
+                  <Users className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenAssignDialog(cls, "student");
+                  }}
+                  title={t("classes.assignStudent")}
+                  aria-label={t("classes.assignStudent")}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenAssignDialog(cls, "teacher");
+                  }}
+                  title={t("classes.assignTeacher")}
+                  aria-label={t("classes.assignTeacher")}
+                  className="text-green-600 hover:text-green-700 hidden sm:flex"
+                >
+                  <UserIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenDialog(cls);
+                  }}
+                  title={t("common.edit")}
+                  aria-label={t("common.edit")}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(cls);
+                  }}
+                  title={t("common.delete")}
+                  aria-label={t("common.delete")}
+                  className="hidden sm:flex"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            )}
+            emptyState={
+              <EmptyState
+                icon={GraduationCap}
+                title={t("classes.noClasses")}
+                description={t("classes.noClassesDescription")}
+                action={{
+                  label: t("classes.addClass"),
+                  onClick: () => handleOpenDialog(),
+                }}
+              />
+            }
+            sortOptions={sortOptions}
+            currentSort={currentSortKey}
+            onSortChange={handleMobileSortChange}
+            sortLabel={t("common.sortBy")}
+          />
         </CardContent>
       </Card>
 
@@ -673,7 +721,7 @@ export default function ClassesClient({
                   required
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder={t("classes.selectChurch")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -973,38 +1021,34 @@ export default function ClassesClient({
                   {t("classes.addTeacher")}
                 </Button>
               </div>
-              <div className="border rounded-lg">
+              <div className="border rounded-lg divide-y">
                 {classRoster.filter((r) => r.assignment_type === "teacher")
                   .length === 0 ? (
                   <p className="text-sm text-muted-foreground p-4">
                     {t("classes.noTeachers")}
                   </p>
                 ) : (
-                  <Table>
-                    <TableBody>
-                      {classRoster
-                        .filter((r) => r.assignment_type === "teacher")
-                        .map((assignment) => (
-                          <TableRow key={assignment.id}>
-                            <TableCell>
-                              {assignment.user?.full_name ||
-                                assignment.user?.email}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveUser(assignment.id)}
-                                title={t("common.remove")}
-                                aria-label={t("common.remove")}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
+                  classRoster
+                    .filter((r) => r.assignment_type === "teacher")
+                    .map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        className="flex items-center justify-between px-4 py-3"
+                      >
+                        <span className="text-sm truncate flex-1">
+                          {assignment.user?.full_name || assignment.user?.email}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveUser(assignment.id)}
+                          title={t("common.remove")}
+                          aria-label={t("common.remove")}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))
                 )}
               </div>
             </div>
@@ -1025,38 +1069,34 @@ export default function ClassesClient({
                   {t("classes.addStudent")}
                 </Button>
               </div>
-              <div className="border rounded-lg max-h-[300px] overflow-y-auto">
+              <div className="border rounded-lg max-h-[300px] overflow-y-auto divide-y">
                 {classRoster.filter((r) => r.assignment_type === "student")
                   .length === 0 ? (
                   <p className="text-sm text-muted-foreground p-4">
                     {t("classes.noStudents")}
                   </p>
                 ) : (
-                  <Table>
-                    <TableBody>
-                      {classRoster
-                        .filter((r) => r.assignment_type === "student")
-                        .map((assignment) => (
-                          <TableRow key={assignment.id}>
-                            <TableCell>
-                              {assignment.user?.full_name ||
-                                assignment.user?.email}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveUser(assignment.id)}
-                                title={t("common.remove")}
-                                aria-label={t("common.remove")}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
+                  classRoster
+                    .filter((r) => r.assignment_type === "student")
+                    .map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        className="flex items-center justify-between px-4 py-3"
+                      >
+                        <span className="text-sm truncate flex-1">
+                          {assignment.user?.full_name || assignment.user?.email}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveUser(assignment.id)}
+                          title={t("common.remove")}
+                          aria-label={t("common.remove")}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))
                 )}
               </div>
             </div>
@@ -1074,7 +1114,10 @@ export default function ClassesClient({
       <ConfirmDialog
         open={deleteConfirm.open}
         onOpenChange={(open) =>
-          setDeleteConfirm({ open, classItem: open ? deleteConfirm.classItem : null })
+          setDeleteConfirm({
+            open,
+            classItem: open ? deleteConfirm.classItem : null,
+          })
         }
         title={t("classes.deleteClassTitle")}
         description={t("classes.deleteConfirm", {
@@ -1090,7 +1133,10 @@ export default function ClassesClient({
       <ConfirmDialog
         open={removeUserConfirm.open}
         onOpenChange={(open) =>
-          setRemoveUserConfirm({ open, assignmentId: open ? removeUserConfirm.assignmentId : null })
+          setRemoveUserConfirm({
+            open,
+            assignmentId: open ? removeUserConfirm.assignmentId : null,
+          })
         }
         title={t("classes.removeUserTitle")}
         description={t("classes.removeUserConfirm")}

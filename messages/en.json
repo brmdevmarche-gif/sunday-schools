@@ -29,6 +29,7 @@
     "close": "Close",
     "clear": "Clear",
     "clearAll": "Clear All",
+    "sortBy": "Sort by",
     "now": "Now",
     "submit": "Submit",
     "submitting": "Submitting...",
@@ -1730,6 +1731,10 @@
   "trips": {
     "title": "Trips",
     "subtitle": "Manage trips and registrations",
+    "searchPlaceholder": "Search trips...",
+    "allStatuses": "All Statuses",
+    "allTypes": "All Types",
+    "type": "Type",
     "createTrip": "Create Trip",
     "editTrip": "Edit Trip",
     "tripDetails": "Trip Details",

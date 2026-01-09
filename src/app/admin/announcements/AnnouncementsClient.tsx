@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ResponsiveTable } from '@/components/ui/responsive-table'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createAnnouncementAction, deactivateAnnouncementAction, getAnnouncementTypesAction, republishAnnouncementAction, updateAnnouncementAction } from './actions'
@@ -704,81 +704,99 @@ export default function AnnouncementsClient(props: {
               <TabsTrigger value="deleted">{t('announcements.status.deactivated')}</TabsTrigger>
             </TabsList>
             <TabsContent value={statusTab} className="mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('announcements.table.title')}</TableHead>
-                    <TableHead>{t('announcements.table.types')}</TableHead>
-                    <TableHead>{t('announcements.table.roles')}</TableHead>
-                    <TableHead>{t('announcements.table.publishFrom')}</TableHead>
-                    <TableHead>{t('announcements.table.publishTo')}</TableHead>
-                    <TableHead>{t('announcements.table.status')}</TableHead>
-                    <TableHead className="text-right">{t('common.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(displayedAnnouncements || []).map(a => {
-                    const status = computeStatus(a)
-                    return (
-                      <TableRow
-                        key={a.id}
-                        className="cursor-pointer"
-                        onClick={() => { setDetailsTarget(a); setDetailsOpen(true) }}
-                      >
-                        <TableCell className="font-medium">{a.title}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {(a.types || []).slice(0, 4).map(tag => (
-                              <Badge key={tag} variant="secondary">{tag}</Badge>
-                            ))}
-                            {(a.types || []).length > 4 && <Badge variant="outline">+{(a.types || []).length - 4}</Badge>}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {(a.target_roles || []).map(r => (
-                              <Badge key={r} variant="outline">{roleLabel(r)}</Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDateTime(a.publish_from)}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDateTime(a.publish_to)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={status === 'active' ? 'default' : status === 'deleted' ? 'destructive' : 'secondary'}>
-                            {statusLabel(status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right space-x-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/admin/announcements/${a.id}/edit`}>{t('common.edit')}</Link>
-                          </Button>
-                          {status !== 'active' && (
-                            <Button variant="outline" size="sm" onClick={() => openRepublish(a)}>
-                              {t('announcements.actions.republish')}
-                            </Button>
-                          )}
-                          {status === 'active' && (
-                            <Button variant="destructive" size="sm" onClick={() => openDeactivate(a)}>
-                              {t('announcements.actions.deactivate')}
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  {(!displayedAnnouncements || displayedAnnouncements.length === 0) && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">
-                        {t('common.noResults')}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+              <ResponsiveTable
+                data={displayedAnnouncements || []}
+                columns={[
+                  {
+                    key: 'title',
+                    header: t('announcements.table.title'),
+                    mobileLabel: t('announcements.table.title'),
+                    cell: (a) => a.title,
+                    isTitle: true,
+                  },
+                  {
+                    key: 'types',
+                    header: t('announcements.table.types'),
+                    mobileLabel: t('announcements.table.types'),
+                    cell: (a) => (
+                      <div className="flex flex-wrap gap-1">
+                        {(a.types || []).slice(0, 4).map(tag => (
+                          <Badge key={tag} variant="secondary">{tag}</Badge>
+                        ))}
+                        {(a.types || []).length > 4 && <Badge variant="outline">+{(a.types || []).length - 4}</Badge>}
+                      </div>
+                    ),
+                    showOnMobile: false,
+                  },
+                  {
+                    key: 'roles',
+                    header: t('announcements.table.roles'),
+                    mobileLabel: t('announcements.table.roles'),
+                    cell: (a) => (
+                      <div className="flex flex-wrap gap-1">
+                        {(a.target_roles || []).map(r => (
+                          <Badge key={r} variant="outline">{roleLabel(r)}</Badge>
+                        ))}
+                      </div>
+                    ),
+                    showOnMobile: false,
+                  },
+                  {
+                    key: 'publishFrom',
+                    header: t('announcements.table.publishFrom'),
+                    mobileLabel: t('announcements.table.publishFrom'),
+                    cell: (a) => formatDateTime(a.publish_from),
+                    isSubtitle: true,
+                  },
+                  {
+                    key: 'publishTo',
+                    header: t('announcements.table.publishTo'),
+                    mobileLabel: t('announcements.table.publishTo'),
+                    cell: (a) => formatDateTime(a.publish_to),
+                    showOnMobile: false,
+                  },
+                  {
+                    key: 'status',
+                    header: t('announcements.table.status'),
+                    mobileLabel: t('announcements.table.status'),
+                    cell: (a) => {
+                      const status = computeStatus(a)
+                      return (
+                        <Badge variant={status === 'active' ? 'default' : status === 'deleted' ? 'destructive' : 'secondary'}>
+                          {statusLabel(status)}
+                        </Badge>
+                      )
+                    },
+                  },
+                ]}
+                getRowKey={(a) => a.id}
+                onRowClick={(a) => { setDetailsTarget(a); setDetailsOpen(true) }}
+                renderActions={(a) => {
+                  const status = computeStatus(a)
+                  return (
+                    <div className="flex gap-2 flex-wrap justify-end">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/admin/announcements/${a.id}/edit`}>{t('common.edit')}</Link>
+                      </Button>
+                      {status !== 'active' && (
+                        <Button variant="outline" size="sm" onClick={() => openRepublish(a)} className="hidden sm:inline-flex">
+                          {t('announcements.actions.republish')}
+                        </Button>
+                      )}
+                      {status === 'active' && (
+                        <Button variant="destructive" size="sm" onClick={() => openDeactivate(a)} className="hidden sm:inline-flex">
+                          {t('announcements.actions.deactivate')}
+                        </Button>
+                      )}
+                    </div>
+                  )
+                }}
+                emptyState={
+                  <div className="text-center text-sm text-muted-foreground py-8">
+                    {t('common.noResults')}
+                  </div>
+                }
+              />
             </TabsContent>
           </Tabs>
         </CardContent>

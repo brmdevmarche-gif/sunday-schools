@@ -27,9 +27,9 @@
 | Item | Priority | Status |
 |------|----------|--------|
 | FilterSheet component | P2 | DONE |
-| Filter collapsing implementation | P2 | PARTIAL (3/6 pages) |
+| Filter collapsing implementation | P2 | PARTIAL (6 pages done) |
 | Checkbox touch targets | P1 | DONE |
-| Table to card migration | P2 | TODO |
+| Table to card migration | P2 | DONE (4 pages migrated) |
 | Tooltip mobile handling | P3 | TODO |
 | Breadcrumb truncation | P3 | TODO |
 
@@ -57,10 +57,12 @@ This audit identifies UX/UI issues across the Knasty Portal with emphasis on mob
 **Location:** `src/components/ui/table.tsx`
 **Issue:** Tables require horizontal scrolling on mobile, making data hard to read and interact with.
 **Impact:** Users must scroll horizontally to see all data, losing context of which row they're viewing.
-**Status:** PARTIAL - ResponsiveTable component created at `src/components/ui/responsive-table.tsx`
-**Recommendation:**
-- Migrate existing tables to use ResponsiveTable component
+**Status:** DONE - ResponsiveTable component created and migrated to main admin pages
+**Fix Applied:**
+- ResponsiveTable component at `src/components/ui/responsive-table.tsx`
+- Migrated pages: DiocesesClient, ClassesClient, AnnouncementsClient, UsersClient (accordion tables)
 - Component transforms to card-based layout on mobile automatically
+- Added mobile sort dropdown support for sortable tables
 
 #### 1.2 Button Touch Targets Too Small
 **Location:** `src/components/ui/button.tsx`
@@ -123,13 +125,13 @@ This audit identifies UX/UI issues across the Knasty Portal with emphasis on mob
 #### 2.2 Filter Cards Take Too Much Space
 **Location:** All admin list pages (Classes, Users, Announcements, etc.)
 **Issue:** Filter cards with 4-column grids collapse poorly on mobile, taking significant viewport space.
-**Status:** PARTIAL - 3 pages migrated to ResponsiveFilters
+**Status:** PARTIAL - 6 pages migrated to ResponsiveFilters
 **Fix Applied:**
 - Created FilterSheet and ResponsiveFilters components
 - Filters collapse behind a "Filters" button on mobile with slide-out sheet
 - Shows active filter count badge
-- Implemented on: ClassesClient, UsersClient, ChurchesClient
-**Remaining:** DiocesesClient, StudentsClient, other list pages
+- Implemented on: ClassesClient, UsersClient, ChurchesClient, StudentsClient, TripsManagementClient, OrdersManagementClient
+**Note:** DiocesesClient doesn't have filters (simple list)
 
 ### P2 - Significant
 
@@ -158,19 +160,24 @@ This audit identifies UX/UI issues across the Knasty Portal with emphasis on mob
 - `ClassesClient.tsx` - Classes table
 - `UsersClient.tsx` - Users by role accordion tables
 - `AnnouncementsClient.tsx` - Announcements table
-- All attendance, trips, churches, dioceses tables
+- `DiocesesClient.tsx` - Dioceses table
 
 **Issue:** All data tables use the same horizontal scroll pattern which is suboptimal for mobile.
-**Status:** PARTIAL - ResponsiveTable component created
-**Next Steps:** Migrate existing tables to use ResponsiveTable
+**Status:** DONE - Main admin tables migrated to ResponsiveTable
+**Fix Applied:**
+- DiocesesClient.tsx - Migrated with mobile sort dropdown
+- ClassesClient.tsx - Migrated with mobile sort dropdown
+- AnnouncementsClient.tsx - Migrated with card view
+- UsersClient.tsx - Accordion tables migrated with card view
 
 #### 3.2 Accordion Tables in UsersClient
 **Location:** `UsersClient.tsx`
 **Issue:** Nested tables inside accordions are hard to navigate on mobile.
-**Status:** TODO
-**Recommendation:**
-- Use card-based list inside accordion on mobile
-- Show fewer columns (name, status, actions only)
+**Status:** DONE
+**Fix Applied:**
+- Migrated to ResponsiveTable component
+- Card-based list inside accordion on mobile
+- Shows name (title), email (subtitle), church, status, and actions
 
 ### P2 - Significant
 
@@ -392,12 +399,13 @@ For primary actions on mobile list pages.
 
 ### Phase 2 (Form Improvements) - COMPLETED
 - [x] Single-column forms on mobile
-- [x] Filter collapsing (PARTIAL - 3/6 pages done)
+- [x] Filter collapsing (PARTIAL - 6 pages done)
 - [ ] Improved select/combobox (TODO)
 
-### Phase 3 (Data Display) - IN PROGRESS
+### Phase 3 (Data Display) - MOSTLY COMPLETE
 - [x] ResponsiveTable component created
-- [ ] Card views for all list pages (TODO - migration needed)
+- [x] Card views for main list pages (DiocesesClient, ClassesClient, AnnouncementsClient, UsersClient)
+- [x] Mobile sort dropdown support added to ResponsiveTable
 - [ ] Mobile-optimized detail pages (PARTIAL)
 
 ### Phase 4 (Polish) - TODO
@@ -452,6 +460,15 @@ For primary actions on mobile list pages.
 - ClassesClient.tsx - Filters collapse on mobile
 - UsersClient.tsx - Filters collapse on mobile
 - ChurchesClient.tsx - Filters collapse on mobile
+- StudentsClient.tsx - Filters collapse on mobile
+- TripsManagementClient.tsx - Filters collapse on mobile
+- OrdersManagementClient.tsx - Filters collapse on mobile
+
+### Client Pages (ResponsiveTable Migrated)
+- DiocesesClient.tsx - Table → ResponsiveTable with mobile sort
+- ClassesClient.tsx - Table → ResponsiveTable with mobile sort
+- AnnouncementsClient.tsx - Table → ResponsiveTable with card view
+- UsersClient.tsx - Accordion tables → ResponsiveTable with card view
 
 ---
 

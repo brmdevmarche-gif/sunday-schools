@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ import {
   DollarSign,
   CheckCircle2,
   XCircle,
-  Mail,
   Phone,
   Plus,
   UserCog,
@@ -280,7 +279,11 @@ export default function TripDetailsClient({
       );
     } catch (error) {
       console.error("Error updating participants:", error);
-      toast.error(error instanceof Error ? error.message : t("trips.messages.participantsUpdateError"));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("trips.messages.participantsUpdateError")
+      );
     } finally {
       setIsBulkUpdating(false);
     }
@@ -363,7 +366,11 @@ export default function TripDetailsClient({
       toast.success(t("trips.messages.participantUpdated"));
     } catch (error) {
       console.error("Error updating participant:", error);
-      toast.error(error instanceof Error ? error.message : t("trips.messages.participantUpdateError"));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("trips.messages.participantUpdateError")
+      );
     } finally {
       setIsUpdating(null);
     }
@@ -388,7 +395,9 @@ export default function TripDetailsClient({
       }
     } catch (error) {
       console.error("Error loading teachers:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to load teachers");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load teachers"
+      );
     } finally {
       setIsLoadingTeachers(false);
     }
@@ -447,7 +456,9 @@ export default function TripDetailsClient({
       }
     } catch (error) {
       console.error("Error adding organizer:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to add organizer");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add organizer"
+      );
     } finally {
       setIsAddingOrganizer(false);
     }
@@ -466,7 +477,9 @@ export default function TripDetailsClient({
       }
     } catch (error) {
       console.error("Error removing organizer:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to remove organizer");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to remove organizer"
+      );
     }
   }
 
@@ -498,7 +511,9 @@ export default function TripDetailsClient({
       }
     } catch (error) {
       console.error("Error updating organizer:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to update organizer");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update organizer"
+      );
     } finally {
       setUpdatingPermission(null);
     }
@@ -549,7 +564,9 @@ export default function TripDetailsClient({
       }
     } catch (error) {
       console.error("Error loading students:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to load students");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load students"
+      );
     } finally {
       setIsLoadingStudents(false);
     }
@@ -593,7 +610,9 @@ export default function TripDetailsClient({
       }
     } catch (error) {
       console.error("Error subscribing student:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to subscribe student");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to subscribe student"
+      );
     } finally {
       setSubscribingStudentId(null);
     }
@@ -679,7 +698,9 @@ export default function TripDetailsClient({
       toast.success("Attendance saved successfully");
     } catch (error) {
       console.error("Error saving attendance:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to save attendance");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save attendance"
+      );
     } finally {
       setIsSavingAttendance(false);
     }
@@ -688,7 +709,7 @@ export default function TripDetailsClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-end sm:items-center justify-between flex-col sm:flex-row gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
@@ -1096,7 +1117,9 @@ export default function TripDetailsClient({
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {(participant.user as any)?.user_code && (
-                                <span className="font-mono mr-2">ID: {(participant.user as any).user_code}</span>
+                                <span className="font-mono mr-2">
+                                  ID: {(participant.user as any).user_code}
+                                </span>
                               )}
                               {participant.user?.email}
                             </p>
@@ -1251,7 +1274,9 @@ export default function TripDetailsClient({
               {participants.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">{t("trips.tripAttendance.noParticipants")}</p>
+                  <p className="text-lg font-medium">
+                    {t("trips.tripAttendance.noParticipants")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {t("trips.tripAttendance.addParticipantsFirst")}
                   </p>
@@ -1263,7 +1288,9 @@ export default function TripDetailsClient({
                       <TableHead>{t("trips.tripAttendance.student")}</TableHead>
                       <TableHead>{t("trips.tripAttendance.email")}</TableHead>
                       <TableHead>{t("trips.tripAttendance.notes")}</TableHead>
-                      <TableHead className="text-right">{t("common.actions")}</TableHead>
+                      <TableHead className="text-right">
+                        {t("common.actions")}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1309,7 +1336,9 @@ export default function TripDetailsClient({
                           </TableCell>
                           <TableCell className="whitespace-normal">
                             <Input
-                              placeholder={t("trips.tripAttendance.notesPlaceholder")}
+                              placeholder={t(
+                                "trips.tripAttendance.notesPlaceholder"
+                              )}
                               value={record.notes || ""}
                               onChange={(
                                 e: React.ChangeEvent<HTMLInputElement>
@@ -1361,7 +1390,9 @@ export default function TripDetailsClient({
               {organizers.length === 0 ? (
                 <div className="text-center py-12">
                   <UserCog className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">{t("trips.organizers.noOrganizers")}</p>
+                  <p className="text-lg font-medium">
+                    {t("trips.organizers.noOrganizers")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {canManageOrganizers
                       ? t("trips.organizers.addOrganizersToManage")
@@ -1420,7 +1451,9 @@ export default function TripDetailsClient({
                       </div>
 
                       <div className="space-y-3 pt-3 border-t">
-                        <p className="text-sm font-medium">{t("trips.organizers.permissions")}:</p>
+                        <p className="text-sm font-medium">
+                          {t("trips.organizers.permissions")}:
+                        </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div className="flex items-center gap-2">
                             {canManageOrganizers ? (
@@ -1456,10 +1489,14 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_approve ? t("common.yes") : t("common.no")}
+                                  {organizer.can_approve
+                                    ? t("common.yes")
+                                    : t("common.no")}
                                 </Badge>
                                 <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                <Label>{t("trips.organizers.canApprove")}</Label>
+                                <Label>
+                                  {t("trips.organizers.canApprove")}
+                                </Label>
                               </>
                             )}
                           </div>
@@ -1496,7 +1533,9 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_go ? t("common.yes") : t("common.no")}
+                                  {organizer.can_go
+                                    ? t("common.yes")
+                                    : t("common.no")}
                                 </Badge>
                                 <Users className="h-4 w-4 text-muted-foreground" />
                                 <Label>{t("trips.organizers.canGo")}</Label>
@@ -1538,10 +1577,14 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_take_attendance ? t("common.yes") : t("common.no")}
+                                  {organizer.can_take_attendance
+                                    ? t("common.yes")
+                                    : t("common.no")}
                                 </Badge>
                                 <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
-                                <Label>{t("trips.organizers.canTakeAttendance")}</Label>
+                                <Label>
+                                  {t("trips.organizers.canTakeAttendance")}
+                                </Label>
                               </>
                             )}
                           </div>
@@ -1580,10 +1623,14 @@ export default function TripDetailsClient({
                                   }
                                   className="mr-2"
                                 >
-                                  {organizer.can_collect_payment ? t("common.yes") : t("common.no")}
+                                  {organizer.can_collect_payment
+                                    ? t("common.yes")
+                                    : t("common.no")}
                                 </Badge>
                                 <CreditCard className="h-4 w-4 text-muted-foreground" />
-                                <Label>{t("trips.organizers.canCollectPayment")}</Label>
+                                <Label>
+                                  {t("trips.organizers.canCollectPayment")}
+                                </Label>
                               </>
                             )}
                           </div>
@@ -1638,14 +1685,18 @@ export default function TripDetailsClient({
 
             {/* Select Teacher */}
             <div className="space-y-2">
-              <Label htmlFor="teacher">{t("trips.organizers.selectTeacher")} *</Label>
+              <Label htmlFor="teacher">
+                {t("trips.organizers.selectTeacher")} *
+              </Label>
               <Select
                 value={selectedTeacherId}
                 onValueChange={setSelectedTeacherId}
                 disabled={isLoadingTeachers || isAddingOrganizer}
               >
                 <SelectTrigger id="teacher">
-                  <SelectValue placeholder={t("trips.organizers.selectTeacherPlaceholder")} />
+                  <SelectValue
+                    placeholder={t("trips.organizers.selectTeacherPlaceholder")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredTeachers.length === 0 ? (
@@ -1660,7 +1711,9 @@ export default function TripDetailsClient({
                     filteredTeachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
                         {teacher.full_name
-                          ? `${teacher.full_name}${teacher.phone ? ` - ${teacher.phone}` : ""} (${teacher.email})`
+                          ? `${teacher.full_name}${
+                              teacher.phone ? ` - ${teacher.phone}` : ""
+                            } (${teacher.email})`
                           : teacher.email}
                       </SelectItem>
                     ))
@@ -1756,7 +1809,9 @@ export default function TripDetailsClient({
               onClick={handleAddOrganizer}
               disabled={isAddingOrganizer || !selectedTeacherId}
             >
-              {isAddingOrganizer ? t("trips.organizers.adding") : t("trips.organizers.addOrganizer")}
+              {isAddingOrganizer
+                ? t("trips.organizers.adding")
+                : t("trips.organizers.addOrganizer")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1804,7 +1859,9 @@ export default function TripDetailsClient({
             ) : availableStudents.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium">{t("trips.noStudentsAvailable")}</p>
+                <p className="text-lg font-medium">
+                  {t("trips.noStudentsAvailable")}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {trip.classes && trip.classes.length > 0
                     ? t("trips.allStudentsSubscribed")

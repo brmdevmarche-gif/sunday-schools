@@ -59,7 +59,10 @@ export default function EditActivityClient({
     status: activity.status,
   });
 
-  function handleInputChange(field: string, value: string | number | boolean | undefined) {
+  function handleInputChange(
+    field: string,
+    value: string | number | boolean | undefined
+  ) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -80,7 +83,9 @@ export default function EditActivityClient({
       router.push("/admin/activities");
     } catch (error) {
       console.error("Error updating activity:", error);
-      toast.error(error instanceof Error ? error.message : t("activities.updateFailed"));
+      toast.error(
+        error instanceof Error ? error.message : t("activities.updateFailed")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -231,7 +236,9 @@ export default function EditActivityClient({
                           onChange={(e) =>
                             handleInputChange(
                               "reduced_points_percentage",
-                              e.target.value ? parseInt(e.target.value) : undefined
+                              e.target.value
+                                ? parseInt(e.target.value)
+                                : undefined
                             )
                           }
                         />
@@ -374,16 +381,14 @@ export default function EditActivityClient({
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="status">
-                        {t("common.status")}
-                      </Label>
+                      <Label htmlFor="status">{t("common.status")}</Label>
                       <Select
                         value={formData.status}
                         onValueChange={(value) =>
                           handleInputChange("status", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

@@ -12,8 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
-import { createStoreItemAction } from "../actions";
-import type { ExtendedUser } from "@/lib/types";
+import { updateStoreItemAction } from "../../actions";
+import type { ExtendedUser, StoreItem } from "@/lib/types";
 import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
 
 interface Church {
@@ -28,60 +28,96 @@ interface ClassItem {
   church_id: string;
 }
 
-interface CreateStoreItemClientProps {
+interface EditStoreItemClientProps {
   userProfile: ExtendedUser;
+  item: StoreItem;
   churches: Church[];
   dioceses: { id: string; name: string }[];
   classes: ClassItem[];
+  initialChurchIds: string[];
+  initialDioceseIds: string[];
+  initialClassIds: string[];
 }
 
-export default function CreateStoreItemClient({
+function isoToDatetimeLocal(iso: string | null | undefined) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const mm = pad(d.getMonth() + 1);
+  const dd = pad(d.getDate());
+  const hh = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
+
+function datetimeLocalToIso(local: string) {
+  if (!local) return null;
+  const d = new Date(local);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+function toDatetimeLocal(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const mm = pad(d.getMonth() + 1);
+  const dd = pad(d.getDate());
+  const hh = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
+
+export default function EditStoreItemClient({
   userProfile,
+  item,
   churches,
   dioceses,
   classes,
-}: CreateStoreItemClientProps) {
+  initialChurchIds,
+  initialDioceseIds,
+  initialClassIds,
+}: EditStoreItemClientProps) {
   const router = useRouter();
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
 
+  const hasSpecial =
+    item.special_price != null &&
+    !!item.special_price_start_at &&
+    !!item.special_price_end_at;
+
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    image_url: "",
-    stock_type: "quantity" as "quantity" | "on_demand",
-    stock_quantity: 0,
-    price_normal: 0,
-    price_mastor: 0,
-    price_botl: 0,
-    special_offer_enabled: false,
-    special_price: 0,
-    special_start_local: "",
-    special_end_local: "",
-    church_ids: [] as string[],
-    diocese_ids: [] as string[],
-    is_available_to_all_classes: true,
-    class_ids: [] as string[],
+    name: item.name,
+    description: item.description || "",
+    image_url: item.image_url || "",
+    stock_type: item.stock_type as "quantity" | "on_demand",
+    stock_quantity: item.stock_quantity,
+    price_normal: item.price_normal,
+    price_mastor: item.price_mastor,
+    price_botl: item.price_botl,
+    is_active: item.is_active,
+    special_offer_enabled: hasSpecial,
+    special_price: item.special_price ?? 0,
+    special_start_local: isoToDatetimeLocal(item.special_price_start_at),
+    special_end_local: isoToDatetimeLocal(item.special_price_end_at),
+    church_ids: initialChurchIds,
+    diocese_ids: initialDioceseIds,
+    is_available_to_all_classes: item.is_available_to_all_classes,
+    class_ids: initialClassIds,
   });
 
-  function datetimeLocalToIso(local: string) {
-    if (!local) return null;
-    const d = new Date(local);
-    if (Number.isNaN(d.getTime())) return null;
-    return d.toISOString();
-  }
-
-  function toDatetimeLocal(d: Date) {
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    const mm = pad(d.getMonth() + 1);
-    const dd = pad(d.getDate());
-    const hh = pad(d.getHours());
-    const min = pad(d.getMinutes());
-    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
-  }
-
-  function setSpecialPreset(preset: "now" | "today" | "thisWeek" | "thisMonth" | "tomorrow" | "nextWeek" | "nextMonth") {
+  function setSpecialPreset(
+    preset:
+      | "now"
+      | "today"
+      | "thisWeek"
+      | "thisMonth"
+      | "tomorrow"
+      | "nextWeek"
+      | "nextMonth"
+  ) {
     const now = new Date();
     const start = new Date(now);
     const end = new Date(now);
@@ -119,7 +155,6 @@ export default function CreateStoreItemClient({
 
     switch (preset) {
       case "now": {
-        // Start now, end same time next day
         end.setDate(end.getDate() + 1);
         break;
       }
@@ -229,9 +264,7 @@ export default function CreateStoreItemClient({
 
     const validClasses =
       newChurchIds.length > 0
-        ? classes.filter((classItem) =>
-            newChurchIds.includes(classItem.church_id)
-          )
+        ? classes.filter((classItem) => newChurchIds.includes(classItem.church_id))
         : classes;
 
     const validClassIds = formData.class_ids.filter((id) =>
@@ -290,7 +323,7 @@ export default function CreateStoreItemClient({
 
     setIsLoading(true);
     try {
-      await createStoreItemAction({
+      await updateStoreItemAction(item.id, {
         name: formData.name,
         description: formData.description,
         image_url: formData.image_url,
@@ -299,20 +332,22 @@ export default function CreateStoreItemClient({
         price_normal: formData.price_normal,
         price_mastor: formData.price_mastor,
         price_botl: formData.price_botl,
-        special_price: formData.special_offer_enabled ? formData.special_price : undefined,
-        special_price_start_at: formData.special_offer_enabled ? specialStartIso ?? undefined : undefined,
-        special_price_end_at: formData.special_offer_enabled ? specialEndIso ?? undefined : undefined,
+        is_active: formData.is_active,
+        special_price: formData.special_offer_enabled ? formData.special_price : null,
+        special_price_start_at: formData.special_offer_enabled ? specialStartIso : null,
+        special_price_end_at: formData.special_offer_enabled ? specialEndIso : null,
         church_ids: formData.church_ids,
         diocese_ids: formData.diocese_ids,
         is_available_to_all_classes: formData.is_available_to_all_classes,
         class_ids: formData.class_ids,
       });
-      toast.success(t("createStoreItem.messages.createSuccess"));
+
+      toast.success(t("store.itemUpdated"));
       router.push("/admin/store");
     } catch (error: unknown) {
-      console.error("Error creating store item:", error);
+      console.error("Error updating store item:", error);
       toast.error(
-        error instanceof Error ? error.message : t("createStoreItem.messages.createError")
+        error instanceof Error ? error.message : t("store.updateFailed")
       );
     } finally {
       setIsLoading(false);
@@ -326,10 +361,8 @@ export default function CreateStoreItemClient({
           <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">{t("createStoreItem.title")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("createStoreItem.subtitle")}
-          </p>
+          <h1 className="text-3xl font-bold">{t("store.editItem")}</h1>
+          <p className="text-muted-foreground mt-1">{item.name}</p>
         </div>
       </div>
 
@@ -337,7 +370,6 @@ export default function CreateStoreItemClient({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Basic Information */}
             <Card>
               <CardHeader>
                 <CardTitle>{t("createStoreItem.basicInfo")}</CardTitle>
@@ -351,7 +383,6 @@ export default function CreateStoreItemClient({
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder={t("createStoreItem.placeholders.itemName")}
                     required
                   />
                 </div>
@@ -364,7 +395,6 @@ export default function CreateStoreItemClient({
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    placeholder={t("createStoreItem.placeholders.description")}
                     rows={4}
                   />
                 </div>
@@ -388,6 +418,17 @@ export default function CreateStoreItemClient({
                 <CardTitle>{t("createStoreItem.stockManagement")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="is_active">{t("common.status")}</Label>
+                  <Switch
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, is_active: checked })
+                    }
+                  />
+                </div>
+
                 <div>
                   <Label>{t("createStoreItem.fields.stockType")} *</Label>
                   <div className="flex gap-4 mt-2">
@@ -400,9 +441,7 @@ export default function CreateStoreItemClient({
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            stock_type: e.target.value as
-                              | "quantity"
-                              | "on_demand",
+                            stock_type: e.target.value as "quantity" | "on_demand",
                           })
                         }
                         className="w-4 h-4"
@@ -418,9 +457,7 @@ export default function CreateStoreItemClient({
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            stock_type: e.target.value as
-                              | "quantity"
-                              | "on_demand",
+                            stock_type: e.target.value as "quantity" | "on_demand",
                           })
                         }
                         className="w-4 h-4"
@@ -481,7 +518,6 @@ export default function CreateStoreItemClient({
                         price_normal: toNonNegativeInt(normalized, 0),
                       });
                     }}
-                    placeholder={t("createStoreItem.placeholders.points")}
                     required
                   />
                 </div>
@@ -503,7 +539,6 @@ export default function CreateStoreItemClient({
                         price_mastor: toNonNegativeInt(normalized, 0),
                       });
                     }}
-                    placeholder={t("createStoreItem.placeholders.points")}
                     required
                   />
                 </div>
@@ -525,7 +560,6 @@ export default function CreateStoreItemClient({
                         price_botl: toNonNegativeInt(normalized, 0),
                       });
                     }}
-                    placeholder={t("createStoreItem.placeholders.points")}
                     required
                   />
                 </div>
@@ -566,17 +600,16 @@ export default function CreateStoreItemClient({
                           type="number"
                           min="0"
                           value={formData.special_price}
-                        onFocus={(e) => {
-                          if (e.currentTarget.value === "0") e.currentTarget.select();
-                        }}
-                        onChange={(e) => {
-                          const normalized = normalizeNonNegativeIntInput(e.target.value);
-                          setFormData({
-                            ...formData,
-                            special_price: toNonNegativeInt(normalized, 0),
-                          });
-                        }}
-                          placeholder={t("createStoreItem.placeholders.points")}
+                          onFocus={(e) => {
+                            if (e.currentTarget.value === "0") e.currentTarget.select();
+                          }}
+                          onChange={(e) => {
+                            const normalized = normalizeNonNegativeIntInput(e.target.value);
+                            setFormData({
+                              ...formData,
+                              special_price: toNonNegativeInt(normalized, 0),
+                            });
+                          }}
                         />
                       </div>
 
@@ -661,14 +694,9 @@ export default function CreateStoreItemClient({
                           >
                             <input
                               type="checkbox"
-                              checked={formData.diocese_ids.includes(
-                                diocese.id
-                              )}
+                              checked={formData.diocese_ids.includes(diocese.id)}
                               onChange={(e) =>
-                                handleDioceseChange(
-                                  diocese.id,
-                                  e.target.checked
-                                )
+                                handleDioceseChange(diocese.id, e.target.checked)
                               }
                               className="w-4 h-4"
                             />
@@ -764,10 +792,9 @@ export default function CreateStoreItemClient({
               </CardContent>
             </Card>
 
-            {/* Submit */}
             <Button type="submit" className="w-full" disabled={isLoading}>
               <Save className="mr-2 h-4 w-4" />
-              {isLoading ? t("createStoreItem.creating") : t("createStoreItem.createItem")}
+              {isLoading ? t("common.saving") : t("common.save")}
             </Button>
           </div>
         </div>
@@ -775,3 +802,5 @@ export default function CreateStoreItemClient({
     </div>
   );
 }
+
+

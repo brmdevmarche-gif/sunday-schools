@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,10 +40,11 @@ import {
   CheckCircle2,
   XCircle,
   MoreVertical,
+  Filter,
   Search,
 } from "lucide-react";
 import { ResponsiveFilters } from "@/components/ui/filter-sheet";
-import { Pagination, usePagination } from "@/components/ui/pagination";
+import { Pagination } from "@/components/ui/pagination";
 import {
   updateOrderStatusAction,
   bulkUpdateOrderStatusAction,
@@ -122,6 +123,11 @@ interface UserProfile {
 
 interface OrdersManagementClientProps {
   orders: Order[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  from: string | null;
+  to: string | null;
   userProfile: UserProfile;
   dioceses: Diocese[];
   churches: Church[];
@@ -130,6 +136,11 @@ interface OrdersManagementClientProps {
 
 export default function OrdersManagementClient({
   orders,
+  totalCount,
+  page,
+  pageSize,
+  from,
+  to,
   userProfile,
   dioceses,
   churches,
@@ -137,6 +148,7 @@ export default function OrdersManagementClient({
 }: OrdersManagementClientProps) {
   const t = useTranslations();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [dioceseFilter, setDioceseFilter] = useState<string>("all");
@@ -146,6 +158,63 @@ export default function OrdersManagementClient({
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
+  const [fromLocal, setFromLocal] = useState<string>(() => isoToDatetimeLocal(from));
+  const [toLocal, setToLocal] = useState<string>(() => isoToDatetimeLocal(to));
+
+  useEffect(() => {
+    setFromLocal(isoToDatetimeLocal(from));
+    setToLocal(isoToDatetimeLocal(to));
+  }, [from, to]);
+
+  function isoToDatetimeLocal(iso: string | null) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const min = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  }
+
+  function datetimeLocalToIso(local: string) {
+    if (!local) return null;
+    const d = new Date(local);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+
+  function pushWithParams(next: Record<string, string | null>) {
+    const sp = new URLSearchParams(searchParams?.toString() ?? "");
+    for (const [k, v] of Object.entries(next)) {
+      if (!v) sp.delete(k);
+      else sp.set(k, v);
+    }
+    router.push(`?${sp.toString()}`);
+  }
+
+  function applyDateFilter(nextFromIso: string | null, nextToIso: string | null) {
+    pushWithParams({
+      page: "1",
+      pageSize: String(pageSize),
+      from: nextFromIso,
+      to: nextToIso,
+    });
+  }
+
+  const totalPages = Math.max(1, Math.ceil((totalCount || 0) / pageSize));
+
+  // Server-side pagination (keep UI controls, but drive them via URL params)
+  const currentPage = page;
+  const totalItems = totalCount;
+  const onPageChange = (nextPage: number) => {
+    pushWithParams({ page: String(Math.max(1, Math.min(totalPages, nextPage))) });
+  };
+  const onPageSizeChange = (nextPageSize: number) => {
+    pushWithParams({ page: "1", pageSize: String(nextPageSize) });
+  };
 
   // Calculate active filter count
   const activeFilterCount = [
@@ -233,20 +302,6 @@ export default function OrdersManagementClient({
     classFilter,
     searchQuery,
   ]);
-
-  // Pagination
-  const {
-    paginatedData: paginatedOrders,
-    currentPage,
-    totalPages,
-    pageSize,
-    totalItems,
-    onPageChange,
-    onPageSizeChange,
-  } = usePagination({
-    data: filteredOrders,
-    initialPageSize: 20,
-  });
 
   function getStatusColor(status: string) {
     switch (status) {
@@ -376,7 +431,8 @@ export default function OrdersManagementClient({
                   {t("store.ordersManagement")}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  {filteredOrders.length} {t("store.orders")}
+                  {filteredOrders.length} / {totalCount} {t("store.orders")} •{" "}
+                  {t("common.page")} {page} / {totalPages}
                 </p>
               </div>
             </div>
@@ -392,128 +448,103 @@ export default function OrdersManagementClient({
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Search and Filters - Responsive */}
-            <ResponsiveFilters
-              title={t("common.filters")}
-              activeFilterCount={activeFilterCount}
-              onClear={clearFilters}
-              clearText={t("common.clearAll")}
-            >
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-                <div className="space-y-2">
-                  <Label>{t("common.search")}</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={t("store.searchOrders")}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="ps-9"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("common.status")}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(value) =>
-                      setStatusFilter(value as OrderStatus | "all")
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {t("store.allStatuses")}
-                      </SelectItem>
-                      <SelectItem value="pending">
-                        {t("store.status.pending")}
-                      </SelectItem>
-                      <SelectItem value="approved">
-                        {t("store.status.approved")}
-                      </SelectItem>
-                      <SelectItem value="fulfilled">
-                        {t("store.status.fulfilled")}
-                      </SelectItem>
-                      <SelectItem value="cancelled">
-                        {t("store.status.cancelled")}
-                      </SelectItem>
-                      <SelectItem value="rejected">
-                        {t("store.status.rejected")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("classes.diocese")}</Label>
-                  <Select
-                    value={dioceseFilter}
-                    onValueChange={(value) => {
-                      setDioceseFilter(value);
-                      setChurchFilter("all");
-                      setClassFilter("all");
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("classes.allDioceses")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {t("classes.allDioceses")}
-                      </SelectItem>
-                      {dioceses.map((diocese) => (
-                        <SelectItem key={diocese.id} value={diocese.id}>
-                          {diocese.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("classes.church")}</Label>
-                  <Select
-                    value={churchFilter}
-                    onValueChange={(value) => {
-                      setChurchFilter(value);
-                      setClassFilter("all");
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("classes.allChurches")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {t("classes.allChurches")}
-                      </SelectItem>
-                      {filteredChurches.map((church) => (
-                        <SelectItem key={church.id} value={church.id}>
-                          {church.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("classes.class")}</Label>
-                  <Select value={classFilter} onValueChange={setClassFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("classes.allClasses")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {t("classes.allClasses")}
-                      </SelectItem>
-                      {filteredClasses.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            {/* Search and Filters */}
+            <div className="flex flex-1 gap-2 w-full flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("store.searchOrders")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
               </div>
-            </ResponsiveFilters>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as OrderStatus | "all")
+                }
+              >
+                <SelectTrigger className="w-[140px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("store.allStatuses")}</SelectItem>
+                  <SelectItem value="pending">
+                    {t("store.status.pending")}
+                  </SelectItem>
+                  <SelectItem value="approved">
+                    {t("store.status.approved")}
+                  </SelectItem>
+                  <SelectItem value="fulfilled">
+                    {t("store.status.fulfilled")}
+                  </SelectItem>
+                  <SelectItem value="cancelled">
+                    {t("store.status.cancelled")}
+                  </SelectItem>
+                  <SelectItem value="rejected">
+                    {t("store.status.rejected")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={dioceseFilter}
+                onValueChange={(value) => {
+                  setDioceseFilter(value);
+                  setChurchFilter("all");
+                  setClassFilter("all");
+                }}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={t("classes.allDioceses")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {t("classes.allDioceses")}
+                  </SelectItem>
+                  {dioceses.map((diocese) => (
+                    <SelectItem key={diocese.id} value={diocese.id}>
+                      {diocese.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={churchFilter}
+                onValueChange={(value) => {
+                  setChurchFilter(value);
+                  setClassFilter("all");
+                }}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={t("classes.allChurches")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {t("classes.allChurches")}
+                  </SelectItem>
+                  {filteredChurches.map((church) => (
+                    <SelectItem key={church.id} value={church.id}>
+                      {church.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={t("classes.allClasses")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("classes.allClasses")}</SelectItem>
+                  {filteredClasses.map((cls) => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Bulk Actions - always visible */}
             <div className="flex gap-2 flex-wrap">
@@ -581,6 +612,33 @@ export default function OrdersManagementClient({
               </Label>
             </div>
           )}
+
+          {/* Pagination */}
+          <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-sm text-muted-foreground">
+              {t("common.page")} {page} / {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => pushWithParams({ page: String(Math.max(1, page - 1)) })}
+                disabled={page <= 1}
+              >
+                {t("common.previous")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  pushWithParams({ page: String(Math.min(totalPages, page + 1)) })
+                }
+                disabled={page >= totalPages}
+              >
+                {t("common.next")}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -598,7 +656,7 @@ export default function OrdersManagementClient({
           </Card>
         ) : (
           <div className="space-y-4">
-            {paginatedOrders.map((order) => (
+            {filteredOrders.map((order) => (
               <Card key={order.id}>
                 <CardHeader>
                   <div className="flex items-start gap-4">

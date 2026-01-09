@@ -12,7 +12,11 @@ interface Church {
   dioceses: { name: string } | null;
 }
 
-export default async function StorePage() {
+export default async function StorePage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const supabase = await createClient();
 
   // Get current user profile
@@ -30,11 +34,41 @@ export default async function StorePage() {
     redirect("/admin");
   }
 
-  // Fetch store items based on role
+  const sp = searchParams ? await searchParams : {};
+
+  const page = Math.max(
+    1,
+    parseInt(
+      Array.isArray(sp.page) ? sp.page[0] : (sp.page ?? "1"),
+      10
+    ) || 1
+  );
+  const pageSize = Math.max(
+    1,
+    Math.min(
+      100,
+      parseInt(
+        Array.isArray(sp.pageSize)
+          ? sp.pageSize[0]
+          : (sp.pageSize ?? "25"),
+        10
+      ) || 25
+    )
+  );
+  const from = Array.isArray(sp.from) ? sp.from[0] : sp.from;
+  const to = Array.isArray(sp.to) ? sp.to[0] : sp.to;
+
+  const fromIdx = (page - 1) * pageSize;
+  const toIdx = fromIdx + pageSize - 1;
+
+  // Fetch store items based on role + pagination + date filter
   let itemsQuery = supabase
     .from("store_items")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false });
+
+  if (from) itemsQuery = itemsQuery.gte("created_at", from);
+  if (to) itemsQuery = itemsQuery.lte("created_at", to);
 
   // Filter by church if church admin
   if (profile.role === "church_admin" && profile.church_id) {
@@ -43,11 +77,12 @@ export default async function StorePage() {
     );
   }
 
-  const { data: items, error: itemsError } = await itemsQuery;
+  const { data: items, error: itemsError, count } = await itemsQuery.range(
+    fromIdx,
+    toIdx
+  );
 
-  if (itemsError) {
-    console.error("Error fetching store items:", itemsError);
-  }
+  // Avoid console.error in server components (can trigger Turbopack sourcemap overlay issues on Windows paths with spaces)
 
   // Fetch churches for the dropdown (for super admin)
   let churches: Church[] = [];
@@ -90,6 +125,11 @@ export default async function StorePage() {
     <AdminLayout>
       <StoreClient
         items={(items as StoreItem[]) || []}
+        totalCount={count ?? 0}
+        page={page}
+        pageSize={pageSize}
+        from={from ?? null}
+        to={to ?? null}
         churches={churches}
         dioceses={dioceses}
         classes={classes}

@@ -29,6 +29,9 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
       price_normal: input.price_normal,
       price_mastor: input.price_mastor,
       price_botl: input.price_botl,
+      special_price: input.special_price ?? null,
+      special_price_start_at: input.special_price_start_at ?? null,
+      special_price_end_at: input.special_price_end_at ?? null,
       is_available_to_all_classes: input.is_available_to_all_classes ?? true,
       is_active: true,
       created_by: user.id,
@@ -262,6 +265,12 @@ export interface ItemDemandStats {
   fulfilled_requests: number
 }
 
+export interface MonthlyItemDemandStats {
+  month_key: string // YYYY-MM (UTC)
+  month_label: string
+  stats: ItemDemandStats[]
+}
+
 /**
  * Get item demand statistics - shows total requests per item
  */
@@ -349,6 +358,143 @@ export async function getItemDemandStatsAction(): Promise<ItemDemandStats[]> {
 
   // Sort by total requested (highest first)
   result.sort((a, b) => b.total_requested - a.total_requested)
+
+  return result
+}
+
+/**
+ * Get item demand statistics grouped by month (UTC), optionally filtered by orders.created_at range.
+ * This is used by the admin "Item demand" view to match the same date filters + month grouping used elsewhere.
+ */
+export async function getItemDemandStatsByMonthAction(filters?: {
+  from?: string
+  to?: string
+}): Promise<MonthlyItemDemandStats[]> {
+  const adminClient = createAdminClient()
+
+  // Get all store items (for item metadata)
+  const { data: storeItems, error: itemsError } = await adminClient
+    .from('store_items')
+    .select('id, name, image_url, stock_quantity, stock_type')
+    .order('name')
+
+  if (itemsError) {
+    throw new Error(`Failed to fetch store items: ${itemsError.message}`)
+  }
+
+  // Get order items with order status + created_at (for month grouping)
+  let oiQuery = adminClient
+    .from('order_items')
+    .select(`
+      store_item_id,
+      quantity,
+      orders!inner(status, created_at)
+    `)
+
+  // Attempt server-side filtering (PostgREST supports dotted filters on embedded relations)
+  if (filters?.from) oiQuery = oiQuery.gte('orders.created_at', filters.from)
+  if (filters?.to) oiQuery = oiQuery.lte('orders.created_at', filters.to)
+
+  const { data: orderItems, error: ordersError } = await oiQuery
+
+  if (ordersError) {
+    throw new Error(`Failed to fetch order items: ${ordersError.message}`)
+  }
+
+  const storeItemById = new Map<string, {
+    id: string
+    name: string
+    image_url: string | null
+    stock_quantity: number
+    stock_type: 'quantity' | 'on_demand'
+  }>()
+
+  for (const item of storeItems || []) {
+    storeItemById.set(item.id, {
+      id: item.id,
+      name: item.name,
+      image_url: item.image_url,
+      stock_quantity: item.stock_quantity,
+      stock_type: item.stock_type,
+    })
+  }
+
+  const fromDt = filters?.from ? new Date(filters.from) : null
+  const toDt = filters?.to ? new Date(filters.to) : null
+
+  const monthMap = new Map<string, Map<string, { total: number; pending: number; approved: number; fulfilled: number }>>()
+
+  for (const oi of orderItems || []) {
+    const order = oi.orders as unknown as { status: string; created_at: string }
+    if (!order?.created_at) continue
+
+    const createdAt = new Date(order.created_at)
+    if (Number.isNaN(createdAt.getTime())) continue
+
+    // Safety filter (in case dotted filters aren't applied by the API)
+    if (fromDt && createdAt < fromDt) continue
+    if (toDt && createdAt > toDt) continue
+
+    // Only count requests that aren't cancelled/rejected
+    if (order.status === 'cancelled' || order.status === 'rejected') continue
+
+    const monthKey = createdAt.toISOString().slice(0, 7) // YYYY-MM in UTC
+    const itemId = oi.store_item_id as string
+    const qty = oi.quantity as number
+
+    let byItem = monthMap.get(monthKey)
+    if (!byItem) {
+      byItem = new Map()
+      monthMap.set(monthKey, byItem)
+    }
+
+    let stats = byItem.get(itemId)
+    if (!stats) {
+      stats = { total: 0, pending: 0, approved: 0, fulfilled: 0 }
+      byItem.set(itemId, stats)
+    }
+
+    stats.total += qty
+    switch (order.status) {
+      case 'pending':
+        stats.pending += qty
+        break
+      case 'approved':
+        stats.approved += qty
+        break
+      case 'fulfilled':
+        stats.fulfilled += qty
+        break
+    }
+  }
+
+  const result: MonthlyItemDemandStats[] = Array.from(monthMap.entries())
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([monthKey, byItem]) => {
+      const monthLabel = new Date(`${monthKey}-01T00:00:00Z`).toLocaleString(undefined, {
+        month: 'long',
+        year: 'numeric',
+      })
+
+      const stats: ItemDemandStats[] = Array.from(byItem.entries())
+        .map(([itemId, s]) => {
+          const item = storeItemById.get(itemId)
+          return {
+            item_id: itemId,
+            item_name: item?.name || itemId,
+            item_image_url: item?.image_url ?? null,
+            stock_quantity: item?.stock_quantity ?? 0,
+            stock_type: item?.stock_type ?? 'quantity',
+            total_requested: s.total,
+            pending_requests: s.pending,
+            approved_requests: s.approved,
+            fulfilled_requests: s.fulfilled,
+          }
+        })
+        .sort((a, b) => b.total_requested - a.total_requested)
+
+      return { month_key: monthKey, month_label: monthLabel, stats }
+    })
 
   return result
 }

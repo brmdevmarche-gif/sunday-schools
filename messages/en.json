@@ -26,8 +26,11 @@
     "address": "Address",
     "description": "Description",
     "date": "Date",
+    "from": "From",
+    "to": "To",
     "close": "Close",
     "clear": "Clear",
+    "apply": "Apply",
     "clearAll": "Clear All",
     "sortBy": "Sort by",
     "now": "Now",
@@ -38,6 +41,7 @@
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
+    "page": "Page",
     "yes": "Yes",
     "no": "No",
     "welcome": "Welcome",
@@ -642,6 +646,7 @@
     "addToCart": "Add to Cart",
     "locked": "Locked",
     "needMorePoints": "Need {points} more points",
+    "special": "Special",
     "itemAdded": "Item added to cart",
     "itemRemoved": "Item removed from cart",
     "inStock": "in stock",
@@ -677,6 +682,9 @@
     "ordersManagement": "Orders Management",
     "searchOrders": "Search orders, customers, items...",
     "allStatuses": "All Statuses",
+    "lastWeek": "Last week",
+    "lastMonth": "Last month",
+    "currentMonth": "Current month",
     "status": {
       "pending": "Pending",
       "approved": "Approved",
@@ -1632,6 +1640,7 @@
     "basicInfo": "Basic Information",
     "stockManagement": "Stock Management",
     "pricing": "Pricing",
+    "specialOffer": "Special offer",
     "classAvailability": "Class Availability",
     "availableInDioceses": "Available in Dioceses",
     "availableInChurches": "Available in Churches",
@@ -1646,7 +1655,10 @@
       "stockQuantity": "Stock Quantity",
       "priceNormal": "Normal Price",
       "priceMastor": "Mastor Price",
-      "priceBotl": "Botl Price"
+      "priceBotl": "Botl Price",
+      "specialPrice": "Special Price",
+      "specialStart": "Start",
+      "specialEnd": "End"
     },
     "placeholders": {
       "itemName": "Enter item name",
@@ -1658,11 +1670,22 @@
       "onDemand": "Available on Demand"
     },
     "errors": {
-      "fillRequired": "Please fill in all required fields"
+      "fillRequired": "Please fill in all required fields",
+      "specialOfferIncomplete": "Please enter special price, start, and end",
+      "specialOfferInvalidRange": "Special offer end must be after start"
     },
     "messages": {
       "createSuccess": "Store item created successfully",
       "createError": "Failed to create store item"
+    },
+    "presets": {
+      "now": "Now",
+      "today": "Current day",
+      "thisWeek": "Current week",
+      "thisMonth": "Current month",
+      "tomorrow": "Next day",
+      "nextWeek": "Next week",
+      "nextMonth": "Next month"
     }
   },
   "studentDetails": {

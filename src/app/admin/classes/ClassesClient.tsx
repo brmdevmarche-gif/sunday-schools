@@ -56,6 +56,7 @@ import type {
   Diocese,
   ExtendedUser,
 } from "@/lib/types";
+import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
 import {
   createClassAction,
   updateClassAction,
@@ -840,12 +841,16 @@ export default function ClassesClient({
                     id="capacity"
                     type="number"
                     value={formData.capacity}
-                    onChange={(e) =>
+                    onFocus={(e) => {
+                      if (e.currentTarget.value === "0") e.currentTarget.select();
+                    }}
+                    onChange={(e) => {
+                      const normalized = normalizeNonNegativeIntInput(e.target.value);
                       setFormData({
                         ...formData,
-                        capacity: parseInt(e.target.value) || 30,
-                      })
-                    }
+                        capacity: toNonNegativeInt(normalized, 30),
+                      });
+                    }}
                     disabled={isSubmitting}
                     placeholder={t("classes.capacityPlaceholder")}
                     min="1"

@@ -21,6 +21,9 @@ export interface StoreItem {
   price_normal: number;
   price_mastor: number;
   price_botl: number;
+  special_price?: number | null;
+  special_price_start_at?: string | null;
+  special_price_end_at?: string | null;
   is_active: boolean;
   is_available_to_all_classes: boolean;
   created_by: string | null;
@@ -67,6 +70,9 @@ export interface CreateStoreItemInput {
   price_normal: number;
   price_mastor: number;
   price_botl: number;
+  special_price?: number;
+  special_price_start_at?: string;
+  special_price_end_at?: string;
   church_ids?: string[]; // Multiple churches
   diocese_ids?: string[]; // Multiple dioceses (item available to all churches in these dioceses)
   class_ids?: string[]; // Specific classes (if not available to all)
@@ -82,6 +88,9 @@ export interface UpdateStoreItemInput {
   price_normal?: number;
   price_mastor?: number;
   price_botl?: number;
+  special_price?: number | null;
+  special_price_start_at?: string | null;
+  special_price_end_at?: string | null;
   is_active?: boolean;
   church_ids?: string[];
   diocese_ids?: string[];

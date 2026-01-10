@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Settings, Loader2, Calendar, Bus, UserCheck } from "lucide-react";
+import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
 import {
   getChurchPointsConfigAction,
   upsertChurchPointsConfigAction,
@@ -143,12 +144,16 @@ export default function ChurchPointsConfigComponent({
                   min="0"
                   max="100"
                   value={config.attendance_points_present}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setConfig((prev) => ({
                       ...prev,
-                      attendance_points_present: parseInt(e.target.value) || 0,
-                    }))
-                  }
+                      attendance_points_present: toNonNegativeInt(normalized, 0),
+                    }));
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -159,12 +164,16 @@ export default function ChurchPointsConfigComponent({
                   min="0"
                   max="100"
                   value={config.attendance_points_late}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setConfig((prev) => ({
                       ...prev,
-                      attendance_points_late: parseInt(e.target.value) || 0,
-                    }))
-                  }
+                      attendance_points_late: toNonNegativeInt(normalized, 0),
+                    }));
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -175,12 +184,16 @@ export default function ChurchPointsConfigComponent({
                   min="0"
                   max="100"
                   value={config.attendance_points_excused}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setConfig((prev) => ({
                       ...prev,
-                      attendance_points_excused: parseInt(e.target.value) || 0,
-                    }))
-                  }
+                      attendance_points_excused: toNonNegativeInt(normalized, 0),
+                    }));
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -191,12 +204,16 @@ export default function ChurchPointsConfigComponent({
                   min="0"
                   max="100"
                   value={config.attendance_points_absent}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setConfig((prev) => ({
                       ...prev,
-                      attendance_points_absent: parseInt(e.target.value) || 0,
-                    }))
-                  }
+                      attendance_points_absent: toNonNegativeInt(normalized, 0),
+                    }));
+                  }}
                 />
               </div>
             </div>
@@ -232,12 +249,16 @@ export default function ChurchPointsConfigComponent({
                 min="0"
                 max="1000"
                 value={config.trip_participation_points}
-                onChange={(e) =>
+                onFocus={(e) => {
+                  if (e.currentTarget.value === "0") e.currentTarget.select();
+                }}
+                onChange={(e) => {
+                  const normalized = normalizeNonNegativeIntInput(e.target.value);
                   setConfig((prev) => ({
                     ...prev,
-                    trip_participation_points: parseInt(e.target.value) || 0,
-                  }))
-                }
+                    trip_participation_points: toNonNegativeInt(normalized, 0),
+                  }));
+                }}
                 className="mt-2"
               />
             </div>
@@ -273,12 +294,16 @@ export default function ChurchPointsConfigComponent({
                 min="1"
                 max="1000"
                 value={config.max_teacher_adjustment}
-                onChange={(e) =>
+                onFocus={(e) => {
+                  if (e.currentTarget.value === "0") e.currentTarget.select();
+                }}
+                onChange={(e) => {
+                  const normalized = normalizeNonNegativeIntInput(e.target.value);
                   setConfig((prev) => ({
                     ...prev,
-                    max_teacher_adjustment: parseInt(e.target.value) || 50,
-                  }))
-                }
+                    max_teacher_adjustment: toNonNegativeInt(normalized, 50),
+                  }));
+                }}
                 className="mt-2"
               />
               <p className="text-xs text-muted-foreground mt-1">

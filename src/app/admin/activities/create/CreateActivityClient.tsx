@@ -25,6 +25,7 @@ import type {
   ActivityStatus,
   ExtendedUser,
 } from "@/lib/types";
+import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
 
 interface CreateActivityClientProps {
   userProfile: ExtendedUser;
@@ -170,9 +171,13 @@ export default function CreateActivityClient({
                       type="number"
                       min="0"
                       value={formData.points}
-                      onChange={(e) =>
-                        handleInputChange("points", parseInt(e.target.value))
-                      }
+                      onFocus={(e) => {
+                        if (e.currentTarget.value === "0") e.currentTarget.select();
+                      }}
+                      onChange={(e) => {
+                        const normalized = normalizeNonNegativeIntInput(e.target.value);
+                        handleInputChange("points", toNonNegativeInt(normalized, 0));
+                      }}
                       required
                     />
                   </div>
@@ -188,12 +193,16 @@ export default function CreateActivityClient({
                       min="0"
                       max="100"
                       value={formData.reduced_points_percentage}
-                      onChange={(e) =>
+                      onFocus={(e) => {
+                        if (e.currentTarget.value === "0") e.currentTarget.select();
+                      }}
+                      onChange={(e) => {
+                        const normalized = normalizeNonNegativeIntInput(e.target.value);
                         handleInputChange(
                           "reduced_points_percentage",
-                          parseInt(e.target.value)
-                        )
-                      }
+                          toNonNegativeInt(normalized, 0)
+                        );
+                      }}
                     />
                   </div>
                 </div>
@@ -312,12 +321,16 @@ export default function CreateActivityClient({
                     type="number"
                     min="0"
                     value={formData.max_participants || ""}
-                    onChange={(e) =>
+                    onFocus={(e) => {
+                      if (e.currentTarget.value === "0") e.currentTarget.select();
+                    }}
+                    onChange={(e) => {
+                      const normalized = normalizeNonNegativeIntInput(e.target.value);
                       handleInputChange(
                         "max_participants",
-                        e.target.value ? parseInt(e.target.value) : undefined
-                      )
-                    }
+                        e.target.value ? toNonNegativeInt(normalized, 0) : undefined
+                      );
+                    }}
                     placeholder={t("activities.unlimited") || "Unlimited"}
                   />
                 </div>

@@ -21,6 +21,12 @@ import { toast } from "sonner";
 import { ArrowLeft, Save, Plus, Trash2, MapPin } from "lucide-react";
 import { createTripAction, getClassesForChurches } from "../actions";
 import TripImageUpload from "@/components/trips/TripImageUpload";
+import {
+  normalizeNonNegativeDecimalInput,
+  normalizeNonNegativeIntInput,
+  toNonNegativeFloat,
+  toNonNegativeInt,
+} from "@/lib/utils";
 import type {
   CreateTripInput,
   TripType,
@@ -544,10 +550,18 @@ export default function CreateTripClient({
                     type="number"
                     min="1"
                     value={formData.max_participants || ""}
+                    onFocus={(e) => {
+                      if (e.currentTarget.value === "0") e.currentTarget.select();
+                    }}
                     onChange={(e) =>
                       handleInputChange(
                         "max_participants",
-                        e.target.value ? parseInt(e.target.value) : undefined
+                        e.target.value
+                          ? toNonNegativeInt(
+                              normalizeNonNegativeIntInput(e.target.value),
+                              0
+                            )
+                          : undefined
                       )
                     }
                   />
@@ -582,12 +596,13 @@ export default function CreateTripClient({
                     min="0"
                     step="0.01"
                     value={formData.price_normal || 0}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "price_normal",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
+                    onFocus={(e) => {
+                      if (e.currentTarget.value === "0") e.currentTarget.select();
+                    }}
+                    onChange={(e) => {
+                      const normalized = normalizeNonNegativeDecimalInput(e.target.value);
+                      handleInputChange("price_normal", toNonNegativeFloat(normalized, 0));
+                    }}
                     required
                   />
                 </div>
@@ -600,12 +615,13 @@ export default function CreateTripClient({
                     min="0"
                     step="0.01"
                     value={formData.price_mastor || 0}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "price_mastor",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
+                    onFocus={(e) => {
+                      if (e.currentTarget.value === "0") e.currentTarget.select();
+                    }}
+                    onChange={(e) => {
+                      const normalized = normalizeNonNegativeDecimalInput(e.target.value);
+                      handleInputChange("price_mastor", toNonNegativeFloat(normalized, 0));
+                    }}
                     required
                   />
                 </div>
@@ -618,12 +634,13 @@ export default function CreateTripClient({
                     min="0"
                     step="0.01"
                     value={formData.price_botl || 0}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "price_botl",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
+                    onFocus={(e) => {
+                      if (e.currentTarget.value === "0") e.currentTarget.select();
+                    }}
+                    onChange={(e) => {
+                      const normalized = normalizeNonNegativeDecimalInput(e.target.value);
+                      handleInputChange("price_botl", toNonNegativeFloat(normalized, 0));
+                    }}
                     required
                   />
                 </div>

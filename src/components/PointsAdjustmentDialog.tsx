@@ -19,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Coins, Plus, Minus, Loader2 } from "lucide-react";
 import { teacherAdjustPointsAction } from "@/app/admin/points/actions";
+import { normalizeNonNegativeIntInput } from "@/lib/utils";
 
 interface PointsAdjustmentDialogProps {
   studentId: string;
@@ -146,7 +147,10 @@ export default function PointsAdjustmentDialog({
               min="1"
               max="1000"
               value={points}
-              onChange={(e) => setPoints(e.target.value)}
+              onFocus={(e) => {
+                if (e.currentTarget.value === "0") e.currentTarget.select();
+              }}
+              onChange={(e) => setPoints(normalizeNonNegativeIntInput(e.target.value))}
               placeholder="10"
             />
           </div>

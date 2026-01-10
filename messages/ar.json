@@ -26,8 +26,11 @@
     "address": "العنوان",
     "description": "الوصف",
     "date": "التاريخ",
+    "from": "من",
+    "to": "إلى",
     "close": "إغلاق",
     "clear": "مسح",
+    "apply": "تطبيق",
     "clearAll": "مسح الكل",
     "sortBy": "ترتيب حسب",
     "now": "الآن",
@@ -38,6 +41,7 @@
     "back": "رجوع",
     "next": "التالي",
     "previous": "السابق",
+    "page": "صفحة",
     "yes": "نعم",
     "no": "لا",
     "welcome": "مرحبًا",
@@ -660,6 +664,7 @@
     "addToCart": "أضف إلى السلة",
     "locked": "مقفل",
     "needMorePoints": "تحتاج {points} نقطة إضافية",
+    "special": "عرض خاص",
     "itemAdded": "تم إضافة العنصر إلى السلة",
     "itemRemoved": "تم إزالة العنصر من السلة",
     "inStock": "متوفر",
@@ -695,6 +700,9 @@
     "ordersManagement": "إدارة الطلبات",
     "searchOrders": "البحث في الطلبات، العملاء، العناصر...",
     "allStatuses": "جميع الحالات",
+    "lastWeek": "الأسبوع الماضي",
+    "lastMonth": "الشهر الماضي",
+    "currentMonth": "الشهر الحالي",
     "status": {
       "pending": "قيد الانتظار",
       "approved": "موافق عليه",
@@ -1656,6 +1664,7 @@
     "basicInfo": "المعلومات الأساسية",
     "stockManagement": "إدارة المخزون",
     "pricing": "التسعير",
+    "specialOffer": "عرض خاص",
     "classAvailability": "توفر الفصول",
     "availableInDioceses": "متاح في الإيبارشيات",
     "availableInChurches": "متاح في الكنائس",
@@ -1670,7 +1679,10 @@
       "stockQuantity": "كمية المخزون",
       "priceNormal": "السعر العادي",
       "priceMastor": "سعر الماستور",
-      "priceBotl": "سعر البطل"
+      "priceBotl": "سعر البطل",
+      "specialPrice": "سعر العرض",
+      "specialStart": "بداية العرض",
+      "specialEnd": "نهاية العرض"
     },
     "placeholders": {
       "itemName": "أدخل اسم المنتج",
@@ -1682,11 +1694,22 @@
       "onDemand": "متاح حسب الطلب"
     },
     "errors": {
-      "fillRequired": "يرجى ملء جميع الحقول المطلوبة"
+      "fillRequired": "يرجى ملء جميع الحقول المطلوبة",
+      "specialOfferIncomplete": "يرجى إدخال سعر العرض ووقت البداية ووقت النهاية",
+      "specialOfferInvalidRange": "يجب أن يكون وقت نهاية العرض بعد وقت البداية"
     },
     "messages": {
       "createSuccess": "تم إنشاء المنتج بنجاح",
       "createError": "فشل في إنشاء المنتج"
+    },
+    "presets": {
+      "now": "الآن",
+      "today": "اليوم الحالي",
+      "thisWeek": "الأسبوع الحالي",
+      "thisMonth": "الشهر الحالي",
+      "tomorrow": "اليوم التالي",
+      "nextWeek": "الأسبوع التالي",
+      "nextMonth": "الشهر التالي"
     }
   },
   "studentDetails": {

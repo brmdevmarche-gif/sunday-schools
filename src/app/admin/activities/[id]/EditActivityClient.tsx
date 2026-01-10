@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Users, CheckCircle2 } from "lucide-react";
 import { updateActivityAction } from "../actions";
+import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
 import type {
   Activity,
   ActivityStatus,
@@ -213,10 +214,16 @@ export default function EditActivityClient({
                           type="number"
                           min="0"
                           value={formData.points}
+                          onFocus={(e) => {
+                            if (e.currentTarget.value === "0") e.currentTarget.select();
+                          }}
                           onChange={(e) =>
                             handleInputChange(
                               "points",
-                              parseInt(e.target.value)
+                              toNonNegativeInt(
+                                normalizeNonNegativeIntInput(e.target.value),
+                                0
+                              )
                             )
                           }
                           required
@@ -234,6 +241,9 @@ export default function EditActivityClient({
                           min="0"
                           max="100"
                           value={formData.reduced_points_percentage ?? ""}
+                          onFocus={(e) => {
+                            if (e.currentTarget.value === "0") e.currentTarget.select();
+                          }}
                           onChange={(e) =>
                             handleInputChange(
                               "reduced_points_percentage",
@@ -396,11 +406,17 @@ export default function EditActivityClient({
                         type="number"
                         min="0"
                         value={formData.max_participants || ""}
+                        onFocus={(e) => {
+                          if (e.currentTarget.value === "0") e.currentTarget.select();
+                        }}
                         onChange={(e) =>
                           handleInputChange(
                             "max_participants",
                             e.target.value
-                              ? parseInt(e.target.value)
+                              ? toNonNegativeInt(
+                                  normalizeNonNegativeIntInput(e.target.value),
+                                  0
+                                )
                               : undefined
                           )
                         }

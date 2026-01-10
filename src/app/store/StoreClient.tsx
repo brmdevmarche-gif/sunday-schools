@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -145,6 +144,22 @@ export default function StoreClient({
   }
 
   function getItemPrice(item: StoreItem, tier: PriceTier): number {
+    // Special offer overrides tier pricing during its window
+    if (
+      item.special_price != null &&
+      item.special_price_start_at &&
+      item.special_price_end_at
+    ) {
+      const now = new Date();
+      const start = new Date(item.special_price_start_at);
+      const end = new Date(item.special_price_end_at);
+      if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+        if (now >= start && now <= end) {
+          return item.special_price;
+        }
+      }
+    }
+
     switch (tier) {
       case "mastor":
         return item.price_mastor;
@@ -153,6 +168,32 @@ export default function StoreClient({
       default:
         return item.price_normal;
     }
+  }
+
+  function getBaseTierPrice(item: StoreItem, tier: PriceTier): number {
+    switch (tier) {
+      case "mastor":
+        return item.price_mastor;
+      case "botl":
+        return item.price_botl;
+      default:
+        return item.price_normal;
+    }
+  }
+
+  function isSpecialActive(item: StoreItem): boolean {
+    if (
+      item.special_price == null ||
+      !item.special_price_start_at ||
+      !item.special_price_end_at
+    ) {
+      return false;
+    }
+    const now = new Date();
+    const start = new Date(item.special_price_start_at);
+    const end = new Date(item.special_price_end_at);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+    return now >= start && now <= end;
   }
 
   function calculateTotal(): number {
@@ -395,6 +436,8 @@ export default function StoreClient({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredItems.map((item) => {
               const price = getItemPrice(item, userPriceTier);
+              const basePrice = getBaseTierPrice(item, userPriceTier);
+              const specialActive = isSpecialActive(item);
               const inCart = cart.has(item.id);
               const cartQuantity = cart.get(item.id)?.quantity || 0;
               const remainingPoints =
@@ -424,15 +467,22 @@ export default function StoreClient({
                   <CardContent className="flex-1 flex flex-col justify-end gap-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-2xl font-bold">{price}</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold">{price}</p>
+                          {specialActive && basePrice !== price && (
+                            <p className="text-sm text-muted-foreground line-through">
+                              {basePrice}
+                            </p>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground">
                           {t("store.points")}
                         </p>
                       </div>
-                      {item.stock_type === "quantity" && (
-                        <Badge variant="secondary">
-                          {item.stock_quantity} {t("store.inStock")}
-                        </Badge>
+                      {specialActive && (
+                        <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-1 text-xs font-semibold text-destructive">
+                          {t("store.special")}
+                        </span>
                       )}
                     </div>
 
@@ -596,6 +646,8 @@ export default function StoreClient({
               <div className="space-y-3">
                 {cartItems.map((cartItem) => {
                   const price = getItemPrice(cartItem.item, cartItem.priceTier);
+                  const basePrice = getBaseTierPrice(cartItem.item, cartItem.priceTier);
+                  const specialActive = isSpecialActive(cartItem.item);
                   const total = price * cartItem.quantity;
                   const remainingPoints =
                     pointsBalance.available_points - totalPoints;
@@ -619,9 +671,21 @@ export default function StoreClient({
                           <p className="font-medium truncate">
                             {cartItem.item.name}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            {price} {t("store.points")}
-                          </p>
+                          <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                            <span>
+                              {price} {t("store.points")}
+                            </span>
+                            {specialActive && basePrice !== price && (
+                              <span className="line-through">
+                                {basePrice} {t("store.points")}
+                              </span>
+                            )}
+                            {specialActive && (
+                              <span className="text-destructive font-medium">
+                                {t("store.special")}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex justify-between w-full items-baseline">

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,13 +42,13 @@ import {
 import { toast } from "sonner";
 import type { StoreItem } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
+import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
 import {
   createStoreItemAction,
-  updateStoreItemAction,
   deleteStoreItemAction,
   toggleStoreItemStatusAction,
-  getItemDemandStatsAction,
-  type ItemDemandStats,
+  getItemDemandStatsByMonthAction,
+  type MonthlyItemDemandStats,
 } from "./actions";
 
 interface Church {
@@ -66,6 +66,11 @@ interface ClassItem {
 
 interface StoreClientProps {
   items: StoreItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  from: string | null;
+  to: string | null;
   churches: Church[];
   dioceses: { id: string; name: string }[];
   classes: ClassItem[];
@@ -74,23 +79,79 @@ interface StoreClientProps {
 
 export default function StoreClient({
   items: initialItems,
+  totalCount,
+  page,
+  pageSize,
+  from,
+  to,
   churches,
   dioceses,
   classes,
   userRole,
 }: StoreClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations();
   const [items, setItems] = useState<StoreItem[]>(initialItems);
   const [searchQuery, setSearchQuery] = useState("");
+  const [fromLocal, setFromLocal] = useState<string>(() => isoToDatetimeLocal(from));
+  const [toLocal, setToLocal] = useState<string>(() => isoToDatetimeLocal(to));
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDemandView, setShowDemandView] = useState(false);
-  const [demandStats, setDemandStats] = useState<ItemDemandStats[]>([]);
+  const [demandGroups, setDemandGroups] = useState<MonthlyItemDemandStats[]>([]);
   const [isLoadingDemand, setIsLoadingDemand] = useState(false);
+  const [demandFromLocal, setDemandFromLocal] = useState<string>("");
+  const [demandToLocal, setDemandToLocal] = useState<string>("");
+
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
+
+  useEffect(() => {
+    setFromLocal(isoToDatetimeLocal(from));
+    setToLocal(isoToDatetimeLocal(to));
+  }, [from, to]);
+
+  function isoToDatetimeLocal(iso: string | null) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const min = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  }
+
+  function datetimeLocalToIso(local: string) {
+    if (!local) return null;
+    const d = new Date(local);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+
+  function pushWithParams(next: Record<string, string | null>) {
+    const sp = new URLSearchParams(searchParams?.toString() ?? "");
+    for (const [k, v] of Object.entries(next)) {
+      if (!v) sp.delete(k);
+      else sp.set(k, v);
+    }
+    router.push(`?${sp.toString()}`);
+  }
+
+  function applyDateFilter(nextFromIso: string | null, nextToIso: string | null) {
+    pushWithParams({
+      page: "1",
+      pageSize: String(pageSize),
+      from: nextFromIso,
+      to: nextToIso,
+    });
+  }
+
+  const totalPages = Math.max(1, Math.ceil((totalCount || 0) / pageSize));
 
   // Form state
   const [formData, setFormData] = useState({
@@ -238,66 +299,6 @@ export default function StoreClient({
     }
   };
 
-  const handleEdit = async () => {
-    if (
-      !selectedItem ||
-      !formData.name ||
-      (formData.stock_type === "quantity" && formData.stock_quantity < 0)
-    ) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await updateStoreItemAction(selectedItem.id, {
-        name: formData.name,
-        description: formData.description,
-        image_url: formData.image_url,
-        stock_type: formData.stock_type,
-        stock_quantity: formData.stock_quantity,
-        price_normal: formData.price_normal,
-        price_mastor: formData.price_mastor,
-        price_botl: formData.price_botl,
-        church_ids: formData.church_ids,
-        diocese_ids: formData.diocese_ids,
-        is_available_to_all_classes: formData.is_available_to_all_classes,
-        class_ids: formData.class_ids,
-      });
-
-      setItems(
-        items.map((item) =>
-          item.id === selectedItem.id
-            ? {
-                ...item,
-                name: formData.name,
-                description: formData.description,
-                image_url: formData.image_url,
-                stock_type: formData.stock_type,
-                stock_quantity: formData.stock_quantity,
-                price_normal: formData.price_normal,
-                price_mastor: formData.price_mastor,
-                price_botl: formData.price_botl,
-                is_available_to_all_classes:
-                  formData.is_available_to_all_classes,
-              }
-            : item
-        )
-      );
-
-      toast.success("Store item updated successfully");
-      setIsEditDialogOpen(false);
-      setSelectedItem(null);
-      resetForm();
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to update store item";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDelete = async (item: StoreItem) => {
     if (!confirm(`Are you sure you want to delete "${item.name}"?`)) {
       return;
@@ -340,25 +341,6 @@ export default function StoreClient({
     }
   };
 
-  const openEditDialog = (item: StoreItem) => {
-    setSelectedItem(item);
-    setFormData({
-      name: item.name,
-      description: item.description || "",
-      image_url: item.image_url || "",
-      stock_type: item.stock_type,
-      stock_quantity: item.stock_quantity,
-      price_normal: item.price_normal,
-      price_mastor: item.price_mastor,
-      price_botl: item.price_botl,
-      church_ids: [], // Will be loaded from junction table
-      diocese_ids: [], // Will be loaded from junction table
-      is_available_to_all_classes: item.is_available_to_all_classes,
-      class_ids: [], // Will be loaded from junction table
-    });
-    setIsEditDialogOpen(true);
-  };
-
   const openViewDialog = (item: StoreItem) => {
     router.push(`/admin/store/${item.id}`);
   };
@@ -366,8 +348,13 @@ export default function StoreClient({
   const loadDemandStats = async () => {
     setIsLoadingDemand(true);
     try {
-      const stats = await getItemDemandStatsAction();
-      setDemandStats(stats);
+      const fromIso = datetimeLocalToIso(demandFromLocal);
+      const toIso = datetimeLocalToIso(demandToLocal);
+      const groups = await getItemDemandStatsByMonthAction({
+        from: fromIso ?? undefined,
+        to: toIso ?? undefined,
+      });
+      setDemandGroups(groups);
       setShowDemandView(true);
     } catch (error) {
       console.error("Failed to load demand stats:", error);
@@ -378,13 +365,14 @@ export default function StoreClient({
   };
 
   const exportDemandToExcel = () => {
-    if (demandStats.length === 0) {
+    if (demandGroups.length === 0) {
       toast.error("No data to export");
       return;
     }
 
     // Create CSV content (Excel compatible)
     const headers = [
+      t("common.date"),
       t("store.item"),
       t("store.stock"),
       t("store.pending"),
@@ -392,18 +380,22 @@ export default function StoreClient({
       t("store.needsRestock"),
     ];
 
-    const rows = demandStats.map((stat) => {
-      const needsRestock =
-        stat.stock_type === "quantity" &&
-        stat.pending_requests + stat.approved_requests > stat.stock_quantity;
-      return [
-        stat.item_name,
-        stat.stock_type === "on_demand" ? "Unlimited" : stat.stock_quantity,
-        stat.pending_requests,
-        stat.approved_requests,
-        needsRestock ? t("store.restock") : t("store.ok"),
-      ];
-    });
+    const rows: Array<Array<string | number>> = [];
+    for (const group of demandGroups) {
+      for (const stat of group.stats) {
+        const needsRestock =
+          stat.stock_type === "quantity" &&
+          stat.pending_requests + stat.approved_requests > stat.stock_quantity;
+        rows.push([
+          group.month_label,
+          stat.item_name,
+          stat.stock_type === "on_demand" ? "Unlimited" : stat.stock_quantity,
+          stat.pending_requests,
+          stat.approved_requests,
+          needsRestock ? t("store.restock") : t("store.ok"),
+        ]);
+      }
+    }
 
     // Add BOM for Excel UTF-8 compatibility
     const BOM = "\uFEFF";
@@ -429,6 +421,24 @@ export default function StoreClient({
   const filteredItems = items.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const groupedItems = (() => {
+    const groups = new Map<string, { key: string; label: string; items: StoreItem[] }>();
+    for (const item of filteredItems) {
+      const d = new Date(item.created_at);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const key = `${yyyy}-${mm}`;
+      const label = new Date(yyyy, d.getMonth(), 1).toLocaleString(undefined, {
+        month: "long",
+        year: "numeric",
+      });
+      const existing = groups.get(key);
+      if (existing) existing.items.push(item);
+      else groups.set(key, { key, label, items: [item] });
+    }
+    return Array.from(groups.values()).sort((a, b) => b.key.localeCompare(a.key));
+  })();
 
   const getChurchName = (churchId: string | null) => {
     if (!churchId || churchId === "all") return "All Churches";
@@ -490,102 +500,191 @@ export default function StoreClient({
                 </p>
               </div>
             </div>
-            <Button onClick={exportDemandToExcel} variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              {t("store.exportExcel")}
-            </Button>
+            <div className="flex items-end gap-2 flex-wrap">
+              <div className="space-y-1">
+                <Label className="text-xs">{t("common.from")}</Label>
+                <Input
+                  type="datetime-local"
+                  value={demandFromLocal}
+                  onChange={(e) => setDemandFromLocal(e.target.value)}
+                  className="w-[200px]"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t("common.to")}</Label>
+                <Input
+                  type="datetime-local"
+                  value={demandToLocal}
+                  onChange={(e) => setDemandToLocal(e.target.value)}
+                  className="w-[200px]"
+                />
+              </div>
+              <Button variant="outline" onClick={loadDemandStats} disabled={isLoadingDemand}>
+                {t("common.apply")}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setDemandFromLocal("");
+                  setDemandToLocal("");
+                  loadDemandStats();
+                }}
+              >
+                {t("common.clear")}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const now = new Date();
+                  const start = new Date(now);
+                  start.setDate(now.getDate() - 7);
+                  setDemandFromLocal(isoToDatetimeLocal(start.toISOString()));
+                  setDemandToLocal(isoToDatetimeLocal(now.toISOString()));
+                  loadDemandStats();
+                }}
+              >
+                {t("store.lastWeek")}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const now = new Date();
+                  const start = new Date(now);
+                  start.setMonth(now.getMonth() - 1);
+                  setDemandFromLocal(isoToDatetimeLocal(start.toISOString()));
+                  setDemandToLocal(isoToDatetimeLocal(now.toISOString()));
+                  loadDemandStats();
+                }}
+              >
+                {t("store.lastMonth")}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const now = new Date();
+                  const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+                  setDemandFromLocal(isoToDatetimeLocal(start.toISOString()));
+                  setDemandToLocal(isoToDatetimeLocal(now.toISOString()));
+                  loadDemandStats();
+                }}
+              >
+                {t("store.currentMonth")}
+              </Button>
+              <Button onClick={exportDemandToExcel} variant="outline" disabled={demandGroups.length === 0}>
+                <Download className="mr-2 h-4 w-4" />
+                {t("store.exportExcel")}
+              </Button>
+            </div>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("store.item")}</TableHead>
-                  <TableHead className="text-center">{t("store.stock")}</TableHead>
-                  <TableHead className="text-center">{t("store.pending")}</TableHead>
-                  <TableHead className="text-center">{t("store.approved")}</TableHead>
-                  <TableHead className="text-center">{t("store.needsRestock")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {demandStats.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      {t("store.noItems")}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  demandStats.map((stat) => {
-                    const needsRestock = stat.stock_type === 'quantity' &&
-                      stat.pending_requests + stat.approved_requests > stat.stock_quantity;
-                    return (
-                      <TableRow key={stat.item_id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {stat.item_image_url ? (
-                              <img
-                                src={stat.item_image_url}
-                                alt={stat.item_name}
-                                className="h-10 w-10 rounded object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
-                                <Package className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                            )}
-                            <div>
-                              <div className="font-medium">{stat.item_name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {stat.stock_type === 'on_demand' ? 'On Demand' : 'Limited Stock'}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {stat.stock_type === 'on_demand' ? (
-                            <Badge variant="outline">Unlimited</Badge>
-                          ) : (
-                            <Badge variant={stat.stock_quantity > 0 ? "default" : "destructive"}>
-                              {stat.stock_quantity}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Clock className="h-4 w-4 text-yellow-500" />
-                            <span className="font-medium">{stat.pending_requests}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <CheckCircle className="h-4 w-4 text-blue-500" />
-                            <span className="font-medium">{stat.approved_requests}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {needsRestock ? (
-                            <Badge variant="destructive" className="gap-1">
-                              <AlertTriangle className="h-3 w-3" />
-                              {t("store.restock")}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-green-600">
-                              {t("store.ok")}
-                            </Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          {demandGroups.length === 0 ? (
+            <div className="rounded-md border p-8 text-center text-muted-foreground">
+              {t("store.noItems")}
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {demandGroups.map((group) => (
+                <div key={group.month_key} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">{group.month_label}</h3>
+                    <span className="text-sm text-muted-foreground">
+                      {group.stats.length} {t("store.items")}
+                    </span>
+                  </div>
+
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("store.item")}</TableHead>
+                          <TableHead className="text-center">{t("store.stock")}</TableHead>
+                          <TableHead className="text-center">{t("store.pending")}</TableHead>
+                          <TableHead className="text-center">{t("store.approved")}</TableHead>
+                          <TableHead className="text-center">{t("store.needsRestock")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {group.stats.map((stat) => {
+                          const needsRestock =
+                            stat.stock_type === "quantity" &&
+                            stat.pending_requests + stat.approved_requests > stat.stock_quantity;
+                          return (
+                            <TableRow key={`${group.month_key}-${stat.item_id}`}>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  {stat.item_image_url ? (
+                                    <img
+                                      src={stat.item_image_url}
+                                      alt={stat.item_name}
+                                      className="h-10 w-10 rounded object-cover"
+                                    />
+                                  ) : (
+                                    <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
+                                      <Package className="h-5 w-5 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="font-medium">{stat.item_name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {stat.stock_type === "on_demand"
+                                        ? "On Demand"
+                                        : "Limited Stock"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {stat.stock_type === "on_demand" ? (
+                                  <Badge variant="outline">Unlimited</Badge>
+                                ) : (
+                                  <Badge
+                                    variant={
+                                      stat.stock_quantity > 0 ? "default" : "destructive"
+                                    }
+                                  >
+                                    {stat.stock_quantity}
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <Clock className="h-4 w-4 text-yellow-500" />
+                                  <span className="font-medium">{stat.pending_requests}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <CheckCircle className="h-4 w-4 text-blue-500" />
+                                  <span className="font-medium">{stat.approved_requests}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {needsRestock ? (
+                                  <Badge variant="destructive" className="gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {t("store.restock")}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-green-600">
+                                    {t("store.ok")}
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <>
           {/* Search */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-end gap-4 flex-wrap">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -594,6 +693,121 @@ export default function StoreClient({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
+            </div>
+
+            {/* Date/Time Range */}
+            <div className="flex items-end gap-2 flex-wrap">
+              <div className="space-y-1">
+                <Label className="text-xs">{t("common.from")}</Label>
+                <Input
+                  type="datetime-local"
+                  value={fromLocal}
+                  onChange={(e) => setFromLocal(e.target.value)}
+                  className="w-[200px]"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t("common.to")}</Label>
+                <Input
+                  type="datetime-local"
+                  value={toLocal}
+                  onChange={(e) => setToLocal(e.target.value)}
+                  className="w-[200px]"
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  applyDateFilter(datetimeLocalToIso(fromLocal), datetimeLocalToIso(toLocal))
+                }
+              >
+                {t("common.apply")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setFromLocal("");
+                  setToLocal("");
+                  applyDateFilter(null, null);
+                }}
+              >
+                {t("common.clear")}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const start = new Date(now);
+                  start.setDate(now.getDate() - 7);
+                  const fromIso = start.toISOString();
+                  const toIso = now.toISOString();
+                  setFromLocal(isoToDatetimeLocal(fromIso));
+                  setToLocal(isoToDatetimeLocal(toIso));
+                  applyDateFilter(fromIso, toIso);
+                }}
+              >
+                {t("store.lastWeek")}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const start = new Date(now);
+                  start.setMonth(now.getMonth() - 1);
+                  const fromIso = start.toISOString();
+                  const toIso = now.toISOString();
+                  setFromLocal(isoToDatetimeLocal(fromIso));
+                  setToLocal(isoToDatetimeLocal(toIso));
+                  applyDateFilter(fromIso, toIso);
+                }}
+              >
+                {t("store.lastMonth")}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+                  const fromIso = start.toISOString();
+                  const toIso = now.toISOString();
+                  setFromLocal(isoToDatetimeLocal(fromIso));
+                  setToLocal(isoToDatetimeLocal(toIso));
+                  applyDateFilter(fromIso, toIso);
+                }}
+              >
+                {t("store.currentMonth")}
+              </Button>
+            </div>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-sm text-muted-foreground">
+              {filteredItems.length} / {totalCount} {t("store.items")} •{" "}
+              {t("common.page")} {page} / {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => pushWithParams({ page: String(Math.max(1, page - 1)) })}
+                disabled={page <= 1}
+              >
+                {t("common.previous")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => pushWithParams({ page: String(Math.min(totalPages, page + 1)) })}
+                disabled={page >= totalPages}
+              >
+                {t("common.next")}
+              </Button>
             </div>
           </div>
 
@@ -623,89 +837,99 @@ export default function StoreClient({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
-                          <Package className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div>
-                        <div className="font-medium">{item.name}</div>
-                        {item.description && (
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {item.description}
+              groupedItems.flatMap((group) => {
+                const colSpan = userRole === "super_admin" ? 8 : 7;
+                return [
+                  <TableRow key={`month-${group.key}`}>
+                    <TableCell colSpan={colSpan} className="bg-muted/40 font-medium">
+                      {group.label}
+                    </TableCell>
+                  </TableRow>,
+                  ...group.items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="h-10 w-10 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
+                              <Package className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium">{item.name}</div>
+                            {item.description && (
+                              <div className="text-sm text-muted-foreground line-clamp-1">
+                                {item.description}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        item.stock_quantity > 0 ? "default" : "destructive"
-                      }
-                    >
-                      {item.stock_quantity}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{item.price_normal} pts</TableCell>
-                  <TableCell>{item.price_mastor} pts</TableCell>
-                  <TableCell>{item.price_botl} pts</TableCell>
-                  {userRole === "super_admin" && (
-                    <TableCell>{getChurchName(item.church_id)}</TableCell>
-                  )}
-                  <TableCell>
-                    <Badge variant={item.is_active ? "default" : "secondary"}>
-                      {item.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openViewDialog(item)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditDialog(item)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleStatus(item)}
-                        disabled={isLoading}
-                      >
-                        {item.is_active ? "Deactivate" : "Activate"}
-                      </Button>
-                      {userRole === "super_admin" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(item)}
-                          disabled={isLoading}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            item.stock_quantity > 0 ? "default" : "destructive"
+                          }
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                          {item.stock_quantity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{item.price_normal} pts</TableCell>
+                      <TableCell>{item.price_mastor} pts</TableCell>
+                      <TableCell>{item.price_botl} pts</TableCell>
+                      {userRole === "super_admin" && (
+                        <TableCell>{getChurchName(item.church_id)}</TableCell>
                       )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                      <TableCell>
+                        <Badge variant={item.is_active ? "default" : "secondary"}>
+                          {item.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openViewDialog(item)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                        onClick={() => router.push(`/admin/store/${item.id}/edit`)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleStatus(item)}
+                            disabled={isLoading}
+                          >
+                            {item.is_active ? "Deactivate" : "Activate"}
+                          </Button>
+                          {userRole === "super_admin" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(item)}
+                              disabled={isLoading}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )),
+                ];
+              })
             )}
           </TableBody>
         </Table>
@@ -805,12 +1029,16 @@ export default function StoreClient({
                   type="number"
                   min="0"
                   value={formData.stock_quantity}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setFormData({
                       ...formData,
-                      stock_quantity: parseInt(e.target.value) || 0,
-                    })
-                  }
+                      stock_quantity: toNonNegativeInt(normalized, 0),
+                    });
+                  }}
                 />
               </div>
             )}
@@ -823,12 +1051,16 @@ export default function StoreClient({
                   type="number"
                   min="0"
                   value={formData.price_normal}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setFormData({
                       ...formData,
-                      price_normal: parseInt(e.target.value) || 0,
-                    })
-                  }
+                      price_normal: toNonNegativeInt(normalized, 0),
+                    });
+                  }}
                   placeholder="Points"
                 />
               </div>
@@ -839,12 +1071,16 @@ export default function StoreClient({
                   type="number"
                   min="0"
                   value={formData.price_mastor}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setFormData({
                       ...formData,
-                      price_mastor: parseInt(e.target.value) || 0,
-                    })
-                  }
+                      price_mastor: toNonNegativeInt(normalized, 0),
+                    });
+                  }}
                   placeholder="Points"
                 />
               </div>
@@ -855,12 +1091,16 @@ export default function StoreClient({
                   type="number"
                   min="0"
                   value={formData.price_botl}
-                  onChange={(e) =>
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === "0") e.currentTarget.select();
+                  }}
+                  onChange={(e) => {
+                    const normalized = normalizeNonNegativeIntInput(e.target.value);
                     setFormData({
                       ...formData,
-                      price_botl: parseInt(e.target.value) || 0,
-                    })
-                  }
+                      price_botl: toNonNegativeInt(normalized, 0),
+                    });
+                  }}
                   placeholder="Points"
                 />
               </div>
@@ -1086,456 +1326,7 @@ export default function StoreClient({
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Store Item</DialogTitle>
-            <DialogDescription>
-              Update item information and pricing
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Item Name *</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder="Enter item name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Enter item description"
-                rows={3}
-              />
-            </div>
-            <ImageUpload
-              label="Item Image"
-              currentImageUrl={formData.image_url}
-              onImageUploaded={(url) =>
-                setFormData({ ...formData, image_url: url })
-              }
-              bucket="images"
-              folder="store/items"
-              maxSizeMB={3}
-            />
-
-            {/* Stock Type */}
-            <div>
-              <Label>Stock Management *</Label>
-              <div className="flex gap-4 mt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="edit_stock_type"
-                    value="quantity"
-                    checked={formData.stock_type === "quantity"}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        stock_type: e.target.value as "quantity" | "on_demand",
-                      })
-                    }
-                    className="w-4 h-4"
-                  />
-                  <span>Limited Quantity</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="edit_stock_type"
-                    value="on_demand"
-                    checked={formData.stock_type === "on_demand"}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        stock_type: e.target.value as "quantity" | "on_demand",
-                      })
-                    }
-                    className="w-4 h-4"
-                  />
-                  <span>Available on Demand</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Stock Quantity (only if type is quantity) */}
-            {formData.stock_type === "quantity" && (
-              <div className="space-y-2">
-                <Label htmlFor="edit-stock_quantity">Stock Quantity *</Label>
-                <Input
-                  id="edit-stock_quantity"
-                  type="number"
-                  min="0"
-                  value={formData.stock_quantity}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      stock_quantity: parseInt(e.target.value) || 0,
-                    })
-                  }
-                />
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-price_normal">Price (Normal) *</Label>
-                <Input
-                  id="edit-price_normal"
-                  type="number"
-                  min="0"
-                  value={formData.price_normal}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      price_normal: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  placeholder="Points"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-price_mastor">Price (Mastor) *</Label>
-                <Input
-                  id="edit-price_mastor"
-                  type="number"
-                  min="0"
-                  value={formData.price_mastor}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      price_mastor: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  placeholder="Points"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-price_botl">Price (Botl) *</Label>
-                <Input
-                  id="edit-price_botl"
-                  type="number"
-                  min="0"
-                  value={formData.price_botl}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      price_botl: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  placeholder="Points"
-                />
-              </div>
-            </div>
-
-            {/* Church Selection (Super Admin only) */}
-            {userRole === "super_admin" && churches.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Available in Churches</Label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (
-                        formData.church_ids.length === filteredChurches.length
-                      ) {
-                        setFormData({ ...formData, church_ids: [] });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          church_ids: filteredChurches.map((c) => c.id),
-                        });
-                      }
-                    }}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    {formData.church_ids.length === filteredChurches.length
-                      ? "Deselect All"
-                      : "Select All"}
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Select specific churches where this item will be available
-                </p>
-                <div className="border rounded p-2 max-h-40 overflow-y-auto">
-                  {filteredChurches.map((church) => (
-                    <label
-                      key={church.id}
-                      className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.church_ids.includes(church.id)}
-                        onChange={(e) =>
-                          handleChurchChange(church.id, e.target.checked)
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">
-                        {church.name}
-                        {church.dioceses && ` - ${church.dioceses.name}`}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Diocese Selection (Super Admin only) */}
-            {userRole === "super_admin" && dioceses.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Available in Dioceses</Label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (formData.diocese_ids.length === dioceses.length) {
-                        setFormData({ ...formData, diocese_ids: [] });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          diocese_ids: dioceses.map((d) => d.id),
-                        });
-                      }
-                    }}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    {formData.diocese_ids.length === dioceses.length
-                      ? "Deselect All"
-                      : "Select All"}
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Select dioceses - item will be available to all churches in
-                  selected dioceses
-                </p>
-                <div className="border rounded p-2 max-h-40 overflow-y-auto">
-                  {dioceses.map((diocese) => (
-                    <label
-                      key={diocese.id}
-                      className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.diocese_ids.includes(diocese.id)}
-                        onChange={(e) =>
-                          handleDioceseChange(diocese.id, e.target.checked)
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">{diocese.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Class Availability */}
-            <div>
-              <Label>Class Availability *</Label>
-              <div className="flex gap-4 mt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="edit_class_availability"
-                    checked={formData.is_available_to_all_classes}
-                    onChange={() =>
-                      setFormData({
-                        ...formData,
-                        is_available_to_all_classes: true,
-                        class_ids: [],
-                      })
-                    }
-                    className="w-4 h-4"
-                  />
-                  <span>Available to All Classes</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="edit_class_availability"
-                    checked={!formData.is_available_to_all_classes}
-                    onChange={() =>
-                      setFormData({
-                        ...formData,
-                        is_available_to_all_classes: false,
-                      })
-                    }
-                    className="w-4 h-4"
-                  />
-                  <span>Specific Classes Only</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Specific Classes Selection */}
-            {!formData.is_available_to_all_classes &&
-              filteredClasses.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label>Select Classes</Label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (
-                          formData.class_ids.length === filteredClasses.length
-                        ) {
-                          setFormData({ ...formData, class_ids: [] });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            class_ids: filteredClasses.map((c) => c.id),
-                          });
-                        }
-                      }}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      {formData.class_ids.length === filteredClasses.length
-                        ? "Deselect All"
-                        : "Select All"}
-                    </button>
-                  </div>
-                  <div className="border rounded p-2 max-h-40 overflow-y-auto">
-                    {filteredClasses.map((classItem) => (
-                      <label
-                        key={classItem.id}
-                        className="flex items-center gap-2 p-1 hover:bg-muted rounded cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.class_ids.includes(classItem.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({
-                                ...formData,
-                                class_ids: [
-                                  ...formData.class_ids,
-                                  classItem.id,
-                                ],
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                class_ids: formData.class_ids.filter(
-                                  (id) => id !== classItem.id
-                                ),
-                              });
-                            }
-                          }}
-                          className="w-4 h-4"
-                        />
-                        <span className="text-sm">{classItem.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsEditDialogOpen(false);
-                setSelectedItem(null);
-                resetForm();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleEdit} disabled={isLoading}>
-              {isLoading ? "Updating..." : "Update Item"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Item Details</DialogTitle>
-          </DialogHeader>
-          {selectedItem && (
-            <div className="space-y-4">
-              {selectedItem.image_url && (
-                <div className="flex justify-center">
-                  <img
-                    src={selectedItem.image_url}
-                    alt={selectedItem.name}
-                    className="max-h-64 rounded-lg object-cover"
-                  />
-                </div>
-              )}
-              <div>
-                <Label>Item Name</Label>
-                <p className="text-lg font-semibold">{selectedItem.name}</p>
-              </div>
-              {selectedItem.description && (
-                <div>
-                  <Label>Description</Label>
-                  <p className="text-muted-foreground">
-                    {selectedItem.description}
-                  </p>
-                </div>
-              )}
-              <div>
-                <Label>Stock Quantity</Label>
-                <p className="text-lg">{selectedItem.stock_quantity}</p>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label>Price (Normal)</Label>
-                  <p className="text-lg font-semibold">
-                    {selectedItem.price_normal} pts
-                  </p>
-                </div>
-                <div>
-                  <Label>Price (Mastor)</Label>
-                  <p className="text-lg font-semibold">
-                    {selectedItem.price_mastor} pts
-                  </p>
-                </div>
-                <div>
-                  <Label>Price (Botl)</Label>
-                  <p className="text-lg font-semibold">
-                    {selectedItem.price_botl} pts
-                  </p>
-                </div>
-              </div>
-              <div>
-                <Label>Status</Label>
-                <div>
-                  <Badge
-                    variant={selectedItem.is_active ? "default" : "secondary"}
-                  >
-                    {selectedItem.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-              </div>
-              {userRole === "super_admin" && (
-                <div>
-                  <Label>Church</Label>
-                  <p>{getChurchName(selectedItem.church_id)}</p>
-                </div>
-              )}
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Editing is handled on the dedicated page: /admin/store/[id]/edit */}
     </div>
   );
 }

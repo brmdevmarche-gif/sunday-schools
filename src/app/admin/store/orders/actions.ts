@@ -31,6 +31,36 @@ export interface UpdateOrderStatusInput {
   admin_notes?: string
 }
 
+function getEffectiveUnitPrice(
+  storeItem: any,
+  tier: PriceTier,
+  now: Date
+): number {
+  const specialPrice: number | null | undefined = storeItem?.special_price
+  const startRaw: string | null | undefined = storeItem?.special_price_start_at
+  const endRaw: string | null | undefined = storeItem?.special_price_end_at
+
+  // Special offer is active only when all are present and within window
+  if (specialPrice != null && startRaw && endRaw) {
+    const start = new Date(startRaw)
+    const end = new Date(endRaw)
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+      if (now >= start && now <= end) {
+        return specialPrice
+      }
+    }
+  }
+
+  switch (tier) {
+    case 'mastor':
+      return storeItem.price_mastor
+    case 'botl':
+      return storeItem.price_botl
+    default:
+      return storeItem.price_normal
+  }
+}
+
 /**
  * Create a new order
  * Supports both regular orders and parent ordering for children
@@ -93,21 +123,12 @@ export async function createOrderAction(input: CreateOrderInput) {
 
   // Calculate total and prepare order items
   let totalPoints = 0
+  const now = new Date()
   const orderItems = input.items.map(item => {
     const storeItem = storeItems.find(si => si.id === item.store_item_id)!
 
-    // Get price based on tier
-    let unitPrice: number
-    switch (item.price_tier) {
-      case 'mastor':
-        unitPrice = storeItem.price_mastor
-        break
-      case 'botl':
-        unitPrice = storeItem.price_botl
-        break
-      default:
-        unitPrice = storeItem.price_normal
-    }
+    // Get effective price (special offer overrides tier pricing during its window)
+    const unitPrice = getEffectiveUnitPrice(storeItem, item.price_tier, now)
 
     const totalPrice = unitPrice * item.quantity
     totalPoints += totalPrice
@@ -226,6 +247,10 @@ export async function getAllOrdersAction(filters?: {
   user_id?: string
   church_id?: string
   diocese_id?: string
+  from?: string
+  to?: string
+  page?: number
+  pageSize?: number
 }) {
   const supabase = await createClient()
 
@@ -273,7 +298,7 @@ export async function getAllOrdersAction(filters?: {
           image_url
         )
       )
-    `)
+    `, { count: 'exact' })
 
   // Apply filters based on user role
   if (profile.role === 'church_admin' && profile.church_id) {
@@ -315,15 +340,30 @@ export async function getAllOrdersAction(filters?: {
     query = query.eq('status', filters.status)
   }
 
-  query = query.order('created_at', { ascending: false })
+  // Date/time range filter
+  if (filters?.from) {
+    query = query.gte('created_at', filters.from)
+  }
+  if (filters?.to) {
+    query = query.lte('created_at', filters.to)
+  }
 
-  const { data: orders, error } = await query
+  const pageSize = Math.max(1, Math.min(100, filters?.pageSize ?? 25))
+  const page = Math.max(1, filters?.page ?? 1)
+  const fromIdx = (page - 1) * pageSize
+  const toIdx = fromIdx + pageSize - 1
+
+  query = query
+    .order('created_at', { ascending: false })
+    .range(fromIdx, toIdx)
+
+  const { data: orders, error, count } = await query
 
   if (error) {
     throw new Error(`Failed to fetch orders: ${error.message}`)
   }
 
-  return { success: true, data: orders || [] }
+  return { success: true, data: orders || [], count: count ?? 0, page, pageSize }
 }
 
 /**
@@ -616,21 +656,12 @@ export async function createOrderForStudentAction(input: CreateOrderForStudentIn
 
   // Calculate total and prepare order items
   let totalPoints = 0
+  const now = new Date()
   const orderItems = input.items.map(item => {
     const storeItem = storeItems.find(si => si.id === item.store_item_id)!
 
-    // Get price based on student's tier
-    let unitPrice: number
-    switch (priceTier) {
-      case 'mastor':
-        unitPrice = storeItem.price_mastor
-        break
-      case 'botl':
-        unitPrice = storeItem.price_botl
-        break
-      default:
-        unitPrice = storeItem.price_normal
-    }
+    // Get effective price (special offer overrides tier pricing during its window)
+    const unitPrice = getEffectiveUnitPrice(storeItem, priceTier, now)
 
     const totalPrice = unitPrice * item.quantity
     totalPoints += totalPrice

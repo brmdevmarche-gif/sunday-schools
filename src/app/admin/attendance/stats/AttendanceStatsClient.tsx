@@ -156,10 +156,11 @@ export default function AttendanceStatsClient({
   const selectedClass = classes.find((c) => c.id === selectedClassId);
 
   function getAttendanceColor(rate: number): string {
-    if (rate >= 90) return "bg-green-500";
-    if (rate >= 75) return "bg-yellow-500";
-    if (rate >= 60) return "bg-orange-500";
-    return "bg-red-500";
+    // Ensure proper color contrast for WCAG 2.1 AA compliance
+    if (rate >= 90) return "bg-green-600 text-white";
+    if (rate >= 75) return "bg-yellow-400 text-yellow-900";
+    if (rate >= 60) return "bg-orange-500 text-white";
+    return "bg-red-500 text-white";
   }
 
   return (
@@ -190,7 +191,7 @@ export default function AttendanceStatsClient({
                 value={selectedClassId}
                 onValueChange={setSelectedClassId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t("attendance.selectClass")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -291,16 +292,16 @@ export default function AttendanceStatsClient({
               </CardHeader>
               <CardContent>
                 <div className="flex gap-2 flex-wrap text-sm">
-                  <Badge className="bg-green-500">
+                  <Badge className="bg-green-600 text-white">
                     P: {overallStats.totalPresent}
                   </Badge>
                   <Badge variant="destructive">
                     A: {overallStats.totalAbsent}
                   </Badge>
-                  <Badge className="bg-yellow-500">
+                  <Badge className="bg-yellow-400 text-yellow-900">
                     E: {overallStats.totalExcused}
                   </Badge>
-                  <Badge className="bg-orange-500">
+                  <Badge className="bg-orange-500 text-white">
                     L: {overallStats.totalLate}
                   </Badge>
                 </div>
@@ -353,16 +354,16 @@ export default function AttendanceStatsClient({
                       <Badge variant="outline">
                         {t("attendance.total")}: {stat.totalDays}
                       </Badge>
-                      <Badge className="bg-green-500">
+                      <Badge className="bg-green-600 text-white">
                         {t("attendance.present")}: {stat.present}
                       </Badge>
                       <Badge variant="destructive">
                         {t("attendance.absent")}: {stat.absent}
                       </Badge>
-                      <Badge className="bg-yellow-500">
+                      <Badge className="bg-yellow-400 text-yellow-900">
                         {t("attendance.excused")}: {stat.excused}
                       </Badge>
-                      <Badge className="bg-orange-500">
+                      <Badge className="bg-orange-500 text-white">
                         {t("attendance.late")}: {stat.late}
                       </Badge>
                     </div>

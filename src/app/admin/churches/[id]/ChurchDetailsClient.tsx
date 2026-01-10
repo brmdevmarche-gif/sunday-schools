@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
   Card,
@@ -13,6 +14,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResponsiveBreadcrumb } from "@/components/ui/responsive-breadcrumb";
 import {
   Table,
   TableBody,
@@ -29,6 +34,7 @@ import {
   Phone,
   Building2,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
 import type {
   Church,
@@ -49,8 +55,6 @@ interface ChurchDetailsClientProps {
   isChurchAdmin: boolean;
 }
 
-type TabType = "info" | "classes" | "users";
-
 export function ChurchDetailsClient({
   church: initialChurch,
   diocese,
@@ -61,7 +65,6 @@ export function ChurchDetailsClient({
 }: ChurchDetailsClientProps) {
   const router = useRouter();
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<TabType>("info");
   const [isEditing, setIsEditing] = useState(false);
   const [church, setChurch] = useState(initialChurch);
   const [isSaving, setIsSaving] = useState(false);
@@ -98,6 +101,15 @@ export function ChurchDetailsClient({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto py-8 px-2 lg:px-6">
+      {/* Breadcrumb Navigation */}
+      <ResponsiveBreadcrumb
+        items={[
+          { label: t("nav.dashboard"), href: "/admin" },
+          { label: t("churches.title"), href: "/admin/churches" },
+          { label: church.name },
+        ]}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -127,6 +139,7 @@ export function ChurchDetailsClient({
               {t("common.cancel")}
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {isSaving ? t("common.saving") : t("common.save")}
             </Button>
           </div>
@@ -137,10 +150,13 @@ export function ChurchDetailsClient({
       {(church.cover_image_url || isEditing) && (
         <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600">
           {church.cover_image_url && (
-            <img
+            <Image
               src={church.cover_image_url}
               alt={church.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+              priority
             />
           )}
           {isEditing && (
@@ -161,46 +177,23 @@ export function ChurchDetailsClient({
       )}
 
       {/* Tabs */}
-      <div className="border-b">
-        <div className="flex gap-6">
-          <button
-            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
-              activeTab === "info"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("info")}
-          >
+      <Tabs defaultValue="info" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="info">
             {t("churches.title")} {t("common.name")}
-          </button>
-          <button
-            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
-              activeTab === "classes"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("classes")}
-          >
-            <Building2 className="h-4 w-4 inline mr-2" />
+          </TabsTrigger>
+          <TabsTrigger value="classes">
+            <Building2 className="h-4 w-4 me-2" />
             {t("churches.classes")} ({classes.length})
-          </button>
-          <button
-            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
-              activeTab === "users"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("users")}
-          >
-            <GraduationCap className="h-4 w-4 inline mr-2" />
+          </TabsTrigger>
+          <TabsTrigger value="users">
+            <GraduationCap className="h-4 w-4 me-2" />
             {t("classes.teachers")} & {t("classes.students")} ({users.length})
-          </button>
-        </div>
-      </div>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab Content */}
-      {activeTab === "info" && (
-        <div className="grid gap-6">
+        <TabsContent value="info">
+          <div className="grid gap-6">
           {/* Basic Info */}
           <Card>
             <CardHeader>
@@ -228,13 +221,12 @@ export function ChurchDetailsClient({
                 <div className="space-y-1">
                   <p className="text-sm font-medium">{t("common.name")}</p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="text"
                       value={church.name}
                       onChange={(e) =>
                         setChurch({ ...church, name: e.target.value })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p className="text-lg">{church.name}</p>
@@ -249,13 +241,12 @@ export function ChurchDetailsClient({
                 <div className="space-y-1">
                   <p className="text-sm font-medium">{t("churches.city")}</p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="text"
                       value={church.city || ""}
                       onChange={(e) =>
                         setChurch({ ...church, city: e.target.value })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p>{church.city || "-"}</p>
@@ -268,13 +259,12 @@ export function ChurchDetailsClient({
                     {t("churches.address")}
                   </p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="text"
                       value={church.address || ""}
                       onChange={(e) =>
                         setChurch({ ...church, address: e.target.value })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p>{church.address || "-"}</p>
@@ -287,7 +277,7 @@ export function ChurchDetailsClient({
                     {t("churches.contactEmail")}
                   </p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="email"
                       value={church.contact_email || ""}
                       onChange={(e) =>
@@ -296,7 +286,6 @@ export function ChurchDetailsClient({
                           contact_email: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p>{church.contact_email || "-"}</p>
@@ -309,7 +298,7 @@ export function ChurchDetailsClient({
                     {t("churches.contactPhone")}
                   </p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="tel"
                       value={church.contact_phone || ""}
                       onChange={(e) =>
@@ -318,7 +307,6 @@ export function ChurchDetailsClient({
                           contact_phone: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p>{church.contact_phone || "-"}</p>
@@ -329,13 +317,12 @@ export function ChurchDetailsClient({
               <div className="space-y-1">
                 <p className="text-sm font-medium">{t("common.description")}</p>
                 {isEditing ? (
-                  <textarea
+                  <Textarea
                     value={church.description || ""}
                     onChange={(e) =>
                       setChurch({ ...church, description: e.target.value })
                     }
                     rows={3}
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 ) : (
                   <p>{church.description || "-"}</p>
@@ -343,17 +330,17 @@ export function ChurchDetailsClient({
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
+          </div>
+        </TabsContent>
 
-      {activeTab === "classes" && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>{t("churches.classes")}</CardTitle>
-                <CardDescription>Classes in this church</CardDescription>
-              </div>
+        <TabsContent value="classes">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{t("churches.classes")}</CardTitle>
+                  <CardDescription>{t("churches.classesInChurch") || "Classes in this church"}</CardDescription>
+                </div>
               {canEdit && (
                 <Button asChild>
                   <Link href={`/admin/classes?church=${church.id}`}>
@@ -409,11 +396,11 @@ export function ChurchDetailsClient({
               </Table>
             )}
           </CardContent>
-        </Card>
-      )}
+          </Card>
+        </TabsContent>
 
-      {activeTab === "users" && (
-        <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="users">
+          <div className="grid gap-6 md:grid-cols-2">
           {/* Teachers */}
           <Card>
             <CardHeader>
@@ -527,8 +514,9 @@ export function ChurchDetailsClient({
               )}
             </CardContent>
           </Card>
-        </div>
-      )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -15,6 +15,10 @@ export * from './modules/store';
 export * from './modules/activities';
 export * from './modules/attendance';
 export * from './modules/points';
+export * from './modules/announcements';
+export * from './modules/enhanced-activities';
+export * from './modules/gamification';
+export * from './modules/parents';
 
 // =====================================================
 // USAGE EXAMPLES:

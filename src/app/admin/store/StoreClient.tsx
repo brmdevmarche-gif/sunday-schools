@@ -439,31 +439,33 @@ export default function StoreClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">
             {t("store.title")} {t("common.management")}
           </h1>
           <p className="text-muted-foreground mt-1">{t("store.subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={loadDemandStats}
             disabled={isLoadingDemand}
+            className="w-full sm:w-auto"
           >
-            <BarChart3 className="mr-2 h-4 w-4" />
+            <BarChart3 className="me-2 h-4 w-4" />
             {isLoadingDemand ? "Loading..." : t("store.itemDemand")}
           </Button>
           <Button
             variant="outline"
             onClick={() => router.push("/admin/store/orders")}
+            className="w-full sm:w-auto"
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
+            <ShoppingCart className="me-2 h-4 w-4" />
             {t("store.ordersManagement")}
           </Button>
-          <Button onClick={() => router.push("/admin/store/create")}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => router.push("/admin/store/create")} className="w-full sm:w-auto">
+            <Plus className="me-2 h-4 w-4" />
             {t("store.addItem")}
           </Button>
         </div>

@@ -35,7 +35,14 @@ import {
   Clock,
 } from "lucide-react";
 import { deleteTripAction } from "./actions";
-import type { TripWithDetails, TripStatus, TripType, ExtendedUser } from "@/lib/types";
+import { ResponsiveFilters } from "@/components/ui/filter-sheet";
+import { Label } from "@/components/ui/label";
+import type {
+  TripWithDetails,
+  TripStatus,
+  TripType,
+  ExtendedUser,
+} from "@/lib/types";
 
 interface TripsManagementClientProps {
   trips: TripWithDetails[];
@@ -53,11 +60,23 @@ export default function TripsManagementClient({
 
   // Get currency symbol based on locale
   const getCurrencySymbol = () => {
-    return locale === 'ar' ? 'ج.م' : 'E.L';
+    return locale === "ar" ? "ج.م" : "E.L";
   };
   const [statusFilter, setStatusFilter] = useState<TripStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<TripType | "all">("all");
   const [trips, setTrips] = useState(initialTrips);
+
+  // Calculate active filter count
+  const activeFilterCount = [
+    statusFilter !== "all",
+    typeFilter !== "all",
+  ].filter(Boolean).length;
+
+  function clearFilters() {
+    setStatusFilter("all");
+    setTypeFilter("all");
+    setSearchQuery("");
+  }
 
   // Filter trips
   const filteredTrips = useMemo(() => {
@@ -138,7 +157,9 @@ export default function TripsManagementClient({
       toast.success("Trip deleted successfully");
     } catch (error) {
       console.error("Error deleting trip:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to delete trip");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete trip"
+      );
     }
   }
 
@@ -151,68 +172,111 @@ export default function TripsManagementClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row">
           <h1 className="text-3xl font-bold">Trips Management</h1>
           <p className="text-muted-foreground mt-1">
             Manage and organize trips for your church
           </p>
         </div>
-        <Button onClick={() => router.push("/admin/trips/create")}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button
+          onClick={() => router.push("/admin/trips/create")}
+          className="w-full sm:w-auto"
+        >
+          <Plus className="me-2 h-4 w-4" />
           Create Trip
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search trips..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+      {/* Filters - Responsive: inline on desktop, sheet on mobile */}
+      <ResponsiveFilters
+        title={t("common.filters")}
+        activeFilterCount={activeFilterCount}
+        onClear={clearFilters}
+        clearText={t("common.clearAll")}
+      >
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-2">
+            <Label>{t("common.search")}</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t("trips.searchPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-9"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("common.status")}</Label>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) =>
+                setStatusFilter(value as TripStatus | "all")
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("trips.allStatuses")}</SelectItem>
+                <SelectItem value="active">
+                  {t("trips.statuses.active")}
+                </SelectItem>
+                <SelectItem value="started">
+                  {t("trips.statuses.started")}
+                </SelectItem>
+                <SelectItem value="ended">
+                  {t("trips.statuses.ended")}
+                </SelectItem>
+                <SelectItem value="canceled">
+                  {t("trips.statuses.canceled")}
+                </SelectItem>
+                <SelectItem value="soldout">
+                  {t("trips.statuses.soldout")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("trips.type")}</Label>
+            <Select
+              value={typeFilter}
+              onValueChange={(value) =>
+                setTypeFilter(value as TripType | "all")
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("trips.allTypes")}</SelectItem>
+                <SelectItem value="one_day">
+                  {t("trips.types.one_day")}
+                </SelectItem>
+                <SelectItem value="spiritual">
+                  {t("trips.types.spiritual")}
+                </SelectItem>
+                <SelectItem value="volunteering">
+                  {t("trips.types.volunteering")}
+                </SelectItem>
+                <SelectItem value="fun">{t("trips.types.fun")}</SelectItem>
+                <SelectItem value="retreat">
+                  {t("trips.types.retreat")}
+                </SelectItem>
+                <SelectItem value="carnival">
+                  {t("trips.types.carnival")}
+                </SelectItem>
+                <SelectItem value="tournament">
+                  {t("trips.types.tournament")}
+                </SelectItem>
+                <SelectItem value="other">{t("trips.types.other")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <Select
-          value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as TripStatus | "all")
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="started">Started</SelectItem>
-            <SelectItem value="ended">Ended</SelectItem>
-            <SelectItem value="canceled">Canceled</SelectItem>
-            <SelectItem value="soldout">Sold Out</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={typeFilter}
-          onValueChange={(value) => setTypeFilter(value as TripType | "all")}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="one_day">One Day</SelectItem>
-            <SelectItem value="spiritual">Spiritual</SelectItem>
-            <SelectItem value="volunteering">Volunteering</SelectItem>
-            <SelectItem value="fun">Fun</SelectItem>
-            <SelectItem value="retreat">Retreat</SelectItem>
-            <SelectItem value="carnival">Carnival</SelectItem>
-            <SelectItem value="tournament">Tournament</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      </ResponsiveFilters>
 
       {/* Trips Grid */}
       {filteredTrips.length === 0 ? (
@@ -342,8 +406,10 @@ export default function TripsManagementClient({
                   )}
                   <div className="flex items-center gap-2 col-span-2">
                     <span className="font-medium">
-                      Price: {getCurrencySymbol()}{trip.price_normal} (normal), {getCurrencySymbol()}{trip.price_mastor}{" "}
-                      (mastor), {getCurrencySymbol()}{trip.price_botl} (botl)
+                      Price: {getCurrencySymbol()}
+                      {trip.price_normal} (normal), {getCurrencySymbol()}
+                      {trip.price_mastor} (mastor), {getCurrencySymbol()}
+                      {trip.price_botl} (botl)
                     </span>
                   </div>
                 </div>

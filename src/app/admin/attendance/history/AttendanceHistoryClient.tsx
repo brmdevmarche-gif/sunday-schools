@@ -137,11 +137,12 @@ export default function AttendanceHistoryClient({
   };
 
   function getStatusBadge(status: AttendanceStatus) {
+    // Ensure proper color contrast for WCAG 2.1 AA compliance
     const variants = {
-      present: { className: "bg-green-500", text: t("attendance.present") },
-      absent: { className: "bg-red-500", text: t("attendance.absent") },
-      excused: { className: "bg-yellow-500", text: t("attendance.excused") },
-      late: { className: "bg-orange-500", text: t("attendance.late") },
+      present: { className: "bg-green-600 text-white", text: t("attendance.present") },
+      absent: { className: "bg-red-500 text-white", text: t("attendance.absent") },
+      excused: { className: "bg-yellow-400 text-yellow-900", text: t("attendance.excused") },
+      late: { className: "bg-orange-500 text-white", text: t("attendance.late") },
     };
 
     const variant = variants[status];
@@ -176,7 +177,7 @@ export default function AttendanceHistoryClient({
                 value={selectedClassId}
                 onValueChange={setSelectedClassId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t("attendance.selectClass")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -228,7 +229,7 @@ export default function AttendanceHistoryClient({
             <div className="space-y-2">
               <Label>{t("attendance.filterByStatus")}</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,16 +273,16 @@ export default function AttendanceHistoryClient({
               <Badge variant="outline">
                 {t("attendance.totalRecords")}: {stats.total}
               </Badge>
-              <Badge className="bg-green-500">
+              <Badge className="bg-green-600 text-white">
                 {t("attendance.present")}: {stats.present}
               </Badge>
               <Badge variant="destructive">
                 {t("attendance.absent")}: {stats.absent}
               </Badge>
-              <Badge className="bg-yellow-500">
+              <Badge className="bg-yellow-400 text-yellow-900">
                 {t("attendance.excused")}: {stats.excused}
               </Badge>
-              <Badge className="bg-orange-500">
+              <Badge className="bg-orange-500 text-white">
                 {t("attendance.late")}: {stats.late}
               </Badge>
             </div>
@@ -338,7 +339,11 @@ export default function AttendanceHistoryClient({
                               {record.user.full_name || record.user.email}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {record.user.user_code && <span className="font-mono mr-2">ID: {record.user.user_code}</span>}
+                              {record.user.user_code && (
+                                <span className="font-mono mr-2">
+                                  ID: {record.user.user_code}
+                                </span>
+                              )}
                               {record.user.email}
                             </p>
                           </div>

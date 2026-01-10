@@ -1,18 +1,17 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import {
   Dialog,
   DialogContent,
@@ -20,180 +19,257 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
-import { Pencil, UserPlus, Link as LinkIcon, UserCheck, UserX } from 'lucide-react'
-import type { ExtendedUser, UserRole, Church, Diocese } from '@/lib/types/sunday-school'
+} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import {
+  Pencil,
+  UserPlus,
+  Link as LinkIcon,
+  UserCheck,
+  UserX,
+  Users,
+} from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ResponsiveFilters } from "@/components/ui/filter-sheet";
+import type {
+  ExtendedUser,
+  UserRole,
+  Church,
+  Diocese,
+} from "@/lib/types/sunday-school";
 import {
   updateUserRoleAction,
   activateUserAction,
   deactivateUserAction,
   linkParentToStudentAction,
   createUserAction,
-} from './actions'
+} from "./actions";
 
 interface UsersClientProps {
-  initialUsers: ExtendedUser[]
-  churches: Church[]
-  dioceses: Diocese[]
+  initialUsers: ExtendedUser[];
+  churches: Church[];
+  dioceses: Diocese[];
 }
 
-export default function UsersClient({ initialUsers, churches, dioceses }: UsersClientProps) {
-  const router = useRouter()
-  const t = useTranslations()
-  const [, startTransition] = useTransition()
-  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
-  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<ExtendedUser | null>(null)
-  const [roleFilter, setRoleFilter] = useState<string>('all')
-  const [churchFilter, setChurchFilter] = useState<string>('all')
-  const [dioceseFilter, setDioceseFilter] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState('')
+export default function UsersClient({
+  initialUsers,
+  churches,
+  dioceses,
+}: UsersClientProps) {
+  const router = useRouter();
+  const t = useTranslations();
+  const [, startTransition] = useTransition();
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isChildrenDialogOpen, setIsChildrenDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ExtendedUser | null>(null);
+  const [createdParentId, setCreatedParentId] = useState<string | null>(null);
+  const [selectedChildrenIds, setSelectedChildrenIds] = useState<string[]>([]);
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [churchFilter, setChurchFilter] = useState<string>("all");
+  const [dioceseFilter, setDioceseFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Role assignment form
   const [roleFormData, setRoleFormData] = useState({
-    role: '' as UserRole,
-    diocese_id: '',
-    church_id: '',
-  })
+    role: "" as UserRole,
+    diocese_id: "",
+    church_id: "",
+  });
 
   // Create user form
   const [createFormData, setCreateFormData] = useState({
-    email: '',
-    password: '',
-    role: 'student' as UserRole,
-    username: '',
-    full_name: '',
-    diocese_id: '',
-    church_id: '',
-  })
+    email: "",
+    password: "",
+    role: "student" as UserRole,
+    username: "",
+    full_name: "",
+    diocese_id: "",
+    church_id: "",
+  });
 
   // Parent-student linking
-  const [selectedParentId, setSelectedParentId] = useState('')
-  const [selectedStudentId, setSelectedStudentId] = useState('')
+  const [selectedParentId, setSelectedParentId] = useState("");
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [childrenSearchQuery, setChildrenSearchQuery] = useState("");
 
-  const parents = initialUsers.filter(u => u.role === 'parent')
-  const students = initialUsers.filter(u => u.role === 'student')
+  const parents = initialUsers.filter((u) => u.role === "parent");
+  const students = initialUsers.filter((u) => u.role === "student");
+
+  // Filter students for children dialog based on search
+  const filteredStudentsForChildren = students.filter((student) => {
+    if (!childrenSearchQuery) return true;
+    const query = childrenSearchQuery.toLowerCase();
+    return (
+      student.full_name?.toLowerCase().includes(query) ||
+      student.email.toLowerCase().includes(query) ||
+      student.username?.toLowerCase().includes(query) ||
+      student.user_code?.toLowerCase().includes(query)
+    );
+  });
 
   function handleOpenRoleDialog(user: ExtendedUser) {
-    setSelectedUser(user)
+    setSelectedUser(user);
     setRoleFormData({
       role: user.role,
-      diocese_id: user.diocese_id || '',
-      church_id: user.church_id || '',
-    })
-    setIsRoleDialogOpen(true)
+      diocese_id: user.diocese_id || "",
+      church_id: user.church_id || "",
+    });
+    setIsRoleDialogOpen(true);
   }
 
   function handleOpenLinkDialog() {
-    setSelectedParentId('')
-    setSelectedStudentId('')
-    setIsLinkDialogOpen(true)
+    setSelectedParentId("");
+    setSelectedStudentId("");
+    setIsLinkDialogOpen(true);
   }
 
   async function handleUpdateRole() {
-    if (!selectedUser) return
+    if (!selectedUser) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       await updateUserRoleAction(
         selectedUser.id,
         roleFormData.role,
         roleFormData.diocese_id || null,
         roleFormData.church_id || null
-      )
-      toast.success(t('users.userUpdated'))
-      setIsRoleDialogOpen(false)
+      );
+      toast.success(t("users.userUpdated"));
+      setIsRoleDialogOpen(false);
       startTransition(() => {
-        router.refresh()
-      })
+        router.refresh();
+      });
     } catch (error) {
-      console.error('Error updating user role:', error)
-      toast.error(t('users.updateFailed'))
+      console.error("Error updating user role:", error);
+      toast.error(t("users.updateFailed"));
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
   async function handleLinkParentToStudent() {
     if (!selectedParentId || !selectedStudentId) {
-      toast.error(t('users.linkFailed'))
-      return
+      toast.error(t("users.linkFailed"));
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      await linkParentToStudentAction(selectedParentId, selectedStudentId)
-      toast.success(t('users.parentLinked'))
-      setIsLinkDialogOpen(false)
+      await linkParentToStudentAction(selectedParentId, selectedStudentId);
+      toast.success(t("users.parentLinked"));
+      setIsLinkDialogOpen(false);
       startTransition(() => {
-        router.refresh()
-      })
+        router.refresh();
+      });
     } catch (error) {
-      console.error('Error linking parent to student:', error)
-      toast.error(t('users.linkFailed'))
+      console.error("Error linking parent to student:", error);
+      toast.error(t("users.linkFailed"));
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
+  }
+
+  async function handleLinkChildrenToParent() {
+    if (!createdParentId || selectedChildrenIds.length === 0) {
+      toast.error(t("users.selectAtLeastOneChild"));
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Link all selected children to the parent
+      for (const studentId of selectedChildrenIds) {
+        await linkParentToStudentAction(createdParentId, studentId);
+      }
+      toast.success(
+        t("users.childrenLinked", { count: selectedChildrenIds.length })
+      );
+      setIsChildrenDialogOpen(false);
+      setCreatedParentId(null);
+      setSelectedChildrenIds([]);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      console.error("Error linking children to parent:", error);
+      toast.error(t("users.linkFailed"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleSkipChildren() {
+    setIsChildrenDialogOpen(false);
+    setCreatedParentId(null);
+    setSelectedChildrenIds([]);
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   async function handleToggleActive(user: ExtendedUser) {
     try {
       if (user.is_active) {
-        await deactivateUserAction(user.id)
-        toast.success(t('users.userDeactivated'))
+        await deactivateUserAction(user.id);
+        toast.success(t("users.userDeactivated"));
       } else {
-        await activateUserAction(user.id)
-        toast.success(t('users.userActivated'))
+        await activateUserAction(user.id);
+        toast.success(t("users.userActivated"));
       }
       startTransition(() => {
-        router.refresh()
-      })
+        router.refresh();
+      });
     } catch (error) {
-      toast.error(t('users.updateFailed'))
+      toast.error(t("users.updateFailed"));
     }
   }
 
   function handleOpenCreateDialog() {
     setCreateFormData({
-      email: '',
-      password: '',
-      role: 'student',
-      username: '',
-      full_name: '',
-      diocese_id: '',
-      church_id: '',
-    })
-    setIsCreateDialogOpen(true)
+      email: "",
+      password: "",
+      role: "student",
+      username: "",
+      full_name: "",
+      diocese_id: "",
+      church_id: "",
+    });
+    setIsCreateDialogOpen(true);
   }
 
   async function handleCreateUser() {
-    if (!createFormData.email || !createFormData.password || !createFormData.role) {
-      toast.error(t('errors.invalidInput'))
-      return
+    if (
+      !createFormData.email ||
+      !createFormData.password ||
+      !createFormData.role
+    ) {
+      toast.error(t("errors.invalidInput"));
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      await createUserAction({
+      const result = await createUserAction({
         email: createFormData.email,
         password: createFormData.password,
         role: createFormData.role,
@@ -201,273 +277,375 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
         full_name: createFormData.full_name || undefined,
         church_id: createFormData.church_id || undefined,
         diocese_id: createFormData.diocese_id || undefined,
-      })
-      toast.success(t('users.userCreated'))
-      setIsCreateDialogOpen(false)
-      startTransition(() => {
-        router.refresh()
-      })
+      });
+      toast.success(t("users.userCreated"));
+      setIsCreateDialogOpen(false);
+      
+      // If parent role, show children selection modal
+      if (createFormData.role === "parent" && result?.user?.id) {
+        setCreatedParentId(result.user.id);
+        setSelectedChildrenIds([]);
+        setIsChildrenDialogOpen(true);
+      } else {
+        startTransition(() => {
+          router.refresh();
+        });
+      }
     } catch (error) {
-      console.error('Error creating user:', error)
-      toast.error(error instanceof Error ? error.message : t('users.createFailed'))
+      console.error("Error creating user:", error);
+      toast.error(
+        error instanceof Error ? error.message : t("users.createFailed")
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
   function getDioceseName(dioceseId: string | null): string {
-    if (!dioceseId) return '-'
-    return dioceses.find(d => d.id === dioceseId)?.name || '-'
+    if (!dioceseId) return "-";
+    return dioceses.find((d) => d.id === dioceseId)?.name || "-";
   }
 
   function getChurchName(churchId: string | null): string {
-    if (!churchId) return '-'
-    return churches.find(c => c.id === churchId)?.name || '-'
+    if (!churchId) return "-";
+    return churches.find((c) => c.id === churchId)?.name || "-";
   }
 
   // Apply filters
-  const filteredUsers = initialUsers.filter(user => {
+  const filteredUsers = initialUsers.filter((user) => {
     // Role filter
-    if (roleFilter !== 'all' && user.role !== roleFilter) return false
+    if (roleFilter !== "all" && user.role !== roleFilter) return false;
 
     // Church filter
-    if (churchFilter !== 'all' && user.church_id !== churchFilter) return false
+    if (churchFilter !== "all" && user.church_id !== churchFilter) return false;
 
     // Diocese filter
-    if (dioceseFilter !== 'all' && user.diocese_id !== dioceseFilter) return false
+    if (dioceseFilter !== "all" && user.diocese_id !== dioceseFilter)
+      return false;
 
     // Search query (name, email, username, phone, or user_code)
     if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       return (
         user.full_name?.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query) ||
         user.username?.toLowerCase().includes(query) ||
         user.phone?.toLowerCase().includes(query) ||
         user.user_code?.toLowerCase().includes(query)
-      )
+      );
     }
 
-    return true
-  })
+    return true;
+  });
 
   // Group users by role
   const usersByRole = filteredUsers.reduce((acc, user) => {
     if (!acc[user.role]) {
-      acc[user.role] = []
+      acc[user.role] = [];
     }
-    acc[user.role].push(user)
-    return acc
-  }, {} as Record<UserRole, ExtendedUser[]>)
+    acc[user.role].push(user);
+    return acc;
+  }, {} as Record<UserRole, ExtendedUser[]>);
 
   // Define role order for display
-  const roleOrder: UserRole[] = ['super_admin', 'diocese_admin', 'church_admin', 'teacher', 'parent', 'student']
-  const sortedRoles = roleOrder.filter(role => usersByRole[role]?.length > 0)
+  const roleOrder: UserRole[] = [
+    "super_admin",
+    "diocese_admin",
+    "church_admin",
+    "teacher",
+    "parent",
+    "student",
+  ];
+  const sortedRoles = roleOrder.filter((role) => usersByRole[role]?.length > 0);
 
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
-      case 'super_admin': return 'destructive'
-      case 'diocese_admin': return 'default'
-      case 'church_admin': return 'secondary'
-      case 'teacher': return 'outline'
-      default: return 'secondary'
+      case "super_admin":
+        return "destructive";
+      case "diocese_admin":
+        return "default";
+      case "church_admin":
+        return "secondary";
+      case "teacher":
+        return "outline";
+      default:
+        return "secondary";
     }
-  }
+  };
 
   // Update filters and refresh
-  const handleFilterChange = (filterType: 'role' | 'church' | 'diocese', value: string) => {
-    if (filterType === 'role') setRoleFilter(value)
-    if (filterType === 'church') setChurchFilter(value)
-    if (filterType === 'diocese') setDioceseFilter(value)
+  const handleFilterChange = (
+    filterType: "role" | "church" | "diocese",
+    value: string
+  ) => {
+    if (filterType === "role") setRoleFilter(value);
+    if (filterType === "church") setChurchFilter(value);
+    if (filterType === "diocese") setDioceseFilter(value);
+  };
+
+  // Calculate active filter count (excluding search)
+  const activeFilterCount = [
+    roleFilter !== "all",
+    churchFilter !== "all",
+    dioceseFilter !== "all",
+  ].filter(Boolean).length;
+
+  function clearFilters() {
+    setRoleFilter("all");
+    setChurchFilter("all");
+    setDioceseFilter("all");
+    setSearchQuery("");
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{t('users.title')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('users.subtitle')}
-          </p>
+          <h1 className="text-3xl font-bold">{t("users.title")}</h1>
+          <p className="text-muted-foreground mt-2">{t("users.subtitle")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleOpenLinkDialog}>
-            <LinkIcon className="mr-2 h-4 w-4" />
-            {t('users.linkParent')}
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={handleOpenLinkDialog}
+            className="w-full sm:w-auto"
+          >
+            <LinkIcon className="me-2 h-4 w-4" />
+            {t("users.linkParent")}
           </Button>
-          <Button onClick={handleOpenCreateDialog}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            {t('users.createUser')}
+          <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+            <UserPlus className="me-2 h-4 w-4" />
+            {t("users.createUser")}
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('common.filter')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <Label>{t('common.search')}</Label>
-              <Input
-                placeholder={t('users.searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('users.role')}</Label>
-              <Select value={roleFilter} onValueChange={(value) => handleFilterChange('role', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('users.filterByRole')}</SelectItem>
-                  <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
-                  <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
-                  <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
-                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
-                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
-                  <SelectItem value="student">{t('roles.student')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('users.diocese')}</Label>
-              <Select value={dioceseFilter} onValueChange={(value) => handleFilterChange('diocese', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('users.filterByDiocese')}</SelectItem>
-                  {dioceses.map((diocese) => (
-                    <SelectItem key={diocese.id} value={diocese.id}>
-                      {diocese.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('users.church')}</Label>
-              <Select value={churchFilter} onValueChange={(value) => handleFilterChange('church', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('users.filterByChurch')}</SelectItem>
-                  {churches.map((church) => (
-                    <SelectItem key={church.id} value={church.id}>
-                      {church.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Filters - Responsive: inline on desktop, sheet on mobile */}
+      <ResponsiveFilters
+        title={t("common.filters")}
+        activeFilterCount={activeFilterCount}
+        onClear={clearFilters}
+        clearText={t("common.clearAll")}
+      >
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-2">
+            <Label>{t("common.search")}</Label>
+            <Input
+              placeholder={t("users.searchPlaceholder")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="space-y-2">
+            <Label>{t("users.role")}</Label>
+            <Select
+              value={roleFilter}
+              onValueChange={(value) => handleFilterChange("role", value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("users.filterByRole")}</SelectItem>
+                <SelectItem value="super_admin">
+                  {t("roles.super_admin")}
+                </SelectItem>
+                <SelectItem value="diocese_admin">
+                  {t("roles.diocese_admin")}
+                </SelectItem>
+                <SelectItem value="church_admin">
+                  {t("roles.church_admin")}
+                </SelectItem>
+                <SelectItem value="teacher">{t("roles.teacher")}</SelectItem>
+                <SelectItem value="parent">{t("roles.parent")}</SelectItem>
+                <SelectItem value="student">{t("roles.student")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("users.diocese")}</Label>
+            <SearchableSelect
+              value={dioceseFilter}
+              onValueChange={(value) => handleFilterChange("diocese", value)}
+              options={dioceses.map((diocese) => ({
+                value: diocese.id,
+                label: diocese.name,
+              }))}
+              placeholder={t("users.filterByDiocese")}
+              searchPlaceholder={t("common.search")}
+              emptyText={t("common.noResults")}
+              sheetTitle={t("users.diocese")}
+              showClearOption
+              clearOptionLabel={t("users.filterByDiocese")}
+              clearOptionValue="all"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("users.church")}</Label>
+            <SearchableSelect
+              value={churchFilter}
+              onValueChange={(value) => handleFilterChange("church", value)}
+              options={churches.map((church) => ({
+                value: church.id,
+                label: church.name,
+              }))}
+              placeholder={t("users.filterByChurch")}
+              searchPlaceholder={t("common.search")}
+              emptyText={t("common.noResults")}
+              sheetTitle={t("users.church")}
+              showClearOption
+              clearOptionLabel={t("users.filterByChurch")}
+              clearOptionValue="all"
+            />
+          </div>
+        </div>
+      </ResponsiveFilters>
 
       {/* Users by Role */}
       {filteredUsers.length === 0 ? (
         <Card>
           <CardContent className="py-8">
-            <div className="text-center">
-              <p className="text-muted-foreground">{t('users.noUsers')}</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title={t("users.noUsers")}
+              description={t("users.noUsersDescription")}
+              action={{
+                label: t("users.createUser"),
+                onClick: handleOpenCreateDialog,
+              }}
+            />
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardContent className="pt-6">
-            <Accordion type="multiple" defaultValue={sortedRoles} className="w-full">
+            <Accordion
+              type="multiple"
+              defaultValue={sortedRoles}
+              className="w-full"
+            >
               {sortedRoles.map((role) => {
-                const usersInRole = usersByRole[role]
+                const usersInRole = usersByRole[role];
                 return (
                   <AccordionItem key={role} value={role}>
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center gap-3">
-                        <Badge variant={getRoleBadgeVariant(role)} className="text-base px-3 py-1">
+                        <Badge
+                          variant={getRoleBadgeVariant(role)}
+                          className="text-base px-3 py-1"
+                        >
                           {t(`roles.${role}`)}
                         </Badge>
                         <span className="text-muted-foreground">
-                          ({usersInRole.length} {usersInRole.length === 1 ? 'user' : 'users'})
+                          ({usersInRole.length}{" "}
+                          {usersInRole.length === 1 ? "user" : "users"})
                         </span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>{t('users.userCode')}</TableHead>
-                              <TableHead>{t('common.name')}</TableHead>
-                              <TableHead>{t('common.email')}</TableHead>
-                              <TableHead>{t('users.diocese')}</TableHead>
-                              <TableHead>{t('users.church')}</TableHead>
-                              <TableHead className="text-center">{t('common.status')}</TableHead>
-                              <TableHead className="text-right">{t('common.actions')}</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {usersInRole.map((user) => (
-                              <TableRow
-                                key={user.id}
-                                className="cursor-pointer hover:bg-muted/50"
-                                onClick={() => router.push(`/admin/users/${user.id}`)}
+                      <ResponsiveTable
+                        data={usersInRole}
+                        columns={[
+                          {
+                            key: "user_code",
+                            header: t("users.userCode"),
+                            mobileLabel: t("users.userCode"),
+                            cell: (user) => (
+                              <span className="font-mono text-sm">
+                                {user.user_code || "-"}
+                              </span>
+                            ),
+                            showOnMobile: false,
+                          },
+                          {
+                            key: "name",
+                            header: t("common.name"),
+                            mobileLabel: t("common.name"),
+                            cell: (user) =>
+                              user.full_name || user.username || "-",
+                            isTitle: true,
+                          },
+                          {
+                            key: "email",
+                            header: t("common.email"),
+                            mobileLabel: t("common.email"),
+                            cell: (user) => (
+                              <span className="truncate">{user.email}</span>
+                            ),
+                            isSubtitle: true,
+                          },
+                          {
+                            key: "diocese",
+                            header: t("users.diocese"),
+                            mobileLabel: t("users.diocese"),
+                            cell: (user) => getDioceseName(user.diocese_id),
+                            showOnMobile: false,
+                          },
+                          {
+                            key: "church",
+                            header: t("users.church"),
+                            mobileLabel: t("users.church"),
+                            cell: (user) => getChurchName(user.church_id),
+                          },
+                          {
+                            key: "status",
+                            header: t("common.status"),
+                            mobileLabel: t("common.status"),
+                            cell: (user) => (
+                              <Badge
+                                variant={
+                                  user.is_active ? "default" : "secondary"
+                                }
                               >
-                                <TableCell className="font-mono text-sm">
-                                  {user.user_code || '-'}
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  {user.full_name || user.username || '-'}
-                                </TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>{getDioceseName(user.diocese_id)}</TableCell>
-                                <TableCell>{getChurchName(user.church_id)}</TableCell>
-                                <TableCell className="text-center">
-                                  <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                                    {user.is_active ? t('common.active') : t('common.inactive')}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleOpenRoleDialog(user)}
-                                      title={t('users.editUser')}
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleToggleActive(user)}
-                                      title={user.is_active ? t('users.deactivateUser') : t('users.activateUser')}
-                                    >
-                                      {user.is_active ? (
-                                        <UserX className="h-4 w-4 text-destructive" />
-                                      ) : (
-                                        <UserCheck className="h-4 w-4 text-green-600" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
+                                {user.is_active
+                                  ? t("common.active")
+                                  : t("common.inactive")}
+                              </Badge>
+                            ),
+                            headerClassName: "text-center",
+                            cellClassName: "text-center",
+                          },
+                        ]}
+                        getRowKey={(user) => user.id}
+                        onRowClick={(user) =>
+                          router.push(`/admin/users/${user.id}`)
+                        }
+                        renderActions={(user) => (
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenRoleDialog(user)}
+                              aria-label={t("users.editUser")}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleActive(user)}
+                              aria-label={
+                                user.is_active
+                                  ? t("users.deactivateUser")
+                                  : t("users.activateUser")
+                              }
+                            >
+                              {user.is_active ? (
+                                <UserX className="h-4 w-4 text-destructive" />
+                              ) : (
+                                <UserCheck className="h-4 w-4 text-green-600" />
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      />
                     </AccordionContent>
                   </AccordionItem>
-                )
+                );
               })}
             </Accordion>
           </CardContent>
@@ -478,72 +656,81 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{t('users.editUser')}</DialogTitle>
+            <DialogTitle>{t("users.editUser")}</DialogTitle>
             <DialogDescription>
-              {t('users.subtitle')}: {selectedUser?.full_name || selectedUser?.email}
+              {t("users.subtitle")}:{" "}
+              {selectedUser?.full_name || selectedUser?.email}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>{t('users.role')} *</Label>
+              <Label>{t("users.role")} *</Label>
               <Select
                 value={roleFormData.role}
-                onValueChange={(value) => setRoleFormData({ ...roleFormData, role: value as UserRole })}
+                onValueChange={(value) =>
+                  setRoleFormData({ ...roleFormData, role: value as UserRole })
+                }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
-                  <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
-                  <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
-                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
-                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
-                  <SelectItem value="student">{t('roles.student')}</SelectItem>
+                  <SelectItem value="super_admin">
+                    {t("roles.super_admin")}
+                  </SelectItem>
+                  <SelectItem value="diocese_admin">
+                    {t("roles.diocese_admin")}
+                  </SelectItem>
+                  <SelectItem value="church_admin">
+                    {t("roles.church_admin")}
+                  </SelectItem>
+                  <SelectItem value="teacher">{t("roles.teacher")}</SelectItem>
+                  <SelectItem value="parent">{t("roles.parent")}</SelectItem>
+                  <SelectItem value="student">{t("roles.student")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {(roleFormData.role === 'diocese_admin') && (
+            {roleFormData.role === "diocese_admin" && (
               <div className="space-y-2">
-                <Label>{t('users.diocese')}</Label>
-                <Select
+                <Label>{t("users.diocese")}</Label>
+                <SearchableSelect
                   value={roleFormData.diocese_id}
-                  onValueChange={(value) => setRoleFormData({ ...roleFormData, diocese_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('users.selectDiocese')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dioceses.map((diocese) => (
-                      <SelectItem key={diocese.id} value={diocese.id}>
-                        {diocese.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onValueChange={(value) =>
+                    setRoleFormData({ ...roleFormData, diocese_id: value })
+                  }
+                  options={dioceses.map((diocese) => ({
+                    value: diocese.id,
+                    label: diocese.name,
+                  }))}
+                  placeholder={t("users.selectDiocese")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.diocese")}
+                />
               </div>
             )}
 
-            {(['church_admin', 'teacher', 'parent', 'student'].includes(roleFormData.role)) && (
+            {["church_admin", "teacher", "parent", "student"].includes(
+              roleFormData.role
+            ) && (
               <div className="space-y-2">
-                <Label>{t('users.church')}</Label>
-                <Select
+                <Label>{t("users.church")}</Label>
+                <SearchableSelect
                   value={roleFormData.church_id}
-                  onValueChange={(value) => setRoleFormData({ ...roleFormData, church_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('users.selectChurch')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {churches.map((church) => (
-                      <SelectItem key={church.id} value={church.id}>
-                        {church.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onValueChange={(value) =>
+                    setRoleFormData({ ...roleFormData, church_id: value })
+                  }
+                  options={churches.map((church) => ({
+                    value: church.id,
+                    label: church.name,
+                  }))}
+                  placeholder={t("users.selectChurch")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.church")}
+                />
               </div>
             )}
           </div>
@@ -554,10 +741,10 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               onClick={() => setIsRoleDialogOpen(false)}
               disabled={isSubmitting}
             >
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleUpdateRole} disabled={isSubmitting}>
-              {isSubmitting ? t('common.loading') : t('common.update')}
+              {isSubmitting ? t("common.loading") : t("common.update")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -567,21 +754,24 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('users.createUser')}</DialogTitle>
-            <DialogDescription>
-              {t('users.subtitle')}
-            </DialogDescription>
+            <DialogTitle>{t("users.createUser")}</DialogTitle>
+            <DialogDescription>{t("users.subtitle")}</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t('common.email')} *</Label>
+                <Label>{t("common.email")} *</Label>
                 <Input
                   type="email"
                   placeholder="user@example.com"
                   value={createFormData.email}
-                  onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      email: e.target.value,
+                    })
+                  }
                   disabled={isSubmitting}
                 />
               </div>
@@ -592,98 +782,136 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
                   type="password"
                   placeholder="Minimum 6 characters"
                   value={createFormData.password}
-                  onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      password: e.target.value,
+                    })
+                  }
                   disabled={isSubmitting}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Username</Label>
                 <Input
                   placeholder="john_doe"
                   value={createFormData.username}
-                  onChange={(e) => setCreateFormData({ ...createFormData, username: e.target.value })}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      username: e.target.value,
+                    })
+                  }
                   disabled={isSubmitting}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>{t('users.fullName')}</Label>
+                <Label>{t("users.fullName")}</Label>
                 <Input
                   placeholder="John Doe"
                   value={createFormData.full_name}
-                  onChange={(e) => setCreateFormData({ ...createFormData, full_name: e.target.value })}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      full_name: e.target.value,
+                    })
+                  }
                   disabled={isSubmitting}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>{t('users.role')} *</Label>
+              <Label>{t("users.role")} *</Label>
               <Select
                 value={createFormData.role}
-                onValueChange={(value) => setCreateFormData({ ...createFormData, role: value as UserRole })}
+                onValueChange={(value) =>
+                  setCreateFormData({
+                    ...createFormData,
+                    role: value as UserRole,
+                  })
+                }
                 disabled={isSubmitting}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="student">{t('roles.student')}</SelectItem>
-                  <SelectItem value="parent">{t('roles.parent')}</SelectItem>
-                  <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
-                  <SelectItem value="church_admin">{t('roles.church_admin')}</SelectItem>
-                  <SelectItem value="diocese_admin">{t('roles.diocese_admin')}</SelectItem>
-                  <SelectItem value="super_admin">{t('roles.super_admin')}</SelectItem>
+                  <SelectItem value="student">{t("roles.student")}</SelectItem>
+                  <SelectItem value="parent">{t("roles.parent")}</SelectItem>
+                  <SelectItem value="teacher">{t("roles.teacher")}</SelectItem>
+                  <SelectItem value="church_admin">
+                    {t("roles.church_admin")}
+                  </SelectItem>
+                  <SelectItem value="diocese_admin">
+                    {t("roles.diocese_admin")}
+                  </SelectItem>
+                  <SelectItem value="super_admin">
+                    {t("roles.super_admin")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t('users.optionalDiocese')}</Label>
-                <Select
-                  value={createFormData.diocese_id || 'none'}
-                  onValueChange={(value) => setCreateFormData({ ...createFormData, diocese_id: value === 'none' ? '' : value })}
+                <Label>{t("users.optionalDiocese")}</Label>
+                <SearchableSelect
+                  value={createFormData.diocese_id || "none"}
+                  onValueChange={(value) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      diocese_id: value === "none" ? "" : value,
+                    })
+                  }
                   disabled={isSubmitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('users.selectDiocese')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {dioceses.map((diocese) => (
-                      <SelectItem key={diocese.id} value={diocese.id}>
-                        {diocese.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={dioceses.map((diocese) => ({
+                    value: diocese.id,
+                    label: diocese.name,
+                  }))}
+                  placeholder={t("users.selectDiocese")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.diocese")}
+                  showClearOption
+                  clearOptionLabel="-"
+                  clearOptionValue="none"
+                />
               </div>
 
               <div className="space-y-2">
-                <Label>{t('users.optionalChurch')}</Label>
-                <Select
-                  value={createFormData.church_id || 'none'}
-                  onValueChange={(value) => setCreateFormData({ ...createFormData, church_id: value === 'none' ? '' : value })}
+                <Label>{t("users.optionalChurch")}</Label>
+                <SearchableSelect
+                  value={createFormData.church_id || "none"}
+                  onValueChange={(value) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      church_id: value === "none" ? "" : value,
+                    })
+                  }
                   disabled={isSubmitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('users.selectChurch')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {churches
-                      .filter(c => !createFormData.diocese_id || c.diocese_id === createFormData.diocese_id)
-                      .map((church) => (
-                        <SelectItem key={church.id} value={church.id}>
-                          {church.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  options={churches
+                    .filter(
+                      (c) =>
+                        !createFormData.diocese_id ||
+                        c.diocese_id === createFormData.diocese_id
+                    )
+                    .map((church) => ({
+                      value: church.id,
+                      label: church.name,
+                    }))}
+                  placeholder={t("users.selectChurch")}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.noResults")}
+                  sheetTitle={t("users.church")}
+                  showClearOption
+                  clearOptionLabel="-"
+                  clearOptionValue="none"
+                />
               </div>
             </div>
           </div>
@@ -694,10 +922,10 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               onClick={() => setIsCreateDialogOpen(false)}
               disabled={isSubmitting}
             >
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleCreateUser} disabled={isSubmitting}>
-              {isSubmitting ? t('common.loading') : t('users.createUser')}
+              {isSubmitting ? t("common.loading") : t("users.createUser")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -707,43 +935,43 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
       <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('users.linkParent')}</DialogTitle>
-            <DialogDescription>
-              {t('users.subtitle')}
-            </DialogDescription>
+            <DialogTitle>{t("users.linkParent")}</DialogTitle>
+            <DialogDescription>{t("users.subtitle")}</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>{t('roles.parent')} *</Label>
-              <Select value={selectedParentId} onValueChange={setSelectedParentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('users.selectParent')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {parents.map((parent) => (
-                    <SelectItem key={parent.id} value={parent.id}>
-                      {parent.full_name || parent.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>{t("roles.parent")} *</Label>
+              <SearchableSelect
+                value={selectedParentId}
+                onValueChange={setSelectedParentId}
+                options={parents.map((parent) => ({
+                  value: parent.id,
+                  label: parent.full_name || parent.email,
+                  description: parent.full_name ? parent.email : undefined,
+                }))}
+                placeholder={t("users.selectParent")}
+                searchPlaceholder={t("common.search")}
+                emptyText={t("users.noParentsAvailable")}
+                sheetTitle={t("roles.parent")}
+              />
             </div>
 
             <div className="space-y-2">
-              <Label>{t('roles.student')} *</Label>
-              <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('users.selectStudent')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((student) => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.full_name || student.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>{t("roles.student")} *</Label>
+              <SearchableSelect
+                value={selectedStudentId}
+                onValueChange={setSelectedStudentId}
+                options={students.map((student) => ({
+                  value: student.id,
+                  label: student.full_name || student.email,
+                  description: student.full_name ? student.email : undefined,
+                }))}
+                placeholder={t("users.selectStudent")}
+                searchPlaceholder={t("common.search")}
+                emptyText={t("users.noStudentsAvailable")}
+                sheetTitle={t("roles.student")}
+              />
             </div>
           </div>
 
@@ -753,14 +981,116 @@ export default function UsersClient({ initialUsers, churches, dioceses }: UsersC
               onClick={() => setIsLinkDialogOpen(false)}
               disabled={isSubmitting}
             >
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleLinkParentToStudent} disabled={isSubmitting}>
-              {isSubmitting ? t('common.loading') : t('users.linkParent')}
+              {isSubmitting ? t("common.loading") : t("users.linkParent")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Children to Parent Dialog */}
+      <Dialog
+        open={isChildrenDialogOpen}
+        onOpenChange={(open) => {
+          setIsChildrenDialogOpen(open);
+          if (!open) setChildrenSearchQuery("");
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("users.addChildren")}</DialogTitle>
+            <DialogDescription>
+              {t("users.addChildrenDescription")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>{t("users.selectChildren")}</Label>
+              <Input
+                placeholder={t("users.searchStudents")}
+                value={childrenSearchQuery}
+                onChange={(e) => setChildrenSearchQuery(e.target.value)}
+                className="mb-2"
+              />
+              <div className="border rounded-md p-4 max-h-[300px] overflow-y-auto">
+                {students.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("users.noStudentsAvailable")}
+                  </p>
+                ) : filteredStudentsForChildren.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("common.noResults")}
+                  </p>
+                ) : (
+                  <div className="space-y-1">
+                    {filteredStudentsForChildren.map((student) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer"
+                        onClick={() => {
+                          setSelectedChildrenIds((prev) =>
+                            prev.includes(student.id)
+                              ? prev.filter((id) => id !== student.id)
+                              : [...prev, student.id]
+                          );
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedChildrenIds.includes(student.id)}
+                          onChange={() => {
+                            setSelectedChildrenIds((prev) =>
+                              prev.includes(student.id)
+                                ? prev.filter((id) => id !== student.id)
+                                : [...prev, student.id]
+                            );
+                          }}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {student.full_name || student.username || "-"}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {student.email}
+                            {student.user_code && ` (${student.user_code})`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedChildrenIds.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {t("users.selectedCount", { count: selectedChildrenIds.length })}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleSkipChildren}
+              disabled={isSubmitting}
+            >
+              {t("common.skip")}
+            </Button>
+            <Button
+              onClick={handleLinkChildrenToParent}
+              disabled={isSubmitting || selectedChildrenIds.length === 0}
+            >
+              {isSubmitting
+                ? t("common.loading")
+                : t("users.linkChildren", { count: selectedChildrenIds.length })}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

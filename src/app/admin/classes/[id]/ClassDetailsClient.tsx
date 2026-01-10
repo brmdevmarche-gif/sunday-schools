@@ -29,7 +29,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OptimizedAvatar, getInitials } from "@/components/ui/optimized-avatar";
+import { Input } from "@/components/ui/input";
+import { ResponsiveBreadcrumb } from "@/components/ui/responsive-breadcrumb";
+import Link from "next/link";
 import {
   ArrowLeft,
   Users,
@@ -434,6 +437,15 @@ export default function ClassDetailsClient({
 
   return (
     <div className="space-y-6">
+      {/* Breadcrumb Navigation */}
+      <ResponsiveBreadcrumb
+        items={[
+          { label: t("nav.dashboard"), href: "/admin" },
+          { label: t("classes.title"), href: "/admin/classes" },
+          { label: classData.name },
+        ]}
+      />
+
       {/* Header with Actions */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4 flex-1">
@@ -442,7 +454,7 @@ export default function ClassDetailsClient({
             size="sm"
             onClick={() => router.push("/admin/classes")}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 me-2" />
             {t("common.back")}
           </Button>
           <div className="flex-1">
@@ -586,11 +598,11 @@ export default function ClassDetailsClient({
       <Tabs defaultValue="roster" className="w-full">
         <TabsList>
           <TabsTrigger value="roster">
-            <Users className="h-4 w-4 mr-2" />
+            <Users className="h-4 w-4 me-2" />
             {t("classes.roster")} ({teachers.length + students.length})
           </TabsTrigger>
           <TabsTrigger value="activities">
-            <Calendar className="h-4 w-4 mr-2" />
+            <Calendar className="h-4 w-4 me-2" />
             {t("classes.activities")} ({activitiesData.length})
           </TabsTrigger>
           <TabsTrigger
@@ -601,11 +613,11 @@ export default function ClassDetailsClient({
               }
             }}
           >
-            <Bus className="h-4 w-4 mr-2" />
+            <Bus className="h-4 w-4 me-2" />
             {t("trips.title")}{trips.length > 0 && ` (${trips.length})`}
           </TabsTrigger>
           <TabsTrigger value="points">
-            <Coins className="h-4 w-4 mr-2" />
+            <Coins className="h-4 w-4 me-2" />
             {t("points.classPoints")}
           </TabsTrigger>
         </TabsList>
@@ -633,22 +645,12 @@ export default function ClassDetailsClient({
                       key={assignment.id}
                       className="flex items-center gap-3 p-3 border rounded-lg"
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={assignment.user?.avatar_url || undefined}
-                          alt={assignment.user?.full_name}
-                        />
-                        <AvatarFallback>
-                          {(
-                            assignment.user?.full_name || assignment.user?.email
-                          )
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={assignment.user?.avatar_url}
+                        alt={assignment.user?.full_name || assignment.user?.email || ""}
+                        fallback={getInitials(assignment.user?.full_name || assignment.user?.email)}
+                        size="md"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">
                           {assignment.user?.full_name || assignment.user?.email}
@@ -709,22 +711,12 @@ export default function ClassDetailsClient({
                       key={assignment.id}
                       className="flex items-center gap-3 p-3 border rounded-lg"
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={assignment.user?.avatar_url || undefined}
-                          alt={assignment.user?.full_name}
-                        />
-                        <AvatarFallback>
-                          {(
-                            assignment.user?.full_name || assignment.user?.email
-                          )
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={assignment.user?.avatar_url}
+                        alt={assignment.user?.full_name || assignment.user?.email || ""}
+                        fallback={getInitials(assignment.user?.full_name || assignment.user?.email)}
+                        size="md"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">
                           {assignment.user?.full_name || assignment.user?.email}
@@ -976,7 +968,7 @@ export default function ClassDetailsClient({
                         size="sm"
                         onClick={() => exportToCSV()}
                       >
-                        <Download className="h-4 w-4 mr-2" />
+                        <Download className="h-4 w-4 me-2" />
                         {t("trips.classDetails.exportCSV")}
                       </Button>
                     )}
@@ -1054,20 +1046,13 @@ export default function ClassDetailsClient({
                           key={student.id}
                           className="flex items-start gap-3 p-3 border rounded-lg"
                         >
-                          <Avatar className="h-10 w-10 mt-1">
-                            <AvatarImage
-                              src={student.avatar_url || undefined}
-                              alt={student.full_name}
-                            />
-                            <AvatarFallback>
-                              {(student.full_name || student.email)
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <OptimizedAvatar
+                            src={student.avatar_url}
+                            alt={student.full_name || student.email || ""}
+                            fallback={getInitials(student.full_name || student.email)}
+                            size="md"
+                            className="mt-1"
+                          />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium">
                               {student.full_name || student.email}
@@ -1150,12 +1135,12 @@ export default function ClassDetailsClient({
                                   >
                                     {approvingParticipantId === student.participant_id ? (
                                       <>
-                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        <Loader2 className="h-3 w-3 me-1 animate-spin" />
                                         {t("trips.classDetails.processing")}
                                       </>
                                     ) : (
                                       <>
-                                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                                        <CheckCircle2 className="h-3 w-3 me-1" />
                                         {t("trips.classDetails.approve")}
                                       </>
                                     )}
@@ -1174,7 +1159,7 @@ export default function ClassDetailsClient({
                                   >
                                     {markingPaidParticipantId === student.participant_id ? (
                                       <>
-                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        <Loader2 className="h-3 w-3 me-1 animate-spin" />
                                         {t("trips.classDetails.processing")}
                                       </>
                                     ) : (
@@ -1202,12 +1187,12 @@ export default function ClassDetailsClient({
                                 >
                                   {subscribingStudentId === student.id ? (
                                     <>
-                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      <Loader2 className="h-3 w-3 me-1 animate-spin" />
                                       {t("trips.classDetails.subscribing")}
                                     </>
                                   ) : (
                                     <>
-                                      <UserPlus className="h-3 w-3 mr-1" />
+                                      <UserPlus className="h-3 w-3 me-1" />
                                       {t("trips.classDetails.subscribe")}
                                     </>
                                   )}
@@ -1246,12 +1231,11 @@ export default function ClassDetailsClient({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <input
+            <Input
               type="text"
               placeholder={t("common.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg"
             />
 
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -1267,20 +1251,12 @@ export default function ClassDetailsClient({
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage
-                          src={user.avatar_url || undefined}
-                          alt={user.full_name}
-                        />
-                        <AvatarFallback>
-                          {(user.full_name || user.email)
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={user.avatar_url}
+                        alt={user.full_name || user.email || ""}
+                        fallback={getInitials(user.full_name || user.email)}
+                        size="lg"
+                      />
                       <div className="flex-1">
                         <p className="font-medium">
                           {user.full_name || user.email}

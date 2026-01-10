@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import {
   ArrowLeft,
   Cake,
@@ -161,7 +161,7 @@ export default function BirthdaysClient({
             size="sm"
             onClick={() => router.push(`/admin/classes/${classData.id}`)}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 me-2" />
             {t("common.back")}
           </Button>
           <div className="flex-1">
@@ -247,15 +247,12 @@ export default function BirthdaysClient({
                         }
                       }}
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={user.avatar_url || undefined}
-                          alt={user.full_name || user.email}
-                        />
-                        <AvatarFallback>
-                          {getInitials(user.full_name, user.email)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <OptimizedAvatar
+                        src={user.avatar_url}
+                        alt={user.full_name || user.email || ""}
+                        fallback={getInitials(user.full_name, user.email)}
+                        size="md"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">
                           {user.full_name || user.email}
@@ -266,9 +263,9 @@ export default function BirthdaysClient({
                             className="text-xs"
                           >
                             {user.assignment_type === "teacher" ? (
-                              <GraduationCap className="h-3 w-3 mr-1" />
+                              <GraduationCap className="h-3 w-3 me-1" />
                             ) : (
-                              <Users className="h-3 w-3 mr-1" />
+                              <Users className="h-3 w-3 me-1" />
                             )}
                             {user.assignment_type === "teacher"
                               ? t("roles.teacher")

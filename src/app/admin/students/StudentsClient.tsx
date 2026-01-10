@@ -39,6 +39,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, UserPlus, X, Search } from "lucide-react";
+import { ResponsiveFilters } from "@/components/ui/filter-sheet";
+import { Pagination, usePagination } from "@/components/ui/pagination";
 import type {
   UserWithClassAssignments,
   Diocese,
@@ -169,7 +171,9 @@ export default function StudentsClient({
       });
     } catch (error) {
       console.error("Error saving student:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to save student");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save student"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -192,7 +196,9 @@ export default function StudentsClient({
       });
     } catch (error) {
       console.error("Error deleting student:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to delete student");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete student"
+      );
     }
   }
 
@@ -215,7 +221,11 @@ export default function StudentsClient({
       });
     } catch (error) {
       console.error("Error assigning student to class:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to assign student to class");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to assign student to class"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -239,7 +249,11 @@ export default function StudentsClient({
       });
     } catch (error) {
       console.error("Error removing student from class:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to remove student from class");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to remove student from class"
+      );
     }
   }
 
@@ -253,6 +267,18 @@ export default function StudentsClient({
     if (!churchId) return "-";
     const church = churches.find((c) => c.id === churchId);
     return church?.name || "-";
+  }
+
+  // Calculate active filter count
+  const activeFilterCount = [
+    selectedDioceseFilter !== "all",
+    selectedChurchFilter !== "all",
+  ].filter(Boolean).length;
+
+  function clearFilters() {
+    setSelectedDioceseFilter("all");
+    setSelectedChurchFilter("all");
+    setSearchQuery("");
   }
 
   // Filter students
@@ -276,6 +302,20 @@ export default function StudentsClient({
     return matchesSearch && matchesDiocese && matchesChurch;
   });
 
+  // Pagination
+  const {
+    paginatedData: paginatedStudents,
+    currentPage,
+    totalPages,
+    pageSize,
+    totalItems,
+    onPageChange,
+    onPageSizeChange,
+  } = usePagination({
+    data: filteredStudents,
+    initialPageSize: 20,
+  });
+
   // Filter available classes for assignment (only from student's church)
   const availableClasses = selectedStudent
     ? classes.filter((c) => c.church_id === selectedStudent.church_id)
@@ -284,7 +324,7 @@ export default function StudentsClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Student Management</h1>
           <p className="text-muted-foreground mt-2">
@@ -292,73 +332,76 @@ export default function StudentsClient({
           </p>
         </div>
         {canCreate && (
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button
+            onClick={() => handleOpenDialog()}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="me-2 h-4 w-4" />
             Add Student
           </Button>
         )}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label>Search</Label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('students.searchPlaceholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Diocese</Label>
-              <Select
-                value={selectedDioceseFilter}
-                onValueChange={setSelectedDioceseFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Dioceses</SelectItem>
-                  {dioceses.map((diocese) => (
-                    <SelectItem key={diocese.id} value={diocese.id}>
-                      {diocese.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Church</Label>
-              <Select
-                value={selectedChurchFilter}
-                onValueChange={setSelectedChurchFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Churches</SelectItem>
-                  {churches.map((church) => (
-                    <SelectItem key={church.id} value={church.id}>
-                      {church.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Filters - Responsive: inline on desktop, sheet on mobile */}
+      <ResponsiveFilters
+        title={t("common.filters")}
+        activeFilterCount={activeFilterCount}
+        onClear={clearFilters}
+        clearText={t("common.clearAll")}
+      >
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-2">
+            <Label>{t("common.search")}</Label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t("students.searchPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-8"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="space-y-2">
+            <Label>{t("students.diocese")}</Label>
+            <Select
+              value={selectedDioceseFilter}
+              onValueChange={setSelectedDioceseFilter}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("students.allDioceses")}</SelectItem>
+                {dioceses.map((diocese) => (
+                  <SelectItem key={diocese.id} value={diocese.id}>
+                    {diocese.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("students.church")}</Label>
+            <Select
+              value={selectedChurchFilter}
+              onValueChange={setSelectedChurchFilter}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("students.allChurches")}</SelectItem>
+                {churches.map((church) => (
+                  <SelectItem key={church.id} value={church.id}>
+                    {church.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </ResponsiveFilters>
 
       {/* Students Table */}
       <Card>
@@ -374,10 +417,11 @@ export default function StudentsClient({
               <p className="text-muted-foreground">No students found</p>
             </div>
           ) : (
+            <div className="space-y-4">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('users.userCode')}</TableHead>
+                  <TableHead>{t("users.userCode")}</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Diocese</TableHead>
@@ -388,7 +432,7 @@ export default function StudentsClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.map((student) => {
+                {paginatedStudents.map((student) => {
                   const age = student.date_of_birth
                     ? new Date().getFullYear() -
                       new Date(student.date_of_birth).getFullYear()
@@ -398,7 +442,9 @@ export default function StudentsClient({
                     <TableRow
                       key={student.id}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => router.push(`/admin/students/${student.id}`)}
+                      onClick={() =>
+                        router.push(`/admin/students/${student.id}`)
+                      }
                     >
                       <TableCell className="font-mono text-sm">
                         {student.user_code || "-"}
@@ -441,7 +487,10 @@ export default function StudentsClient({
                       </TableCell>
                       <TableCell>{age ? `${age} yrs` : "-"}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className="flex gap-1 justify-end"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {canEdit && (
                             <>
                               <Button
@@ -477,6 +526,29 @@ export default function StudentsClient({
                 })}
               </TableBody>
             </Table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageSizeChange={onPageSizeChange}
+                showPageSize
+                showItemCount
+                labels={{
+                  previous: t("common.previous"),
+                  next: t("common.next"),
+                  page: t("common.page"),
+                  of: t("common.of"),
+                  items: t("students.students"),
+                  itemsPerPage: t("common.perPage"),
+                }}
+              />
+            )}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -497,7 +569,7 @@ export default function StudentsClient({
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="full_name">Full Name *</Label>
                   <Input
@@ -543,7 +615,7 @@ export default function StudentsClient({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="diocese_id">Diocese *</Label>
                   <Select
@@ -554,7 +626,7 @@ export default function StudentsClient({
                     required
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select diocese" />
                     </SelectTrigger>
                     <SelectContent>
@@ -577,7 +649,7 @@ export default function StudentsClient({
                     required
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select church" />
                     </SelectTrigger>
                     <SelectContent>
@@ -593,7 +665,7 @@ export default function StudentsClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="date_of_birth">Date of Birth</Label>
                   <Input
@@ -619,7 +691,7 @@ export default function StudentsClient({
                     }
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
                     <SelectContent>
@@ -630,7 +702,7 @@ export default function StudentsClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
                   <Input
@@ -693,7 +765,7 @@ export default function StudentsClient({
             <div className="space-y-2">
               <Label>Select Class</Label>
               <Select value={assignClass} onValueChange={setAssignClass}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a class" />
                 </SelectTrigger>
                 <SelectContent>

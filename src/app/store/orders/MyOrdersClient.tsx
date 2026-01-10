@@ -103,7 +103,9 @@ export default function MyOrdersClient({
       setSelectedOrder(null);
     } catch (error) {
       console.error("Error cancelling order:", error);
-      toast.error(error instanceof Error ? error.message : t("store.cancelFailed"));
+      toast.error(
+        error instanceof Error ? error.message : t("store.cancelFailed")
+      );
     } finally {
       setIsCancelling(false);
     }
@@ -112,7 +114,7 @@ export default function MyOrdersClient({
   return (
     <>
       {/* Header */}
-      <div className="border-b bg-card">
+      <div className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -212,7 +214,8 @@ export default function MyOrdersClient({
                         ))}
                         {order.order_items.length > 3 && (
                           <div className="flex items-center px-3 py-1 text-sm text-muted-foreground">
-                            +{order.order_items.length - 3} {t("store.moreItems")}
+                            +{order.order_items.length - 3}{" "}
+                            {t("store.moreItems")}
                           </div>
                         )}
                       </div>
@@ -287,7 +290,8 @@ export default function MyOrdersClient({
                         ))}
                         {order.order_items.length > 3 && (
                           <div className="flex items-center px-3 py-1 text-sm text-muted-foreground">
-                            +{order.order_items.length - 3} {t("store.moreItems")}
+                            +{order.order_items.length - 3}{" "}
+                            {t("store.moreItems")}
                           </div>
                         )}
                       </div>

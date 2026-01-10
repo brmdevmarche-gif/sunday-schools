@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import AdminLayout from "@/components/admin/AdminLayout";
 import {
@@ -9,8 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Building2, Church, School, Users } from "lucide-react";
+import Link from "next/link";
+import { Building2, Church, School, Users, Bell } from "lucide-react";
 import type { ExtendedUser } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface DashboardClientProps {
   userProfile: ExtendedUser;
@@ -27,6 +31,21 @@ export default function DashboardClient({
   stats,
 }: DashboardClientProps) {
   const t = useTranslations();
+  const [annCount, setAnnCount] = useState(0);
+
+  useEffect(() => {
+    async function loadCount() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase.rpc("get_unviewed_announcements_count");
+        if (error) return;
+        setAnnCount((data as number) || 0);
+      } catch {
+        // ignore
+      }
+    }
+    loadCount();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -129,6 +148,25 @@ export default function DashboardClient({
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Link href="/admin/announcements/inbox" className="block">
+              <Card className="cursor-pointer hover:bg-muted transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span>{t("nav.announcements")}</span>
+                    {annCount > 0 && (
+                      <Badge className="text-xs px-2 py-0.5">{annCount}</Badge>
+                    )}
+                  </CardTitle>
+                  <Bell className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    {t('announcements.inboxSubtitle')}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
             {userProfile?.role === "super_admin" && (
               <Card className="cursor-pointer hover:bg-muted transition-colors">
                 <CardHeader>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +24,7 @@ import {
   CheckSquare,
   ClipboardList,
   PartyPopper,
+  Megaphone,
   Bus,
   Store,
   Settings,
@@ -30,6 +32,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeft,
+  Trophy,
 } from "lucide-react";
 
 interface NavItem {
@@ -60,9 +63,11 @@ const iconMap = {
   check: CheckSquare,
   task: ClipboardList,
   activity: PartyPopper,
+  announcement: Megaphone,
   trip: Bus,
   store: Store,
   settings: Settings,
+  trophy: Trophy,
 };
 
 export default function AdminSidebar({
@@ -76,6 +81,7 @@ export default function AdminSidebar({
   onClose,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations();
 
   const getIcon = (iconName: string) => {
     const Icon = iconMap[iconName as keyof typeof iconMap] || LayoutDashboard;
@@ -86,6 +92,12 @@ export default function AdminSidebar({
     // Special case for dashboard: only active on exact /admin path
     if (href === "/admin") {
       return pathname === "/admin";
+    }
+    // Special case: don't highlight Announcements management when user is on the inbox page
+    if (href === "/admin/announcements") {
+      if (pathname === "/admin/announcements/inbox") return false;
+      if (pathname.startsWith("/admin/announcements/inbox/")) return false;
+      return pathname === href || pathname.startsWith(href + "/");
     }
     // For other routes, check if pathname starts with the href
     return pathname === href || pathname.startsWith(href + "/");
@@ -218,7 +230,7 @@ export default function AdminSidebar({
                     </Button>
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent side="right">Settings</TooltipContent>
+                <TooltipContent side="right">{t('nav.settings')}</TooltipContent>
               </Tooltip>
               {onLogout && (
                 <Tooltip>
@@ -232,7 +244,7 @@ export default function AdminSidebar({
                       <LogOut className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">Logout</TooltipContent>
+                  <TooltipContent side="right">{t('nav.logout')}</TooltipContent>
                 </Tooltip>
               )}
             </>
@@ -241,7 +253,7 @@ export default function AdminSidebar({
               <Link href="/admin/settings" onClick={isMobile ? onClose : undefined}>
                 <Button variant="ghost" className="w-full justify-start" size="sm">
                   <Settings className="me-2 h-4 w-4" />
-                  Settings
+                  {t('nav.settings')}
                 </Button>
               </Link>
               {onLogout && (
@@ -252,7 +264,7 @@ export default function AdminSidebar({
                   onClick={onLogout}
                 >
                   <LogOut className="me-2 h-4 w-4" />
-                  Logout
+                  {t('nav.logout')}
                 </Button>
               )}
             </>

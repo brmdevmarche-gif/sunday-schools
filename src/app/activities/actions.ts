@@ -41,12 +41,25 @@ export async function getAvailableActivitiesAction() {
 
   const adminClient = createAdminClient()
 
+  // Build OR filter conditions for scoping
+  const filterConditions = ['diocese_id.is.null,church_id.is.null,class_id.is.null']
+
+  if (profile.diocese_id) {
+    filterConditions.push(`diocese_id.eq.${profile.diocese_id}`)
+  }
+  if (profile.church_id) {
+    filterConditions.push(`church_id.eq.${profile.church_id}`)
+  }
+  if (classIds.length > 0) {
+    filterConditions.push(`class_id.in.(${classIds.join(',')})`)
+  }
+
   // Get activities available to the user
   const { data: activities, error } = await adminClient
     .from('activities')
     .select('*')
     .eq('status', 'active')
-    .or(`diocese_id.is.null,diocese_id.eq.${profile.diocese_id},church_id.eq.${profile.church_id}${classIds.length > 0 ? `,class_id.in.(${classIds.join(',')})` : ''}`)
+    .or(filterConditions.join(','))
     .order('created_at', { ascending: false })
 
   if (error) {

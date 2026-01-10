@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/client";
+import { useUnviewedAnnouncementsCount } from "@/components/announcements/useUnviewedAnnouncementsCount";
 import {
   Sheet,
   SheetContent,
@@ -40,6 +43,8 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
+  const announcementsCount = useUnviewedAnnouncementsCount(30000);
 
   // Track scroll for navbar background
   useEffect(() => {
@@ -48,6 +53,25 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    async function loadRole() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        setRole((profile as any)?.role || null);
+      } catch {
+        setRole(null);
+      }
+    }
+    loadRole();
   }, []);
 
   const handleSignOut = async () => {
@@ -85,12 +109,6 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
       title: t("studentHome.activities"),
       href: "/activities",
       icon: Activity,
-    },
-    {
-      title: t("studentHome.announcements"),
-      href: "/announcements",
-      icon: Bell,
-      disabled: true,
     },
     {
       title: t("studentHome.lessons"),
@@ -139,6 +157,34 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
             >
               Knasty
             </span>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {/* Announcements icon */}
+            <Link
+              href={role === "parent" ? "#" : "/announcements"}
+              onClick={(e) => {
+                if (role === "parent") e.preventDefault();
+              }}
+              className={role === "parent" ? "opacity-60 cursor-not-allowed" : ""}
+            >
+              <Button
+                variant={isScrolled ? "outline" : "secondary"}
+                size="icon"
+                className={`relative shrink-0 ${
+                  !isScrolled
+                    ? "bg-white/20 hover:bg-white/30 border-white/30"
+                    : ""
+                }`}
+              >
+                <Bell className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`} />
+                {role !== "parent" && announcementsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] leading-5 text-center">
+                    {announcementsCount > 99 ? "99+" : announcementsCount}
+                  </span>
+                )}
+                <span className="sr-only">{t("studentHome.announcements")}</span>
+              </Button>
           </Link>
 
           {/* Burger Menu */}
@@ -194,6 +240,13 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="flex-1">{item.title}</span>
+                    {!item.disabled &&
+                      item.href === "/announcements" &&
+                      announcementsCount > 0 && (
+                        <Badge className="text-xs px-2 py-0.5">
+                          {announcementsCount}
+                        </Badge>
+                      )}
                     {item.disabled && (
                       <span className="text-xs bg-muted px-2 py-0.5 rounded">
                         {t("common.comingSoon")}
@@ -238,6 +291,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
               </Button>
             </SheetContent>
           </Sheet>
+          </div>
         </div>
       </div>
     </header>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
   Card,
@@ -13,6 +14,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResponsiveBreadcrumb } from "@/components/ui/responsive-breadcrumb";
 import {
   Table,
   TableBody,
@@ -30,6 +35,7 @@ import {
   Building2,
   Users,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
 import type { Diocese, Church, DioceseAdmin, ExtendedUser } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
@@ -53,8 +59,6 @@ interface DioceseDetailsClientProps {
   isDioceseAdmin: boolean;
 }
 
-type TabType = "info" | "churches" | "admins" | "users";
-
 export function DioceseDetailsClient({
   diocese: initialDiocese,
   churches,
@@ -65,7 +69,6 @@ export function DioceseDetailsClient({
 }: DioceseDetailsClientProps) {
   const router = useRouter();
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<TabType>("info");
   const [isEditing, setIsEditing] = useState(false);
   const [diocese, setDiocese] = useState(initialDiocese);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +107,15 @@ export function DioceseDetailsClient({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto py-8 px-2 lg:px-6">
+      {/* Breadcrumb Navigation */}
+      <ResponsiveBreadcrumb
+        items={[
+          { label: t("nav.dashboard"), href: "/admin" },
+          { label: t("dioceses.title"), href: "/admin/dioceses" },
+          { label: diocese.name },
+        ]}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -133,6 +145,7 @@ export function DioceseDetailsClient({
               {t("common.cancel")}
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {isSaving ? t("common.saving") : t("common.save")}
             </Button>
           </div>
@@ -143,10 +156,13 @@ export function DioceseDetailsClient({
       {(diocese.cover_image_url || isEditing) && (
         <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600">
           {diocese.cover_image_url && (
-            <img
+            <Image
               src={diocese.cover_image_url}
               alt={diocese.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+              priority
             />
           )}
           {isEditing && (
@@ -167,57 +183,27 @@ export function DioceseDetailsClient({
       )}
 
       {/* Tabs */}
-      <div className="border-b">
-        <div className="flex gap-6">
-          <button
-            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
-              activeTab === "info"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("info")}
-          >
+      <Tabs defaultValue="info" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="info">
             {t("dioceses.title")} {t("common.name")}
-          </button>
-          <button
-            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
-              activeTab === "churches"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("churches")}
-          >
-            <Building2 className="h-4 w-4 inline mr-2" />
+          </TabsTrigger>
+          <TabsTrigger value="churches">
+            <Building2 className="h-4 w-4 me-2" />
             {t("dioceses.churches")} ({churches.length})
-          </button>
-          <button
-            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
-              activeTab === "admins"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("admins")}
-          >
-            <Users className="h-4 w-4 inline mr-2" />
+          </TabsTrigger>
+          <TabsTrigger value="admins">
+            <Users className="h-4 w-4 me-2" />
             {t("dioceses.manageAdmins")} ({dioceseAdmins.length})
-          </button>
-          <button
-            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
-              activeTab === "users"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("users")}
-          >
-            <GraduationCap className="h-4 w-4 inline mr-2" />
+          </TabsTrigger>
+          <TabsTrigger value="users">
+            <GraduationCap className="h-4 w-4 me-2" />
             {t("classes.teachers")} & {t("classes.students")} ({users.length})
-          </button>
-        </div>
-      </div>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab Content */}
-      {activeTab === "info" && (
-        <div className="grid gap-6">
+        <TabsContent value="info">
+          <div className="grid gap-6">
           {/* Basic Info */}
           <Card>
             <CardHeader>
@@ -245,13 +231,12 @@ export function DioceseDetailsClient({
                 <div className="space-y-1">
                   <p className="text-sm font-medium">{t("common.name")}</p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="text"
                       value={diocese.name}
                       onChange={(e) =>
                         setDiocese({ ...diocese, name: e.target.value })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p className="text-lg">{diocese.name}</p>
@@ -264,13 +249,12 @@ export function DioceseDetailsClient({
                     {t("dioceses.location")}
                   </p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="text"
                       value={diocese.location || ""}
                       onChange={(e) =>
                         setDiocese({ ...diocese, location: e.target.value })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p>{diocese.location || "-"}</p>
@@ -283,7 +267,7 @@ export function DioceseDetailsClient({
                     {t("dioceses.contactEmail")}
                   </p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="email"
                       value={diocese.contact_email || ""}
                       onChange={(e) =>
@@ -292,7 +276,6 @@ export function DioceseDetailsClient({
                           contact_email: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p>{diocese.contact_email || "-"}</p>
@@ -305,7 +288,7 @@ export function DioceseDetailsClient({
                     {t("dioceses.contactPhone")}
                   </p>
                   {isEditing ? (
-                    <input
+                    <Input
                       type="tel"
                       value={diocese.contact_phone || ""}
                       onChange={(e) =>
@@ -314,7 +297,6 @@ export function DioceseDetailsClient({
                           contact_phone: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
                     <p>{diocese.contact_phone || "-"}</p>
@@ -325,13 +307,12 @@ export function DioceseDetailsClient({
               <div className="space-y-1">
                 <p className="text-sm font-medium">{t("common.description")}</p>
                 {isEditing ? (
-                  <textarea
+                  <Textarea
                     value={diocese.description || ""}
                     onChange={(e) =>
                       setDiocese({ ...diocese, description: e.target.value })
                     }
                     rows={3}
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 ) : (
                   <p>{diocese.description || "-"}</p>
@@ -411,11 +392,11 @@ export function DioceseDetailsClient({
               </CardContent>
             </Card>
           )}
-        </div>
-      )}
+          </div>
+        </TabsContent>
 
-      {activeTab === "churches" && (
-        <Card>
+        <TabsContent value="churches">
+          <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -476,17 +457,17 @@ export function DioceseDetailsClient({
               </Table>
             )}
           </CardContent>
-        </Card>
-      )}
+          </Card>
+        </TabsContent>
 
-      {activeTab === "admins" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("dioceses.manageAdmins")}</CardTitle>
-            <CardDescription>
-              Users with admin access to this diocese
-            </CardDescription>
-          </CardHeader>
+        <TabsContent value="admins">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("dioceses.manageAdmins")}</CardTitle>
+              <CardDescription>
+                {t("dioceses.adminAccessDescription") || "Users with admin access to this diocese"}
+              </CardDescription>
+            </CardHeader>
           <CardContent>
             {dioceseAdmins.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
@@ -527,11 +508,11 @@ export function DioceseDetailsClient({
               </Table>
             )}
           </CardContent>
-        </Card>
-      )}
+          </Card>
+        </TabsContent>
 
-      {activeTab === "users" && (
-        <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="users">
+          <div className="grid gap-6 md:grid-cols-2">
           {/* Teachers */}
           <Card>
             <CardHeader>
@@ -603,8 +584,9 @@ export function DioceseDetailsClient({
               )}
             </CardContent>
           </Card>
-        </div>
-      )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

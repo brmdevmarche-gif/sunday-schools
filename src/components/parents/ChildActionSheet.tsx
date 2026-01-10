@@ -54,7 +54,7 @@ export function ChildActionSheet({
     {
       icon: User,
       label: t("actions.viewProfile"),
-      href: `/dashboard/children/${child.id}`,
+      href: `/dashboard/parents/children/${child.id}`,
       color: "text-blue-500",
     },
     {
@@ -72,7 +72,7 @@ export function ChildActionSheet({
     {
       icon: Calendar,
       label: t("actions.viewAttendance"),
-      href: `/dashboard/children/${child.id}?tab=attendance`,
+      href: `/dashboard/parents/children/${child.id}?tab=attendance`,
       color: "text-purple-500",
     },
   ];

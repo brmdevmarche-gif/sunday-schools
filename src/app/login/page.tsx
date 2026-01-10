@@ -102,10 +102,23 @@ export default function LoginPage() {
           .eq("id", user.id)
           .single();
 
-        // Redirect admins to /admin, students/parents to /dashboard
-        const adminRoles = ["super_admin", "diocese_admin", "church_admin", "teacher"];
-        if (profile?.role && adminRoles.includes(profile.role)) {
-          router.push("/admin");
+        // Redirect based on role
+        if (profile?.role) {
+          switch (profile.role) {
+            case "super_admin":
+            case "diocese_admin":
+            case "church_admin":
+              router.push("/admin");
+              break;
+            case "teacher":
+              router.push("/dashboard/teacher");
+              break;
+            case "parent":
+              router.push("/dashboard/parents");
+              break;
+            default:
+              router.push("/dashboard");
+          }
         } else {
           router.push("/dashboard");
         }

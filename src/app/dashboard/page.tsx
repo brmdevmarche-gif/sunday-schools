@@ -103,6 +103,11 @@ export default async function DashboardPage() {
     redirect("/dashboard/parents");
   }
 
+  // Redirect teachers to their dedicated dashboard
+  if (profile.role === "teacher") {
+    redirect("/dashboard/teacher");
+  }
+
   // Get student's class if student
   let studentClass: { id: string; name: string } | null = null;
   if (profile.role === "student") {

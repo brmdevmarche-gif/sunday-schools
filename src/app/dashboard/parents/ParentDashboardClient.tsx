@@ -11,11 +11,7 @@ import {
   NotificationsWidget,
 } from "@/components/parents";
 import { Users, AlertCircle, Bell } from "lucide-react";
-import type {
-  ParentChild,
-  PendingApproval,
-  Notification,
-} from "@/lib/types";
+import type { ParentChild, PendingApproval, Notification } from "@/lib/types";
 
 interface ParentDashboardClientProps {
   parentName: string | null;
@@ -54,7 +50,7 @@ export function ParentDashboardClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-14">
       {/* Welcome Header */}
       <div className="flex items-center gap-4">
         <OptimizedAvatar

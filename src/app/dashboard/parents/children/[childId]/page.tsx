@@ -1,7 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import DashboardNavbar from "../../../DashboardNavbar";
 import { ChildProfileClient } from "./ChildProfileClient";
 import { getChildDetailsAction } from "../../actions";
 
@@ -47,12 +46,8 @@ export default async function ChildProfilePage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <DashboardNavbar userName={profile.full_name} />
-
-      <div className="container mx-auto px-4 py-6">
-        <ChildProfileClient childData={result.data} />
-      </div>
+    <div className="container mx-auto px-4 py-6">
+      <ChildProfileClient childData={result.data} />
     </div>
   );
 }

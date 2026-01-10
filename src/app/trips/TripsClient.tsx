@@ -222,13 +222,13 @@ export default function TripsClient({
               </div>
             </div>
             {/* Child selector - compact avatar that opens bottom sheet */}
-            {childContext && (
+            {/* {childContext && (
               <ChildContextBanner
                 child={childContext}
                 allChildren={allChildren}
                 onChildChange={handleChildChange}
               />
-            )}
+            )} */}
           </div>
         </div>
       </div>

@@ -59,7 +59,9 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
     async function loadRole() {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return;
         const { data: profile } = await supabase
           .from("users")
@@ -133,7 +135,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-10 transition-all duration-300 ${
         isScrolled
           ? "bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50"
           : "bg-transparent"
@@ -166,7 +168,9 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
               onClick={(e) => {
                 if (role === "parent") e.preventDefault();
               }}
-              className={role === "parent" ? "opacity-60 cursor-not-allowed" : ""}
+              className={
+                role === "parent" ? "opacity-60 cursor-not-allowed" : ""
+              }
             >
               <Button
                 variant={isScrolled ? "outline" : "secondary"}
@@ -177,120 +181,124 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                     : ""
                 }`}
               >
-                <Bell className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`} />
+                <Bell
+                  className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
+                />
                 {role !== "parent" && announcementsCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] leading-5 text-center">
                     {announcementsCount > 99 ? "99+" : announcementsCount}
                   </span>
                 )}
-                <span className="sr-only">{t("studentHome.announcements")}</span>
+                <span className="sr-only">
+                  {t("studentHome.announcements")}
+                </span>
               </Button>
-          </Link>
+            </Link>
 
-          {/* Burger Menu */}
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant={isScrolled ? "outline" : "secondary"}
-                size="icon"
-                className={`shrink-0 ${
-                  !isScrolled
-                    ? "bg-white/20 hover:bg-white/30 border-white/30"
-                    : ""
-                }`}
-              >
-                <Menu
-                  className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
-                />
-                <span className="sr-only">{t("studentHome.menu")}</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="left"
-              className="w-[300px] sm:w-[350px] bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50"
-            >
-              <SheetHeader>
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/Logo.png"
-                    alt="Logo"
-                    width={48}
-                    height={48}
-                    className="rounded-lg"
+            {/* Burger Menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant={isScrolled ? "outline" : "secondary"}
+                  size="icon"
+                  className={`shrink-0 ${
+                    !isScrolled
+                      ? "bg-white/20 hover:bg-white/30 border-white/30"
+                      : ""
+                  }`}
+                >
+                  <Menu
+                    className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
                   />
-                  <SheetTitle className="text-left">
-                    {userName
-                      ? t("common.welcome") + ", " + userName.split(" ")[0]
-                      : "Knasty"}
-                  </SheetTitle>
-                </div>
-              </SheetHeader>
-
-              <nav className="flex flex-col gap-1 mt-6">
-                {navigationItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.disabled ? "#" : item.href}
-                    onClick={() => !item.disabled && setIsOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                      item.disabled
-                        ? "opacity-50 cursor-not-allowed text-muted-foreground"
-                        : "hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span className="flex-1">{item.title}</span>
-                    {!item.disabled &&
-                      item.href === "/announcements" &&
-                      announcementsCount > 0 && (
-                        <Badge className="text-xs px-2 py-0.5">
-                          {announcementsCount}
-                        </Badge>
-                      )}
-                    {item.disabled && (
-                      <span className="text-xs bg-muted px-2 py-0.5 rounded">
-                        {t("common.comingSoon")}
-                      </span>
-                    )}
-                    {!item.disabled && (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
-                    )}
-                  </Link>
-                ))}
-              </nav>
-
-              <Separator className="my-4" />
-
-              <div className="space-y-1">
-                <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                  {t("studentHome.account")}
-                </p>
-                {accountItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span className="flex-1">{item.title}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
-                  </Link>
-                ))}
-              </div>
-
-              <Separator className="my-4" />
-
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={handleSignOut}
+                  <span className="sr-only">{t("studentHome.menu")}</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="w-[300px] sm:w-[350px] bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50"
               >
-                <LogOut className="h-5 w-5" />
-                {t("studentHome.logout")}
-              </Button>
-            </SheetContent>
-          </Sheet>
+                <SheetHeader>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src="/Logo.png"
+                      alt="Logo"
+                      width={48}
+                      height={48}
+                      className="rounded-lg"
+                    />
+                    <SheetTitle className="text-left">
+                      {userName
+                        ? t("common.welcome") + ", " + userName.split(" ")[0]
+                        : "Knasty"}
+                    </SheetTitle>
+                  </div>
+                </SheetHeader>
+
+                <nav className="flex flex-col gap-1 mt-6">
+                  {navigationItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.disabled ? "#" : item.href}
+                      onClick={() => !item.disabled && setIsOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                        item.disabled
+                          ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                          : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span className="flex-1">{item.title}</span>
+                      {!item.disabled &&
+                        item.href === "/announcements" &&
+                        announcementsCount > 0 && (
+                          <Badge className="text-xs px-2 py-0.5">
+                            {announcementsCount}
+                          </Badge>
+                        )}
+                      {item.disabled && (
+                        <span className="text-xs bg-muted px-2 py-0.5 rounded">
+                          {t("common.comingSoon")}
+                        </span>
+                      )}
+                      {!item.disabled && (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+                      )}
+                    </Link>
+                  ))}
+                </nav>
+
+                <Separator className="my-4" />
+
+                <div className="space-y-1">
+                  <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                    {t("studentHome.account")}
+                  </p>
+                  {accountItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span className="flex-1">{item.title}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+                    </Link>
+                  ))}
+                </div>
+
+                <Separator className="my-4" />
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="h-5 w-5" />
+                  {t("studentHome.logout")}
+                </Button>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

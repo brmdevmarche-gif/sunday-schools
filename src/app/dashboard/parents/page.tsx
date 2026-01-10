@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import DashboardNavbar from "../DashboardNavbar";
 import { ParentDashboardClient } from "./ParentDashboardClient";
 import {
   getParentChildrenAction,
@@ -14,7 +12,6 @@ export const dynamic = "force-dynamic";
 
 export default async function ParentDashboardPage() {
   const supabase = await createClient();
-  const t = await getTranslations("parents");
 
   const {
     data: { user },
@@ -54,24 +51,18 @@ export default async function ParentDashboardPage() {
   const notifications = notificationsResult.success
     ? notificationsResult.data!
     : [];
-  const unreadCount = summaryResult.success
-    ? summaryResult.data!.unread
-    : 0;
+  const unreadCount = summaryResult.success ? summaryResult.data!.unread : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <DashboardNavbar userName={profile.full_name} />
-
-      <div className="container mx-auto px-4 py-6">
-        <ParentDashboardClient
-          parentName={profile.full_name}
-          parentAvatar={profile.avatar_url}
-          children={children}
-          pendingApprovals={pendingApprovals}
-          notifications={notifications}
-          unreadNotificationsCount={unreadCount}
-        />
-      </div>
+    <div className="container mx-auto px-4 py-6">
+      <ParentDashboardClient
+        parentName={profile.full_name}
+        parentAvatar={profile.avatar_url}
+        children={children}
+        pendingApprovals={pendingApprovals}
+        notifications={notifications}
+        unreadNotificationsCount={unreadCount}
+      />
     </div>
   );
 }

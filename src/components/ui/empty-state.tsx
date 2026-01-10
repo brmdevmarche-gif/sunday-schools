@@ -1,11 +1,44 @@
 "use client";
 
-import { LucideIcon, Inbox } from "lucide-react";
+import {
+  type LucideIcon,
+  Inbox,
+  PartyPopper,
+  Megaphone,
+  Filter,
+  Users,
+  Bus,
+  UserCog,
+  CheckCircle,
+  AlertCircle,
+  Calendar,
+  BookOpen,
+  Search,
+} from "lucide-react";
 import { Button } from "./button";
 import { cn } from "@/lib/utils";
 
+// Icon map for serialization from server components
+const iconMap: Record<string, LucideIcon> = {
+  Inbox,
+  PartyPopper,
+  Megaphone,
+  Filter,
+  Users,
+  Bus,
+  UserCog,
+  CheckCircle,
+  AlertCircle,
+  Calendar,
+  BookOpen,
+  Search,
+};
+
+export type EmptyStateIconName = keyof typeof iconMap;
+
 interface EmptyStateProps {
-  icon?: LucideIcon;
+  /** Icon name (string) for server components or LucideIcon for client components */
+  icon?: EmptyStateIconName | LucideIcon;
   title: string;
   description?: string;
   action?: {
@@ -16,12 +49,14 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon: Icon = Inbox,
+  icon = "Inbox",
   title,
   description,
   action,
   className,
 }: EmptyStateProps) {
+  // Support both string icon names (for server components) and icon components (for client components)
+  const Icon = typeof icon === "string" ? (iconMap[icon] || Inbox) : icon;
   return (
     <div
       className={cn(

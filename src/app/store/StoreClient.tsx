@@ -286,13 +286,13 @@ export default function StoreClient({
             </div>
             <div className="flex items-center gap-4">
               {/* Child selector - compact avatar that opens bottom sheet */}
-              {childContext && (
+              {/* {childContext && (
                 <ChildContextBanner
                   child={childContext}
                   allChildren={allChildren}
                   onChildChange={handleChildChange}
                 />
-              )}
+              )} */}
               {!childContext && (
                 <Button
                   variant="outline"

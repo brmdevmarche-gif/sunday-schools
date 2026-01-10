@@ -81,6 +81,23 @@ export function OptimizedAvatar({
 
   const showFallback = !src || hasError;
 
+  // Check if URL is external (not from our domain or Supabase)
+  const isExternalUrl = React.useMemo(() => {
+    if (!src) return false;
+    try {
+      const url = new URL(src);
+      const allowedHosts = [
+        'localhost',
+        'knasty.org',
+        'supabase.co',
+        'supabase.in',
+      ];
+      return !allowedHosts.some(host => url.hostname.includes(host));
+    } catch {
+      return false;
+    }
+  }, [src]);
+
   return (
     <div
       className={cn(
@@ -126,6 +143,8 @@ export function OptimizedAvatar({
           sizes={`${pixels}px`}
           // Prioritize quality for small images
           quality={90}
+          // Skip optimization for external URLs to avoid domain config issues
+          unoptimized={isExternalUrl}
         />
       )}
     </div>

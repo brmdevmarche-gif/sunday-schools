@@ -57,7 +57,13 @@
     "none": "None",
     "view": "View",
     "hours": "hours",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "skip": "Skip",
+    "addedByParent": "Added by Parent",
+    "addedByParentName": "Added by {name}",
+    "registeredByParent": "Registered by Parent",
+    "orderedByParent": "Ordered by Parent",
+    "self": "Self"
   },
   "status": {
     "pending": "Pending",
@@ -139,7 +145,17 @@
     "passwordTooShort": "Password must be at least 6 characters",
     "passwordChanged": "Password changed successfully",
     "passwordChangeFailed": "Failed to change password",
-    "passwordSecurityWarning": "For security, you must verify your identity before changing another user's password."
+    "passwordSecurityWarning": "For security, you must verify your identity before changing another user's password.",
+    "addChildren": "Add Children",
+    "addChildrenDescription": "Select existing students to link to this parent, or skip to add them later.",
+    "selectChildren": "Select Children",
+    "searchStudents": "Search students by name, email or code...",
+    "noStudentsAvailable": "No students available. You can add children later.",
+    "noParentsAvailable": "No parents available. Create a parent user first.",
+    "selectedCount": "{count} selected",
+    "linkChildren": "Link {count} Children",
+    "selectAtLeastOneChild": "Please select at least one child",
+    "childrenLinked": "{count} children linked successfully"
   },
   "userDetails": {
     "overview": "Overview",
@@ -595,6 +611,7 @@
     "title": "Store",
     "subtitle": "Manage store items and pricing",
     "description": "Browse and order items from the store",
+    "selectChildToOrder": "Select which child you want to order for",
     "addItem": "Add Item",
     "createItem": "Create Item",
     "editItem": "Edit Item",
@@ -1500,6 +1517,7 @@
     "viewDetails": "View Details",
     "subscribeToTrip": "Subscribe to Trip",
     "subscribeDescription": "Fill in the information below to subscribe to this trip",
+    "selectChildToBook": "Select which child you want to book this trip for",
     "emergencyContact": "Emergency Contact (Optional)",
     "emergencyContactPlaceholder": "Name and phone number",
     "medicalInfo": "Medical Information (Optional)",
@@ -1928,6 +1946,202 @@
       "subscriptionStatus": "Subscription Status",
       "csvExportedSuccess": "CSV exported successfully",
       "payNow": "Pay Now"
+    }
+  },
+  "gamification": {
+    "title": "Achievements",
+    "subtitle": "Track your progress and earn rewards",
+    "dashboard": {
+      "noData": "Unable to load gamification data"
+    },
+    "stats": {
+      "totalPoints": "Total Points",
+      "longestStreak": "Longest Streak",
+      "badges": "Badges Earned",
+      "classRank": "Class Rank",
+      "pts": "pts",
+      "days": "days",
+      "inClass": "in class"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "badges": "Badges",
+      "leaderboard": "Leaderboard"
+    },
+    "streaks": {
+      "title": "Your Streaks",
+      "reading": "Reading",
+      "spiritualNotes": "Spiritual Notes",
+      "attendance": "Attendance",
+      "combined": "Combined",
+      "current": "current",
+      "best": "best",
+      "dayStreak": "day streak",
+      "days": "days",
+      "bestLabel": "Best"
+    },
+    "badges": {
+      "collection": "Badge Collection",
+      "complete": "complete",
+      "noBadges": "No badges in this category",
+      "noneEarned": "No badges earned yet",
+      "recentBadges": "Recent Badges",
+      "categories": {
+        "all": "All",
+        "streak": "Streaks",
+        "points": "Points",
+        "competition": "Competitions",
+        "reading": "Readings",
+        "spiritual": "Spiritual",
+        "attendance": "Attendance",
+        "social": "Social",
+        "special": "Special"
+      },
+      "rarity": {
+        "common": "Common",
+        "uncommon": "Uncommon",
+        "rare": "Rare",
+        "epic": "Epic",
+        "legendary": "Legendary"
+      }
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "rank": "Rank",
+      "student": "Student",
+      "points": "Points",
+      "streak": "Streak",
+      "you": "You",
+      "yourRank": "Your Rank",
+      "empty": "No leaderboard data available",
+      "totalParticipants": "Total Participants",
+      "scope": {
+        "class": "Class",
+        "church": "Church",
+        "diocese": "Diocese",
+        "global": "Global"
+      },
+      "period": {
+        "weekly": "This Week",
+        "monthly": "This Month",
+        "allTime": "All Time"
+      }
+    }
+  },
+  "parents": {
+    "dashboard": {
+      "title": "Parent Dashboard",
+      "subtitle": "Monitor your children's progress and activities",
+      "welcome": "Welcome back",
+      "noChildren": "No children linked to your account",
+      "noChildrenDescription": "Contact your church administrator to link your children to your account.",
+      "loadError": "Failed to load dashboard data"
+    },
+    "children": {
+      "title": "Your Children",
+      "viewProfile": "View Profile",
+      "points": "Points",
+      "pendingApprovals": "Pending Approvals",
+      "class": "Class",
+      "church": "Church",
+      "noClass": "Not assigned to a class",
+      "activities": "Activities",
+      "attendance": "Attendance Rate",
+      "lastActive": "Last Active"
+    },
+    "approvals": {
+      "title": "Pending Approvals",
+      "subtitle": "Review and approve trip registrations",
+      "noApprovals": "No pending approvals",
+      "noApprovalsDescription": "All trip registrations have been reviewed.",
+      "tripDetails": "Trip Details",
+      "childName": "Child",
+      "tripName": "Trip",
+      "dates": "Dates",
+      "price": "Price",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approving": "Approving...",
+      "rejecting": "Rejecting...",
+      "approvedSuccess": "Trip approved successfully",
+      "rejectedSuccess": "Trip rejected successfully",
+      "approvalFailed": "Failed to process approval",
+      "confirmApprove": "Approve Trip Registration?",
+      "confirmReject": "Reject Trip Registration?",
+      "confirmApproveDescription": "Your child will be confirmed for this trip.",
+      "confirmRejectDescription": "Your child will not be able to attend this trip.",
+      "addNotes": "Add notes (optional)",
+      "notesPlaceholder": "Any special requirements or notes...",
+      "history": "Approval History",
+      "viewHistory": "View History",
+      "approvedBy": "Approved by you",
+      "rejectedBy": "Rejected by you",
+      "approvedAt": "Approved on",
+      "rejectedAt": "Rejected on"
+    },
+    "childProfile": {
+      "title": "Child Profile",
+      "overview": "Overview",
+      "activities": "Activities",
+      "achievements": "Achievements",
+      "attendance": "Attendance",
+      "pointsBalance": "Points Balance",
+      "totalEarned": "Total Earned",
+      "currentStreak": "Current Streak",
+      "recentActivity": "Recent Activity",
+      "noRecentActivity": "No recent activity",
+      "trips": "Trips",
+      "competitions": "Competitions",
+      "readings": "Readings",
+      "spiritualNotes": "Spiritual Notes",
+      "badges": "Badges Earned",
+      "attendanceRecord": "Attendance Record",
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late"
+    },
+    "actions": {
+      "title": "Child Actions",
+      "viewProfile": "View Profile",
+      "orderFromStore": "Order from Store",
+      "bookTrip": "Book a Trip",
+      "viewAttendance": "View Attendance",
+      "change": "Change",
+      "orderForChild": "Ordering for {name}",
+      "bookTripForChild": "Booking Trip for {name}"
+    },
+    "points": "pts",
+    "pointsAvailable": "points available",
+    "selectChild": "Select Child",
+    "searchChildren": "Search children...",
+    "noChildrenFound": "No children found",
+    "orderingFor": "Ordering for",
+    "bookingFor": "Booking for",
+    "context": {
+      "orderingFor": "Ordering for",
+      "bookingFor": "Booking for",
+      "actingFor": "Acting for"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "noNotifications": "No notifications",
+      "noNotificationsDescription": "You're all caught up!",
+      "unread": "Unread",
+      "all": "All",
+      "tripApprovalNeeded": "Trip Approval Needed",
+      "tripStatusChanged": "Trip Status Changed",
+      "badgeEarned": "Badge Earned",
+      "pointsAwarded": "Points Awarded",
+      "attendanceMarked": "Attendance Marked",
+      "announcement": "Announcement",
+      "activityReminder": "Activity Reminder",
+      "general": "General",
+      "viewDetails": "View Details",
+      "justNow": "Just now",
+      "minutesAgo": "{count} minutes ago",
+      "hoursAgo": "{count} hours ago",
+      "daysAgo": "{count} days ago"
     }
   }
 }

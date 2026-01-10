@@ -121,6 +121,7 @@ export interface TripParticipant {
   emergency_contact: string | null;
   medical_info: string | null;
   registered_at: string;
+  registered_by: string | null;
   attendance_status?: 'present' | 'absent' | 'excused' | 'late' | null;
   attendance_marked_at?: string | null;
   attendance_marked_by?: string | null;
@@ -134,6 +135,12 @@ export interface TripParticipantWithUser extends TripParticipant {
     email: string;
     phone: string | null;
   };
+  registrar?: {
+    id: string;
+    full_name: string | null;
+    email: string;
+    role: string;
+  } | null;
 }
 
 // =====================================================

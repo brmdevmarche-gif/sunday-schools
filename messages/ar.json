@@ -57,7 +57,13 @@
     "none": "لا شيء",
     "view": "عرض",
     "hours": "ساعات",
-    "viewDetails": "عرض التفاصيل"
+    "viewDetails": "عرض التفاصيل",
+    "skip": "تخطي",
+    "addedByParent": "أضافه ولي الأمر",
+    "addedByParentName": "أضافه {name}",
+    "registeredByParent": "سجله ولي الأمر",
+    "orderedByParent": "طلبه ولي الأمر",
+    "self": "ذاتي"
   },
   "status": {
     "pending": "قيد الانتظار",
@@ -139,7 +145,17 @@
     "passwordTooShort": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
     "passwordChanged": "تم تغيير كلمة المرور بنجاح",
     "passwordChangeFailed": "فشل تغيير كلمة المرور",
-    "passwordSecurityWarning": "للأمان، يجب عليك التحقق من هويتك قبل تغيير كلمة مرور مستخدم آخر."
+    "passwordSecurityWarning": "للأمان، يجب عليك التحقق من هويتك قبل تغيير كلمة مرور مستخدم آخر.",
+    "addChildren": "إضافة أطفال",
+    "addChildrenDescription": "اختر الطلاب الموجودين لربطهم بهذا ولي الأمر، أو تخطي لإضافتهم لاحقًا.",
+    "selectChildren": "اختر الأطفال",
+    "searchStudents": "ابحث عن الطلاب بالاسم أو البريد أو الكود...",
+    "noStudentsAvailable": "لا يوجد طلاب متاحون. يمكنك إضافة الأطفال لاحقًا.",
+    "noParentsAvailable": "لا يوجد أولياء أمور متاحون. قم بإنشاء مستخدم ولي أمر أولاً.",
+    "selectedCount": "تم اختيار {count}",
+    "linkChildren": "ربط {count} أطفال",
+    "selectAtLeastOneChild": "يرجى اختيار طفل واحد على الأقل",
+    "childrenLinked": "تم ربط {count} أطفال بنجاح"
   },
   "userDetails": {
     "overview": "نظرة عامة",
@@ -595,6 +611,7 @@
     "title": "المخزن",
     "subtitle": "إدارة عناصر المخزن والتسعير",
     "description": "تصفح واطلب العناصر من المخزن",
+    "selectChildToOrder": "اختر الطفل الذي تريد الطلب له",
     "addItem": "إضافة عنصر",
     "createItem": "إنشاء عنصر",
     "editItem": "تعديل العنصر",
@@ -1500,6 +1517,7 @@
     "viewDetails": "عرض التفاصيل",
     "subscribeToTrip": "الاشتراك في الرحلة",
     "subscribeDescription": "املأ المعلومات أدناه للاشتراك في هذه الرحلة",
+    "selectChildToBook": "اختر الطفل الذي تريد حجز هذه الرحلة له",
     "emergencyContact": "جهة اتصال للطوارئ (اختياري)",
     "emergencyContactPlaceholder": "الاسم ورقم الهاتف",
     "medicalInfo": "معلومات طبية (اختياري)",
@@ -1928,6 +1946,202 @@
       "subscriptionStatus": "حالة الاشتراك",
       "csvExportedSuccess": "تم تصدير CSV بنجاح",
       "payNow": "ادفع الآن"
+    }
+  },
+  "gamification": {
+    "title": "الإنجازات",
+    "subtitle": "تتبع تقدمك واكسب المكافآت",
+    "dashboard": {
+      "noData": "تعذر تحميل بيانات الإنجازات"
+    },
+    "stats": {
+      "totalPoints": "إجمالي النقاط",
+      "longestStreak": "أطول سلسلة",
+      "badges": "الشارات المكتسبة",
+      "classRank": "الترتيب في الفصل",
+      "pts": "نقطة",
+      "days": "يوم",
+      "inClass": "في الفصل"
+    },
+    "tabs": {
+      "overview": "نظرة عامة",
+      "badges": "الشارات",
+      "leaderboard": "لوحة المتصدرين"
+    },
+    "streaks": {
+      "title": "سلاسلك",
+      "reading": "القراءة",
+      "spiritualNotes": "الأنشطة الروحية",
+      "attendance": "الحضور",
+      "combined": "المجموع",
+      "current": "الحالي",
+      "best": "الأفضل",
+      "dayStreak": "سلسلة أيام",
+      "days": "أيام",
+      "bestLabel": "الأفضل"
+    },
+    "badges": {
+      "collection": "مجموعة الشارات",
+      "complete": "مكتمل",
+      "noBadges": "لا توجد شارات في هذه الفئة",
+      "noneEarned": "لم تكتسب أي شارات بعد",
+      "recentBadges": "الشارات الأخيرة",
+      "categories": {
+        "all": "الكل",
+        "streak": "السلاسل",
+        "points": "النقاط",
+        "competition": "المسابقات",
+        "reading": "القراءات",
+        "spiritual": "الروحية",
+        "attendance": "الحضور",
+        "social": "الاجتماعية",
+        "special": "الخاصة"
+      },
+      "rarity": {
+        "common": "عادي",
+        "uncommon": "غير شائع",
+        "rare": "نادر",
+        "epic": "أسطوري",
+        "legendary": "خرافي"
+      }
+    },
+    "leaderboard": {
+      "title": "لوحة المتصدرين",
+      "rank": "الترتيب",
+      "student": "الطالب",
+      "points": "النقاط",
+      "streak": "السلسلة",
+      "you": "أنت",
+      "yourRank": "ترتيبك",
+      "empty": "لا توجد بيانات متاحة",
+      "totalParticipants": "إجمالي المشاركين",
+      "scope": {
+        "class": "الفصل",
+        "church": "الكنيسة",
+        "diocese": "الإيبارشية",
+        "global": "عام"
+      },
+      "period": {
+        "weekly": "هذا الأسبوع",
+        "monthly": "هذا الشهر",
+        "allTime": "كل الوقت"
+      }
+    }
+  },
+  "parents": {
+    "dashboard": {
+      "title": "لوحة تحكم ولي الأمر",
+      "subtitle": "تابع تقدم أطفالك وأنشطتهم",
+      "welcome": "مرحباً بعودتك",
+      "noChildren": "لا يوجد أطفال مرتبطين بحسابك",
+      "noChildrenDescription": "تواصل مع مسؤول الكنيسة لربط أطفالك بحسابك.",
+      "loadError": "فشل تحميل بيانات لوحة التحكم"
+    },
+    "children": {
+      "title": "أطفالك",
+      "viewProfile": "عرض الملف الشخصي",
+      "points": "النقاط",
+      "pendingApprovals": "موافقات معلقة",
+      "class": "الفصل",
+      "church": "الكنيسة",
+      "noClass": "غير مسجل في فصل",
+      "activities": "الأنشطة",
+      "attendance": "نسبة الحضور",
+      "lastActive": "آخر نشاط"
+    },
+    "approvals": {
+      "title": "الموافقات المعلقة",
+      "subtitle": "راجع ووافق على تسجيلات الرحلات",
+      "noApprovals": "لا توجد موافقات معلقة",
+      "noApprovalsDescription": "تمت مراجعة جميع تسجيلات الرحلات.",
+      "tripDetails": "تفاصيل الرحلة",
+      "childName": "الطفل",
+      "tripName": "الرحلة",
+      "dates": "التواريخ",
+      "price": "السعر",
+      "approve": "موافقة",
+      "reject": "رفض",
+      "approving": "جاري الموافقة...",
+      "rejecting": "جاري الرفض...",
+      "approvedSuccess": "تمت الموافقة على الرحلة بنجاح",
+      "rejectedSuccess": "تم رفض الرحلة بنجاح",
+      "approvalFailed": "فشل معالجة الموافقة",
+      "confirmApprove": "الموافقة على تسجيل الرحلة؟",
+      "confirmReject": "رفض تسجيل الرحلة؟",
+      "confirmApproveDescription": "سيتم تأكيد طفلك لهذه الرحلة.",
+      "confirmRejectDescription": "لن يتمكن طفلك من حضور هذه الرحلة.",
+      "addNotes": "إضافة ملاحظات (اختياري)",
+      "notesPlaceholder": "أي متطلبات خاصة أو ملاحظات...",
+      "history": "سجل الموافقات",
+      "viewHistory": "عرض السجل",
+      "approvedBy": "تمت الموافقة بواسطتك",
+      "rejectedBy": "تم الرفض بواسطتك",
+      "approvedAt": "تمت الموافقة في",
+      "rejectedAt": "تم الرفض في"
+    },
+    "childProfile": {
+      "title": "ملف الطفل",
+      "overview": "نظرة عامة",
+      "activities": "الأنشطة",
+      "achievements": "الإنجازات",
+      "attendance": "الحضور",
+      "pointsBalance": "رصيد النقاط",
+      "totalEarned": "إجمالي المكتسب",
+      "currentStreak": "السلسلة الحالية",
+      "recentActivity": "النشاط الأخير",
+      "noRecentActivity": "لا يوجد نشاط حديث",
+      "trips": "الرحلات",
+      "competitions": "المسابقات",
+      "readings": "القراءات",
+      "spiritualNotes": "الأنشطة الروحية",
+      "badges": "الشارات المكتسبة",
+      "attendanceRecord": "سجل الحضور",
+      "present": "حاضر",
+      "absent": "غائب",
+      "late": "متأخر"
+    },
+    "actions": {
+      "title": "إجراءات الطفل",
+      "viewProfile": "عرض الملف الشخصي",
+      "orderFromStore": "الطلب من المتجر",
+      "bookTrip": "حجز رحلة",
+      "viewAttendance": "عرض الحضور",
+      "change": "تغيير",
+      "orderForChild": "الطلب لـ {name}",
+      "bookTripForChild": "حجز رحلة لـ {name}"
+    },
+    "points": "نقطة",
+    "pointsAvailable": "نقطة متاحة",
+    "selectChild": "اختر طفلاً",
+    "searchChildren": "البحث عن الأطفال...",
+    "noChildrenFound": "لم يتم العثور على أطفال",
+    "orderingFor": "الطلب لـ",
+    "bookingFor": "الحجز لـ",
+    "context": {
+      "orderingFor": "الطلب لـ",
+      "bookingFor": "الحجز لـ",
+      "actingFor": "نيابة عن"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "markAllRead": "تحديد الكل كمقروء",
+      "noNotifications": "لا توجد إشعارات",
+      "noNotificationsDescription": "أنت على اطلاع بكل شيء!",
+      "unread": "غير مقروء",
+      "all": "الكل",
+      "tripApprovalNeeded": "موافقة رحلة مطلوبة",
+      "tripStatusChanged": "تغيرت حالة الرحلة",
+      "badgeEarned": "تم اكتساب شارة",
+      "pointsAwarded": "تم منح نقاط",
+      "attendanceMarked": "تم تسجيل الحضور",
+      "announcement": "إعلان",
+      "activityReminder": "تذكير بنشاط",
+      "general": "عام",
+      "viewDetails": "عرض التفاصيل",
+      "justNow": "الآن",
+      "minutesAgo": "منذ {count} دقيقة",
+      "hoursAgo": "منذ {count} ساعة",
+      "daysAgo": "منذ {count} يوم"
     }
   }
 }

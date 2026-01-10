@@ -21,6 +21,8 @@ export interface CreateOrderInput {
   }[]
   notes?: string
   class_id?: string
+  /** For parent ordering: the child's user ID */
+  for_student_id?: string
 }
 
 export interface UpdateOrderStatusInput {
@@ -31,6 +33,7 @@ export interface UpdateOrderStatusInput {
 
 /**
  * Create a new order
+ * Supports both regular orders and parent ordering for children
  */
 export async function createOrderAction(input: CreateOrderInput) {
   const supabase = await createClient()
@@ -43,6 +46,39 @@ export async function createOrderAction(input: CreateOrderInput) {
 
   // Use admin client to bypass RLS for complex operations
   const adminClient = createAdminClient()
+
+  // Determine if this is a parent ordering for a child
+  let orderForUserId = user.id
+  let orderedByParentId: string | null = null
+
+  if (input.for_student_id) {
+    // Get current user's profile to check if they're a parent
+    const { data: currentUserProfile } = await adminClient
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (currentUserProfile?.role !== 'parent') {
+      throw new Error('Only parents can order for children')
+    }
+
+    // Verify parent has an active relationship with this child
+    const { data: relationship } = await adminClient
+      .from('user_relationships')
+      .select('id')
+      .eq('parent_id', user.id)
+      .eq('student_id', input.for_student_id)
+      .eq('is_active', true)
+      .single()
+
+    if (!relationship) {
+      throw new Error('You do not have permission to order for this child')
+    }
+
+    orderForUserId = input.for_student_id
+    orderedByParentId = user.id
+  }
 
   // Fetch store items to get prices and validate
   const storeItemIds = input.items.map(item => item.store_item_id)
@@ -88,8 +124,8 @@ export async function createOrderAction(input: CreateOrderInput) {
     }
   })
 
-  // Check if user has enough points
-  const balance = await getStudentPointsBalanceAction(user.id)
+  // Check if the user (or child) has enough points
+  const balance = await getStudentPointsBalanceAction(orderForUserId)
   if (!balance || balance.available_points < totalPoints) {
     throw new Error(`Insufficient points. Available: ${balance?.available_points || 0}, Required: ${totalPoints}`)
   }
@@ -98,11 +134,14 @@ export async function createOrderAction(input: CreateOrderInput) {
   const { data: order, error: orderError } = await adminClient
     .from('orders')
     .insert({
-      user_id: user.id,
+      user_id: orderForUserId,
       class_id: input.class_id || null,
       status: 'pending',
       total_points: totalPoints,
-      notes: input.notes || null,
+      notes: orderedByParentId
+        ? `[Ordered by parent] ${input.notes || ''}`
+        : (input.notes || null),
+      ordered_by_parent_id: orderedByParentId,
     })
     .select()
     .single()
@@ -127,9 +166,9 @@ export async function createOrderAction(input: CreateOrderInput) {
     throw new Error(`Failed to create order items: ${itemsInsertError.message}`)
   }
 
-  // Suspend points for this order
+  // Suspend points for this order (from the child's balance)
   try {
-    await suspendPointsForOrderAction(user.id, totalPoints, order.id)
+    await suspendPointsForOrderAction(orderForUserId, totalPoints, order.id)
   } catch (pointsError) {
     // Rollback: delete the order and items
     await adminClient.from('orders').delete().eq('id', order.id)
@@ -138,6 +177,7 @@ export async function createOrderAction(input: CreateOrderInput) {
 
   revalidatePath('/store')
   revalidatePath('/admin/store/orders')
+  revalidatePath('/dashboard/parents')
   return { success: true, order_id: order.id }
 }
 
@@ -219,6 +259,11 @@ export async function getAllOrdersAction(filters?: {
         user_code,
         church_id,
         diocese_id
+      ),
+      parent:users!ordered_by_parent_id (
+        id,
+        full_name,
+        email
       ),
       order_items (
         *,

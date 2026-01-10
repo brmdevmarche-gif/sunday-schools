@@ -17,6 +17,8 @@ export * from './modules/attendance';
 export * from './modules/points';
 export * from './modules/announcements';
 export * from './modules/enhanced-activities';
+export * from './modules/gamification';
+export * from './modules/parents';
 
 // =====================================================
 // USAGE EXAMPLES:

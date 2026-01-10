@@ -173,7 +173,29 @@ export async function linkParentToStudentAction(
 ) {
   const supabase = await createClient()
 
-  const { error } = await supabase
+  // Verify the current user has admin permissions
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+    throw new Error('Not authorized to link users')
+  }
+
+  // Use admin client to bypass RLS (no policies exist for user_relationships)
+  const adminClient = createAdminClient()
+
+  const { error } = await adminClient
     .from('user_relationships')
     .insert({
       parent_id: parentId,
@@ -199,33 +221,83 @@ export async function createUserAction(input: {
   church_id?: string
   diocese_id?: string
 }) {
-  // This will still use the API route since it requires service role key
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/create-user`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    }
-  )
+  const supabase = await createClient()
 
-  const text = await response.text()
-  let data
-  try {
-    data = text ? JSON.parse(text) : {}
-  } catch {
-    console.error('Failed to parse response:', text)
-    throw new Error('Invalid response from server')
+  // Verify the current user has admin permissions
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Not authenticated')
   }
 
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to create user')
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+    throw new Error('Not authorized to create users')
+  }
+
+  // Use admin client for user creation
+  const adminClient = createAdminClient()
+
+  // Create user in auth.users
+  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+    email: input.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: {
+      username: input.username,
+      full_name: input.full_name,
+    },
+  })
+
+  if (authError) {
+    console.error('Auth error:', authError)
+    throw new Error(authError.message)
+  }
+
+  // Wait a moment for the trigger to create the profile
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+
+  // Update the user profile with role and organizational links
+  const { error: updateError } = await adminClient
+    .from('users')
+    .update({
+      role: input.role,
+      username: input.username,
+      full_name: input.full_name,
+      church_id: input.church_id || null,
+      diocese_id: input.diocese_id || null,
+      is_active: true,
+    })
+    .eq('id', authData.user.id)
+
+  if (updateError) {
+    console.error('Update error:', updateError)
+    // User was created but profile update failed
+  }
+
+  // Fetch the complete user profile
+  const { data: userData, error: fetchError } = await adminClient
+    .from('users')
+    .select('*')
+    .eq('id', authData.user.id)
+    .single()
+
+  if (fetchError) {
+    console.error('Fetch error:', fetchError)
   }
 
   revalidatePath('/admin/users')
-  return data
+  return {
+    success: true,
+    user: userData || { id: authData.user.id, email: input.email, role: input.role },
+  }
 }
 
 export async function verifyAdminIdentityAction(adminPassword: string): Promise<{ success: boolean; error?: string }> {

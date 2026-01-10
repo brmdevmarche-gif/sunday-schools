@@ -49,6 +49,7 @@ import {
   bulkUpdateOrderStatusAction,
 } from "./actions";
 import type { OrderStatus } from "@/lib/types";
+import { ParentActionBadge } from "@/components/ui/parent-action-badge";
 
 interface Diocese {
   id: string;
@@ -95,6 +96,12 @@ interface OrderItem {
   } | null;
 }
 
+interface ParentInfo {
+  id: string;
+  full_name: string | null;
+  email: string;
+}
+
 interface Order {
   id: string;
   user_id: string;
@@ -105,9 +112,11 @@ interface Order {
   admin_notes: string | null;
   processed_by: string | null;
   processed_at: string | null;
+  ordered_by_parent_id: string | null;
   created_at: string;
   updated_at: string;
   users: OrderUser;
+  parent: ParentInfo | null;
   order_items: OrderItem[];
 }
 
@@ -630,6 +639,11 @@ export default function OrdersManagementClient({
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          {order.ordered_by_parent_id && order.parent && (
+                            <ParentActionBadge
+                              parentName={order.parent.full_name || undefined}
+                            />
+                          )}
                           <Badge className={getStatusColor(order.status)}>
                             {t(`store.status.${order.status}`)}
                           </Badge>
@@ -770,9 +784,16 @@ export default function OrdersManagementClient({
                       {new Date(selectedOrder.created_at).toLocaleDateString()}
                     </DialogDescription>
                   </div>
-                  <Badge className={getStatusColor(selectedOrder.status)}>
-                    {t(`store.status.${selectedOrder.status}`)}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {selectedOrder.ordered_by_parent_id && selectedOrder.parent && (
+                      <ParentActionBadge
+                        parentName={selectedOrder.parent.full_name || undefined}
+                      />
+                    )}
+                    <Badge className={getStatusColor(selectedOrder.status)}>
+                      {t(`store.status.${selectedOrder.status}`)}
+                    </Badge>
+                  </div>
                 </div>
               </DialogHeader>
 

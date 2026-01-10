@@ -3,6 +3,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import {
+  updateStreakAction,
+  checkAndAwardBadgesAction,
+} from "@/app/gamification/actions";
 import type {
   ReadingSchedule,
   ReadingScheduleWithStats,
@@ -276,6 +280,10 @@ export async function completeReadingAction(
       p_notes: "Daily reading completed",
       p_created_by: user.id,
     });
+
+    // Update reading streak and check for badges
+    await updateStreakAction(user.id, "reading");
+    await checkAndAwardBadgesAction(user.id);
   }
 
   revalidatePath("/activities/readings");
@@ -766,6 +774,10 @@ export async function reviewReadingAction(
       p_notes: "Daily reading approved",
       p_created_by: user.id,
     });
+
+    // Update reading streak and check for badges
+    await updateStreakAction(reading.user_id, "reading");
+    await checkAndAwardBadgesAction(reading.user_id);
   }
 
   revalidatePath("/admin/activities/readings");

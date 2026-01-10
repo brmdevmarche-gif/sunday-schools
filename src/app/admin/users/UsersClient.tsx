@@ -79,8 +79,11 @@ export default function UsersClient({
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isChildrenDialogOpen, setIsChildrenDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ExtendedUser | null>(null);
+  const [createdParentId, setCreatedParentId] = useState<string | null>(null);
+  const [selectedChildrenIds, setSelectedChildrenIds] = useState<string[]>([]);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [churchFilter, setChurchFilter] = useState<string>("all");
   const [dioceseFilter, setDioceseFilter] = useState<string>("all");
@@ -107,9 +110,22 @@ export default function UsersClient({
   // Parent-student linking
   const [selectedParentId, setSelectedParentId] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [childrenSearchQuery, setChildrenSearchQuery] = useState("");
 
   const parents = initialUsers.filter((u) => u.role === "parent");
   const students = initialUsers.filter((u) => u.role === "student");
+
+  // Filter students for children dialog based on search
+  const filteredStudentsForChildren = students.filter((student) => {
+    if (!childrenSearchQuery) return true;
+    const query = childrenSearchQuery.toLowerCase();
+    return (
+      student.full_name?.toLowerCase().includes(query) ||
+      student.email.toLowerCase().includes(query) ||
+      student.username?.toLowerCase().includes(query) ||
+      student.user_code?.toLowerCase().includes(query)
+    );
+  });
 
   function handleOpenRoleDialog(user: ExtendedUser) {
     setSelectedUser(user);
@@ -173,6 +189,44 @@ export default function UsersClient({
     }
   }
 
+  async function handleLinkChildrenToParent() {
+    if (!createdParentId || selectedChildrenIds.length === 0) {
+      toast.error(t("users.selectAtLeastOneChild"));
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Link all selected children to the parent
+      for (const studentId of selectedChildrenIds) {
+        await linkParentToStudentAction(createdParentId, studentId);
+      }
+      toast.success(
+        t("users.childrenLinked", { count: selectedChildrenIds.length })
+      );
+      setIsChildrenDialogOpen(false);
+      setCreatedParentId(null);
+      setSelectedChildrenIds([]);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      console.error("Error linking children to parent:", error);
+      toast.error(t("users.linkFailed"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleSkipChildren() {
+    setIsChildrenDialogOpen(false);
+    setCreatedParentId(null);
+    setSelectedChildrenIds([]);
+    startTransition(() => {
+      router.refresh();
+    });
+  }
+
   async function handleToggleActive(user: ExtendedUser) {
     try {
       if (user.is_active) {
@@ -215,7 +269,7 @@ export default function UsersClient({
 
     setIsSubmitting(true);
     try {
-      await createUserAction({
+      const result = await createUserAction({
         email: createFormData.email,
         password: createFormData.password,
         role: createFormData.role,
@@ -226,9 +280,17 @@ export default function UsersClient({
       });
       toast.success(t("users.userCreated"));
       setIsCreateDialogOpen(false);
-      startTransition(() => {
-        router.refresh();
-      });
+      
+      // If parent role, show children selection modal
+      if (createFormData.role === "parent" && result?.user?.id) {
+        setCreatedParentId(result.user.id);
+        setSelectedChildrenIds([]);
+        setIsChildrenDialogOpen(true);
+      } else {
+        startTransition(() => {
+          router.refresh();
+        });
+      }
     } catch (error) {
       console.error("Error creating user:", error);
       toast.error(
@@ -880,40 +942,36 @@ export default function UsersClient({
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label>{t("roles.parent")} *</Label>
-              <Select
+              <SearchableSelect
                 value={selectedParentId}
                 onValueChange={setSelectedParentId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t("users.selectParent")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {parents.map((parent) => (
-                    <SelectItem key={parent.id} value={parent.id}>
-                      {parent.full_name || parent.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={parents.map((parent) => ({
+                  value: parent.id,
+                  label: parent.full_name || parent.email,
+                  description: parent.full_name ? parent.email : undefined,
+                }))}
+                placeholder={t("users.selectParent")}
+                searchPlaceholder={t("common.search")}
+                emptyText={t("users.noParentsAvailable")}
+                sheetTitle={t("roles.parent")}
+              />
             </div>
 
             <div className="space-y-2">
               <Label>{t("roles.student")} *</Label>
-              <Select
+              <SearchableSelect
                 value={selectedStudentId}
                 onValueChange={setSelectedStudentId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t("users.selectStudent")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((student) => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.full_name || student.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={students.map((student) => ({
+                  value: student.id,
+                  label: student.full_name || student.email,
+                  description: student.full_name ? student.email : undefined,
+                }))}
+                placeholder={t("users.selectStudent")}
+                searchPlaceholder={t("common.search")}
+                emptyText={t("users.noStudentsAvailable")}
+                sheetTitle={t("roles.student")}
+              />
             </div>
           </div>
 
@@ -927,6 +985,108 @@ export default function UsersClient({
             </Button>
             <Button onClick={handleLinkParentToStudent} disabled={isSubmitting}>
               {isSubmitting ? t("common.loading") : t("users.linkParent")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Children to Parent Dialog */}
+      <Dialog
+        open={isChildrenDialogOpen}
+        onOpenChange={(open) => {
+          setIsChildrenDialogOpen(open);
+          if (!open) setChildrenSearchQuery("");
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("users.addChildren")}</DialogTitle>
+            <DialogDescription>
+              {t("users.addChildrenDescription")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>{t("users.selectChildren")}</Label>
+              <Input
+                placeholder={t("users.searchStudents")}
+                value={childrenSearchQuery}
+                onChange={(e) => setChildrenSearchQuery(e.target.value)}
+                className="mb-2"
+              />
+              <div className="border rounded-md p-4 max-h-[300px] overflow-y-auto">
+                {students.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("users.noStudentsAvailable")}
+                  </p>
+                ) : filteredStudentsForChildren.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("common.noResults")}
+                  </p>
+                ) : (
+                  <div className="space-y-1">
+                    {filteredStudentsForChildren.map((student) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer"
+                        onClick={() => {
+                          setSelectedChildrenIds((prev) =>
+                            prev.includes(student.id)
+                              ? prev.filter((id) => id !== student.id)
+                              : [...prev, student.id]
+                          );
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedChildrenIds.includes(student.id)}
+                          onChange={() => {
+                            setSelectedChildrenIds((prev) =>
+                              prev.includes(student.id)
+                                ? prev.filter((id) => id !== student.id)
+                                : [...prev, student.id]
+                            );
+                          }}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {student.full_name || student.username || "-"}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {student.email}
+                            {student.user_code && ` (${student.user_code})`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedChildrenIds.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {t("users.selectedCount", { count: selectedChildrenIds.length })}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleSkipChildren}
+              disabled={isSubmitting}
+            >
+              {t("common.skip")}
+            </Button>
+            <Button
+              onClick={handleLinkChildrenToParent}
+              disabled={isSubmitting || selectedChildrenIds.length === 0}
+            >
+              {isSubmitting
+                ? t("common.loading")
+                : t("users.linkChildren", { count: selectedChildrenIds.length })}
             </Button>
           </DialogFooter>
         </DialogContent>

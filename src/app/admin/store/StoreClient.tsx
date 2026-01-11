@@ -94,12 +94,16 @@ export default function StoreClient({
   const t = useTranslations();
   const [items, setItems] = useState<StoreItem[]>(initialItems);
   const [searchQuery, setSearchQuery] = useState("");
-  const [fromLocal, setFromLocal] = useState<string>(() => isoToDatetimeLocal(from));
+  const [fromLocal, setFromLocal] = useState<string>(() =>
+    isoToDatetimeLocal(from)
+  );
   const [toLocal, setToLocal] = useState<string>(() => isoToDatetimeLocal(to));
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showDemandView, setShowDemandView] = useState(false);
-  const [demandGroups, setDemandGroups] = useState<MonthlyItemDemandStats[]>([]);
+  const [demandGroups, setDemandGroups] = useState<MonthlyItemDemandStats[]>(
+    []
+  );
   const [isLoadingDemand, setIsLoadingDemand] = useState(false);
   const [demandFromLocal, setDemandFromLocal] = useState<string>("");
   const [demandToLocal, setDemandToLocal] = useState<string>("");
@@ -142,7 +146,10 @@ export default function StoreClient({
     router.push(`?${sp.toString()}`);
   }
 
-  function applyDateFilter(nextFromIso: string | null, nextToIso: string | null) {
+  function applyDateFilter(
+    nextFromIso: string | null,
+    nextToIso: string | null
+  ) {
     pushWithParams({
       page: "1",
       pageSize: String(pageSize),
@@ -400,8 +407,7 @@ export default function StoreClient({
     // Add BOM for Excel UTF-8 compatibility
     const BOM = "\uFEFF";
     const csvContent =
-      BOM +
-      [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
+      BOM + [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
 
     // Create and download file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -423,7 +429,10 @@ export default function StoreClient({
   );
 
   const groupedItems = (() => {
-    const groups = new Map<string, { key: string; label: string; items: StoreItem[] }>();
+    const groups = new Map<
+      string,
+      { key: string; label: string; items: StoreItem[] }
+    >();
     for (const item of filteredItems) {
       const d = new Date(item.created_at);
       const yyyy = d.getFullYear();
@@ -437,7 +446,9 @@ export default function StoreClient({
       if (existing) existing.items.push(item);
       else groups.set(key, { key, label, items: [item] });
     }
-    return Array.from(groups.values()).sort((a, b) => b.key.localeCompare(a.key));
+    return Array.from(groups.values()).sort((a, b) =>
+      b.key.localeCompare(a.key)
+    );
   })();
 
   const getChurchName = (churchId: string | null) => {
@@ -474,7 +485,10 @@ export default function StoreClient({
             <ShoppingCart className="me-2 h-4 w-4" />
             {t("store.ordersManagement")}
           </Button>
-          <Button onClick={() => router.push("/admin/store/create")} className="w-full sm:w-auto">
+          <Button
+            onClick={() => router.push("/admin/store/create")}
+            className="w-full sm:w-auto"
+          >
             <Plus className="me-2 h-4 w-4" />
             {t("store.addItem")}
           </Button>
@@ -486,15 +500,14 @@ export default function StoreClient({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                onClick={() => setShowDemandView(false)}
-              >
+              <Button variant="ghost" onClick={() => setShowDemandView(false)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 {t("common.back")}
               </Button>
               <div>
-                <h2 className="text-xl font-semibold">{t("store.itemDemand")}</h2>
+                <h2 className="text-xl font-semibold">
+                  {t("store.itemDemand")}
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   {t("store.itemDemandDescription")}
                 </p>
@@ -519,7 +532,11 @@ export default function StoreClient({
                   className="w-[200px]"
                 />
               </div>
-              <Button variant="outline" onClick={loadDemandStats} disabled={isLoadingDemand}>
+              <Button
+                variant="outline"
+                onClick={loadDemandStats}
+                disabled={isLoadingDemand}
+              >
                 {t("common.apply")}
               </Button>
               <Button
@@ -562,7 +579,14 @@ export default function StoreClient({
                 variant="secondary"
                 onClick={() => {
                   const now = new Date();
-                  const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+                  const start = new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    1,
+                    0,
+                    0,
+                    0
+                  );
                   setDemandFromLocal(isoToDatetimeLocal(start.toISOString()));
                   setDemandToLocal(isoToDatetimeLocal(now.toISOString()));
                   loadDemandStats();
@@ -570,7 +594,11 @@ export default function StoreClient({
               >
                 {t("store.currentMonth")}
               </Button>
-              <Button onClick={exportDemandToExcel} variant="outline" disabled={demandGroups.length === 0}>
+              <Button
+                onClick={exportDemandToExcel}
+                variant="outline"
+                disabled={demandGroups.length === 0}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 {t("store.exportExcel")}
               </Button>
@@ -597,19 +625,30 @@ export default function StoreClient({
                       <TableHeader>
                         <TableRow>
                           <TableHead>{t("store.item")}</TableHead>
-                          <TableHead className="text-center">{t("store.stock")}</TableHead>
-                          <TableHead className="text-center">{t("store.pending")}</TableHead>
-                          <TableHead className="text-center">{t("store.approved")}</TableHead>
-                          <TableHead className="text-center">{t("store.needsRestock")}</TableHead>
+                          <TableHead className="text-center">
+                            {t("store.stock")}
+                          </TableHead>
+                          <TableHead className="text-center">
+                            {t("store.pending")}
+                          </TableHead>
+                          <TableHead className="text-center">
+                            {t("store.approved")}
+                          </TableHead>
+                          <TableHead className="text-center">
+                            {t("store.needsRestock")}
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {group.stats.map((stat) => {
                           const needsRestock =
                             stat.stock_type === "quantity" &&
-                            stat.pending_requests + stat.approved_requests > stat.stock_quantity;
+                            stat.pending_requests + stat.approved_requests >
+                              stat.stock_quantity;
                           return (
-                            <TableRow key={`${group.month_key}-${stat.item_id}`}>
+                            <TableRow
+                              key={`${group.month_key}-${stat.item_id}`}
+                            >
                               <TableCell>
                                 <div className="flex items-center gap-3">
                                   {stat.item_image_url ? (
@@ -624,7 +663,9 @@ export default function StoreClient({
                                     </div>
                                   )}
                                   <div>
-                                    <div className="font-medium">{stat.item_name}</div>
+                                    <div className="font-medium">
+                                      {stat.item_name}
+                                    </div>
                                     <div className="text-xs text-muted-foreground">
                                       {stat.stock_type === "on_demand"
                                         ? "On Demand"
@@ -639,7 +680,9 @@ export default function StoreClient({
                                 ) : (
                                   <Badge
                                     variant={
-                                      stat.stock_quantity > 0 ? "default" : "destructive"
+                                      stat.stock_quantity > 0
+                                        ? "default"
+                                        : "destructive"
                                     }
                                   >
                                     {stat.stock_quantity}
@@ -649,23 +692,33 @@ export default function StoreClient({
                               <TableCell className="text-center">
                                 <div className="flex items-center justify-center gap-1">
                                   <Clock className="h-4 w-4 text-yellow-500" />
-                                  <span className="font-medium">{stat.pending_requests}</span>
+                                  <span className="font-medium">
+                                    {stat.pending_requests}
+                                  </span>
                                 </div>
                               </TableCell>
                               <TableCell className="text-center">
                                 <div className="flex items-center justify-center gap-1">
                                   <CheckCircle className="h-4 w-4 text-blue-500" />
-                                  <span className="font-medium">{stat.approved_requests}</span>
+                                  <span className="font-medium">
+                                    {stat.approved_requests}
+                                  </span>
                                 </div>
                               </TableCell>
                               <TableCell className="text-center">
                                 {needsRestock ? (
-                                  <Badge variant="destructive" className="gap-1">
+                                  <Badge
+                                    variant="destructive"
+                                    className="gap-1"
+                                  >
                                     <AlertTriangle className="h-3 w-3" />
                                     {t("store.restock")}
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="text-green-600">
+                                  <Badge
+                                    variant="outline"
+                                    className="text-green-600"
+                                  >
                                     {t("store.ok")}
                                   </Badge>
                                 )}
@@ -719,7 +772,10 @@ export default function StoreClient({
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  applyDateFilter(datetimeLocalToIso(fromLocal), datetimeLocalToIso(toLocal))
+                  applyDateFilter(
+                    datetimeLocalToIso(fromLocal),
+                    datetimeLocalToIso(toLocal)
+                  )
                 }
               >
                 {t("common.apply")}
@@ -772,7 +828,14 @@ export default function StoreClient({
                 size="sm"
                 onClick={() => {
                   const now = new Date();
-                  const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+                  const start = new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    1,
+                    0,
+                    0,
+                    0
+                  );
                   const fromIso = start.toISOString();
                   const toIso = now.toISOString();
                   setFromLocal(isoToDatetimeLocal(fromIso));
@@ -785,6 +848,141 @@ export default function StoreClient({
             </div>
           </div>
 
+          {/* Items Table */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead>Price (Normal)</TableHead>
+                  <TableHead>Price (Mastor)</TableHead>
+                  <TableHead>Price (Botl)</TableHead>
+                  {userRole === "super_admin" && <TableHead>Church</TableHead>}
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={userRole === "super_admin" ? 8 : 7}
+                      className="text-center text-muted-foreground"
+                    >
+                      No items found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  groupedItems.flatMap((group) => {
+                    const colSpan = userRole === "super_admin" ? 8 : 7;
+                    return [
+                      <TableRow key={`month-${group.key}`}>
+                        <TableCell
+                          colSpan={colSpan}
+                          className="bg-muted/40 font-medium"
+                        >
+                          {group.label}
+                        </TableCell>
+                      </TableRow>,
+                      ...group.items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {item.image_url ? (
+                                <img
+                                  src={item.image_url}
+                                  alt={item.name}
+                                  className="h-10 w-10 rounded object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
+                                  <Package className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div>
+                                <div className="font-medium">{item.name}</div>
+                                {item.description && (
+                                  <div className="text-sm text-muted-foreground line-clamp-1">
+                                    {item.description}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                item.stock_quantity > 0
+                                  ? "default"
+                                  : "destructive"
+                              }
+                            >
+                              {item.stock_quantity}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{item.price_normal} pts</TableCell>
+                          <TableCell>{item.price_mastor} pts</TableCell>
+                          <TableCell>{item.price_botl} pts</TableCell>
+                          {userRole === "super_admin" && (
+                            <TableCell>
+                              {getChurchName(item.church_id)}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <Badge
+                              variant={item.is_active ? "default" : "secondary"}
+                            >
+                              {item.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openViewDialog(item)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  router.push(`/admin/store/${item.id}/edit`)
+                                }
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleStatus(item)}
+                                disabled={isLoading}
+                              >
+                                {item.is_active ? "Deactivate" : "Activate"}
+                              </Button>
+                              {userRole === "super_admin" && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(item)}
+                                  disabled={isLoading}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )),
+                    ];
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
           {/* Pagination */}
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="text-sm text-muted-foreground">
@@ -795,7 +993,9 @@ export default function StoreClient({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => pushWithParams({ page: String(Math.max(1, page - 1)) })}
+                onClick={() =>
+                  pushWithParams({ page: String(Math.max(1, page - 1)) })
+                }
                 disabled={page <= 1}
               >
                 {t("common.previous")}
@@ -803,137 +1003,17 @@ export default function StoreClient({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => pushWithParams({ page: String(Math.min(totalPages, page + 1)) })}
+                onClick={() =>
+                  pushWithParams({
+                    page: String(Math.min(totalPages, page + 1)),
+                  })
+                }
                 disabled={page >= totalPages}
               >
                 {t("common.next")}
               </Button>
             </div>
           </div>
-
-          {/* Items Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Price (Normal)</TableHead>
-              <TableHead>Price (Mastor)</TableHead>
-              <TableHead>Price (Botl)</TableHead>
-              {userRole === "super_admin" && <TableHead>Church</TableHead>}
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredItems.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={userRole === "super_admin" ? 8 : 7}
-                  className="text-center text-muted-foreground"
-                >
-                  No items found
-                </TableCell>
-              </TableRow>
-            ) : (
-              groupedItems.flatMap((group) => {
-                const colSpan = userRole === "super_admin" ? 8 : 7;
-                return [
-                  <TableRow key={`month-${group.key}`}>
-                    <TableCell colSpan={colSpan} className="bg-muted/40 font-medium">
-                      {group.label}
-                    </TableCell>
-                  </TableRow>,
-                  ...group.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {item.image_url ? (
-                            <img
-                              src={item.image_url}
-                              alt={item.name}
-                              className="h-10 w-10 rounded object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
-                              <Package className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-medium">{item.name}</div>
-                            {item.description && (
-                              <div className="text-sm text-muted-foreground line-clamp-1">
-                                {item.description}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            item.stock_quantity > 0 ? "default" : "destructive"
-                          }
-                        >
-                          {item.stock_quantity}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{item.price_normal} pts</TableCell>
-                      <TableCell>{item.price_mastor} pts</TableCell>
-                      <TableCell>{item.price_botl} pts</TableCell>
-                      {userRole === "super_admin" && (
-                        <TableCell>{getChurchName(item.church_id)}</TableCell>
-                      )}
-                      <TableCell>
-                        <Badge variant={item.is_active ? "default" : "secondary"}>
-                          {item.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openViewDialog(item)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                        onClick={() => router.push(`/admin/store/${item.id}/edit`)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleStatus(item)}
-                            disabled={isLoading}
-                          >
-                            {item.is_active ? "Deactivate" : "Activate"}
-                          </Button>
-                          {userRole === "super_admin" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(item)}
-                              disabled={isLoading}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )),
-                ];
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
         </>
       )}
 
@@ -1033,7 +1113,9 @@ export default function StoreClient({
                     if (e.currentTarget.value === "0") e.currentTarget.select();
                   }}
                   onChange={(e) => {
-                    const normalized = normalizeNonNegativeIntInput(e.target.value);
+                    const normalized = normalizeNonNegativeIntInput(
+                      e.target.value
+                    );
                     setFormData({
                       ...formData,
                       stock_quantity: toNonNegativeInt(normalized, 0),
@@ -1055,7 +1137,9 @@ export default function StoreClient({
                     if (e.currentTarget.value === "0") e.currentTarget.select();
                   }}
                   onChange={(e) => {
-                    const normalized = normalizeNonNegativeIntInput(e.target.value);
+                    const normalized = normalizeNonNegativeIntInput(
+                      e.target.value
+                    );
                     setFormData({
                       ...formData,
                       price_normal: toNonNegativeInt(normalized, 0),
@@ -1075,7 +1159,9 @@ export default function StoreClient({
                     if (e.currentTarget.value === "0") e.currentTarget.select();
                   }}
                   onChange={(e) => {
-                    const normalized = normalizeNonNegativeIntInput(e.target.value);
+                    const normalized = normalizeNonNegativeIntInput(
+                      e.target.value
+                    );
                     setFormData({
                       ...formData,
                       price_mastor: toNonNegativeInt(normalized, 0),
@@ -1095,7 +1181,9 @@ export default function StoreClient({
                     if (e.currentTarget.value === "0") e.currentTarget.select();
                   }}
                   onChange={(e) => {
-                    const normalized = normalizeNonNegativeIntInput(e.target.value);
+                    const normalized = normalizeNonNegativeIntInput(
+                      e.target.value
+                    );
                     setFormData({
                       ...formData,
                       price_botl: toNonNegativeInt(normalized, 0),

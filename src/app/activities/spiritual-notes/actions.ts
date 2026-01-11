@@ -3,6 +3,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import {
+  updateStreakAction,
+  checkAndAwardBadgesAction,
+} from "@/app/gamification/actions";
 import type {
   SpiritualNote,
   SpiritualNoteWithDetails,
@@ -514,6 +518,10 @@ export async function reviewSpiritualNoteAction(
       p_notes: `Spiritual note: ${data.activity_type}`,
       p_created_by: user.id,
     });
+
+    // Update spiritual notes streak and check for badges
+    await updateStreakAction(note.user_id, "spiritual_notes");
+    await checkAndAwardBadgesAction(note.user_id);
   }
 
   revalidatePath("/admin/activities/spiritual-notes");

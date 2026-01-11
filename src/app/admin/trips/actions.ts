@@ -543,6 +543,12 @@ export async function getTripParticipantsAction(tripId: string) {
         email,
         phone,
         user_code
+      ),
+      registrar:users!registered_by(
+        id,
+        full_name,
+        email,
+        role
       )
     `)
     .eq('trip_id', tripId)

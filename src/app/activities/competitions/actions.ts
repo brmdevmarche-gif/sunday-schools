@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { checkAndAwardBadgesAction } from "@/app/gamification/actions";
 import type {
   Competition,
   CompetitionWithStats,
@@ -548,6 +549,9 @@ export async function reviewCompetitionSubmissionAction(
       p_notes: `Competition submission${input.ranking ? ` - Rank #${input.ranking}` : ""}`,
       p_created_by: user.id,
     });
+
+    // Check for competition badges
+    await checkAndAwardBadgesAction(submission.user_id);
   }
 
   revalidatePath("/admin/activities/competitions");

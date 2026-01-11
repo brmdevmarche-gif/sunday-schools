@@ -99,8 +99,9 @@ export async function getAvailableTripsAction() {
 
 /**
  * Subscribe to a trip (student application)
+ * Supports both direct student subscription and parent booking for children
  */
-export async function subscribeToTripAction(input: SubscribeToTripInput) {
+export async function subscribeToTripAction(input: SubscribeToTripInput & { for_student_id?: string }) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -108,29 +109,63 @@ export async function subscribeToTripAction(input: SubscribeToTripInput) {
     throw new Error('Not authenticated')
   }
 
-  // Check if user is a student
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'student') {
-    throw new Error('Only students can subscribe to trips')
-  }
-
   const adminClient = createAdminClient()
+
+  // Determine target user (student) and registrar
+  let targetUserId = user.id
+  let registeredBy: string | null = null
+
+  if (input.for_student_id) {
+    // Parent booking for a child
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'parent') {
+      throw new Error('Only parents can book trips for children')
+    }
+
+    // Verify parent has an active relationship with this child
+    const { data: relationship } = await adminClient
+      .from('user_relationships')
+      .select('id')
+      .eq('parent_id', user.id)
+      .eq('student_id', input.for_student_id)
+      .eq('is_active', true)
+      .single()
+
+    if (!relationship) {
+      throw new Error('You do not have permission to book trips for this child')
+    }
+
+    targetUserId = input.for_student_id
+    registeredBy = user.id
+  } else {
+    // Direct student subscription
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'student') {
+      throw new Error('Only students can subscribe to trips')
+    }
+    registeredBy = user.id
+  }
 
   // Check if already subscribed
   const { data: existing } = await adminClient
     .from('trip_participants')
     .select('id')
     .eq('trip_id', input.trip_id)
-    .eq('user_id', user.id)
+    .eq('user_id', targetUserId)
     .single()
 
   if (existing) {
-    throw new Error('You are already subscribed to this trip')
+    throw new Error(input.for_student_id ? 'Your child is already subscribed to this trip' : 'You are already subscribed to this trip')
   }
 
   // Check if trip exists and is available
@@ -163,11 +198,12 @@ export async function subscribeToTripAction(input: SubscribeToTripInput) {
     .from('trip_participants')
     .insert({
       trip_id: input.trip_id,
-      user_id: user.id,
+      user_id: targetUserId,
       approval_status: 'pending',
       payment_status: 'pending',
       emergency_contact: input.emergency_contact || null,
       medical_info: input.medical_info || null,
+      registered_by: registeredBy,
     })
     .select()
     .single()
@@ -177,6 +213,7 @@ export async function subscribeToTripAction(input: SubscribeToTripInput) {
   }
 
   revalidatePath('/trips')
+  revalidatePath('/dashboard/parents')
   return { success: true, data }
 }
 

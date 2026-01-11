@@ -79,6 +79,7 @@ import type {
   AttendanceStatus,
   ExtendedUser,
 } from "@/lib/types";
+import { ParentActionBadge } from "@/components/ui/parent-action-badge";
 
 interface TripDetailsClientProps {
   trip: TripWithDetails;
@@ -1111,10 +1112,19 @@ export default function TripDetailsClient({
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">
-                              {participant.user?.full_name ||
-                                participant.user?.email}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">
+                                {participant.user?.full_name ||
+                                  participant.user?.email}
+                              </p>
+                              {participant.registrar?.role === "parent" &&
+                                participant.registered_by !== participant.user_id && (
+                                  <ParentActionBadge
+                                    parentName={participant.registrar.full_name || undefined}
+                                    compact
+                                  />
+                                )}
+                            </div>
                             <p className="text-sm text-muted-foreground">
                               {(participant.user as any)?.user_code && (
                                 <span className="font-mono mr-2">
@@ -1319,10 +1329,16 @@ export default function TripDetailsClient({
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <p className="font-medium truncate">
-                                  {participant.user?.full_name ||
-                                    participant.user?.email}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium truncate">
+                                    {participant.user?.full_name ||
+                                      participant.user?.email}
+                                  </p>
+                                  {participant.registrar?.role === "parent" &&
+                                    participant.registered_by !== participant.user_id && (
+                                      <ParentActionBadge compact />
+                                    )}
+                                </div>
                                 {participant.user?.full_name && (
                                   <p className="text-xs text-muted-foreground truncate">
                                     {participant.user?.email}

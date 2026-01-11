@@ -33,7 +33,7 @@ import {
   Search,
   Lock,
 } from "lucide-react";
-import type { StoreItem, PriceTier } from "@/lib/types";
+import type { StoreItem, PriceTier, ParentChild } from "@/lib/types";
 import { createOrderAction } from "../admin/store/orders/actions";
 
 interface CartItem {
@@ -62,6 +62,10 @@ interface StoreClientProps {
   userProfile: UserProfile;
   userClassIds: string[];
   pointsBalance: PointsBalance;
+  /** Child context when parent is ordering for a child */
+  childContext?: ParentChild | null;
+  /** All children for the parent (for child switcher) */
+  allChildren?: ParentChild[];
 }
 
 export default function StoreClient({
@@ -69,6 +73,8 @@ export default function StoreClient({
   userProfile,
   userClassIds,
   pointsBalance,
+  childContext,
+  allChildren = [],
 }: StoreClientProps) {
   const t = useTranslations();
   const router = useRouter();

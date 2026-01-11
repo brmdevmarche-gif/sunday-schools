@@ -38,7 +38,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { subscribeToTripAction } from "./actions";
-import type { TripWithDetails, TripType } from "@/lib/types";
+import type { TripWithDetails, TripType, ParentChild } from "@/lib/types";
+import { ChildContextBanner } from "@/components/parents";
 
 interface UserProfile {
   id: string;
@@ -52,11 +53,17 @@ interface UserProfile {
 interface TripsClientProps {
   trips: TripWithDetails[];
   userProfile: UserProfile;
+  /** Child context when parent is booking for a child */
+  childContext?: ParentChild | null;
+  /** All children for the parent (for child switcher) */
+  allChildren?: ParentChild[];
 }
 
 export default function TripsClient({
   trips: initialTrips,
   userProfile,
+  childContext,
+  allChildren = [],
 }: TripsClientProps) {
   const router = useRouter();
   const locale = useLocale();
@@ -72,6 +79,9 @@ export default function TripsClient({
     emergency_contact: "",
     medical_info: "",
   });
+  const [isChildSelectOpen, setIsChildSelectOpen] = useState(false);
+
+  const isParent = userProfile.role === "parent";
 
   // Filter trips
   const filteredTrips = useMemo(() => {
@@ -130,7 +140,18 @@ export default function TripsClient({
 
   function handleSubscribeClick(trip: TripWithDetails) {
     setSelectedTrip(trip);
-    setIsSubscribeDialogOpen(true);
+    // If parent without child context, prompt to select child first
+    if (isParent && !childContext) {
+      setIsChildSelectOpen(true);
+    } else {
+      setIsSubscribeDialogOpen(true);
+    }
+  }
+
+  function handleChildSelect(childId: string) {
+    setIsChildSelectOpen(false);
+    // Navigate to trips page with child context and the trip will be selected
+    router.push(`/trips?for=${childId}`);
   }
 
   async function handleSubscribe() {
@@ -142,11 +163,19 @@ export default function TripsClient({
         trip_id: selectedTrip.id,
         emergency_contact: subscribeForm.emergency_contact || undefined,
         medical_info: subscribeForm.medical_info || undefined,
+        // Pass child ID if parent is booking for a child
+        for_student_id: childContext?.id,
       });
       toast.success(t("studentTrips.subscribeSuccess"));
       setIsSubscribeDialogOpen(false);
       setSubscribeForm({ emergency_contact: "", medical_info: "" });
-      router.refresh();
+
+      // Redirect to parent dashboard if booking for child, otherwise refresh
+      if (childContext) {
+        router.push("/dashboard/parents");
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       console.error("Error subscribing to trip:", error);
       toast.error(
@@ -159,25 +188,47 @@ export default function TripsClient({
     }
   }
 
+  // Handle child switching
+  const handleChildChange = (childId: string) => {
+    router.push(`/trips?for=${childId}`);
+  };
+
   return (
     <>
       {/* Header */}
-      <div className="border-b bg-card sticky top-0 z-10">
+      <div className="border-b bg-card sticky z-10 top-0">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label={t("common.back") || "Back"}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.back()}
+                aria-label={t("common.back") || "Back"}
+              >
                 <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">
                   {t("studentTrips.title")}
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  {t("studentTrips.description")}
-                </p>
+                {childContext && (
+                  <h3 className="text-sm text-muted-foreground">
+                    {t("parents.actions.bookTripForChild", {
+                      name: childContext.full_name,
+                    })}
+                  </h3>
+                )}
               </div>
             </div>
+            {/* Child selector - compact avatar that opens bottom sheet */}
+            {/* {childContext && (
+              <ChildContextBanner
+                child={childContext}
+                allChildren={allChildren}
+                onChildChange={handleChildChange}
+              />
+            )} */}
           </div>
         </div>
       </div>
@@ -485,6 +536,45 @@ export default function TripsClient({
               {isSubscribing
                 ? t("studentTrips.subscribing")
                 : t("studentTrips.subscribe")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Child Selection Dialog for Parents */}
+      <Dialog open={isChildSelectOpen} onOpenChange={setIsChildSelectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("parents.selectChild")}</DialogTitle>
+            <DialogDescription>
+              {t("studentTrips.selectChildToBook")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {allChildren.map((child) => (
+              <button
+                key={child.id}
+                onClick={() => handleChildSelect(child.id)}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-start"
+              >
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">{child.full_name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {child.class_name || child.church_name || ""}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsChildSelectOpen(false)}
+            >
+              {t("common.cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

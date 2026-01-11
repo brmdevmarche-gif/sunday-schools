@@ -9,6 +9,7 @@ import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { Badge } from "@/components/ui/badge";
 import DashboardNavbar from "./DashboardNavbar";
 import AnnouncementsWidget from "@/components/announcements/AnnouncementsWidget";
+import { GamificationDashboard } from "@/components/gamification";
 import {
   Bus,
   ShoppingBag,
@@ -95,6 +96,16 @@ export default async function DashboardPage() {
 
   if (!profile) {
     redirect("/login");
+  }
+
+  // Redirect parents to their dedicated dashboard
+  if (profile.role === "parent") {
+    redirect("/dashboard/parents");
+  }
+
+  // Redirect teachers to their dedicated dashboard
+  if (profile.role === "teacher") {
+    redirect("/dashboard/teacher");
   }
 
   // Get student's class if student
@@ -315,6 +326,15 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Gamification Widget */}
+        {profile.role === "student" && (
+          <GamificationDashboard
+            userId={profile.id}
+            classId={studentClass?.id}
+            variant="compact"
+          />
+        )}
 
         {/* Navigation Cards */}
         <div>

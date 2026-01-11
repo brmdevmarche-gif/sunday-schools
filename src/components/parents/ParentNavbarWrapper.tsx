@@ -115,13 +115,11 @@ export async function ParentNavbarWrapper({
     });
   }
 
-  // Get pending approvals count
-  const childIds = parentChildren.map((c) => c.id);
-  const { data: pendingApprovals } = await adminClient
-    .from("points_transactions")
-    .select("id")
-    .in("user_id", childIds)
-    .eq("status", "pending");
+  // Calculate total pending approvals count from the data we already have
+  const pendingApprovalsCount = parentChildren.reduce(
+    (sum, child) => sum + (child.pending_approvals_count || 0),
+    0
+  );
 
   // Get unread notifications count
   const { data: notificationData } = await adminClient
@@ -136,7 +134,7 @@ export async function ParentNavbarWrapper({
         parentName={profile.full_name}
         parentAvatar={profile.avatar_url}
         parentChildren={parentChildren}
-        pendingApprovalsCount={pendingApprovals?.length || 0}
+        pendingApprovalsCount={pendingApprovalsCount}
         unreadNotificationsCount={notificationData?.length || 0}
       />
       <main className="pt-14">{children}</main>

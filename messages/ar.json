@@ -5,6 +5,7 @@
     "cancel": "إلغاء",
     "cancelling": "جاري الإلغاء...",
     "delete": "حذف",
+    "add": "إضافة",
     "remove": "إزالة",
     "edit": "تعديل",
     "create": "إنشاء",
@@ -61,6 +62,7 @@
     "none": "لا شيء",
     "view": "عرض",
     "hours": "ساعات",
+    "minutes": "دقائق",
     "viewDetails": "عرض التفاصيل"
   },
   "status": {
@@ -647,6 +649,10 @@
     "locked": "مقفل",
     "needMorePoints": "تحتاج {points} نقطة إضافية",
     "special": "عرض خاص",
+    "specialEndsIn": "ينتهي خلال {time}",
+    "timeLeftDays": "{count, plural, one {# يوم} other {# أيام}}",
+    "timeLeftHours": "{count, plural, one {# ساعة} other {# ساعات}}",
+    "timeLeftMinutes": "{count, plural, one {# دقيقة} other {# دقائق}}",
     "itemAdded": "تم إضافة العنصر إلى السلة",
     "itemRemoved": "تم إزالة العنصر من السلة",
     "inStock": "متوفر",
@@ -752,10 +758,7 @@
     "searchStudentDescription": "ابحث عن طالب بالاسم أو البريد الإلكتروني أو رقم المستخدم لإنشاء طلب له.",
     "selectItemsDescription": "انقر على العناصر لإضافتها إلى الطلب.",
     "orderSummary": "ملخص الطلب",
-    "availablePoints": "النقاط المتاحة",
-    "insufficientPoints": "نقاط غير كافية. هذا الطلب يتطلب {required} نقطة لكن الطالب لديه {available} نقطة متاحة فقط.",
     "totalOrders": "إجمالي الطلبات",
-    "totalQuantity": "إجمالي الكمية",
     "totalRevenue": "إجمالي الإيرادات",
     "fulfillmentRate": "معدل التنفيذ",
     "itemsSold": "عناصر مباعة",
@@ -1641,6 +1644,8 @@
     "stockManagement": "إدارة المخزون",
     "pricing": "التسعير",
     "specialOffer": "عرض خاص",
+    "specialOfferRules": "لا يمكن تكرار السعر أو وقت البداية أو وقت النهاية، ويجب ألا تتداخل فترات العروض الخاصة.",
+    "duration": "المدة",
     "classAvailability": "توفر الفصول",
     "availableInDioceses": "متاح في الإيبارشيات",
     "availableInChurches": "متاح في الكنائس",
@@ -1672,7 +1677,13 @@
     "errors": {
       "fillRequired": "يرجى ملء جميع الحقول المطلوبة",
       "specialOfferIncomplete": "يرجى إدخال سعر العرض ووقت البداية ووقت النهاية",
-      "specialOfferInvalidRange": "يجب أن يكون وقت نهاية العرض بعد وقت البداية"
+      "specialOfferInvalidRange": "يجب أن يكون وقت نهاية العرض بعد وقت البداية",
+      "specialOfferAtLeastOne": "أضف عرضاً خاصاً واحداً على الأقل",
+      "specialOfferDuplicatePrice": "يجب ألا تتكرر أسعار العروض الخاصة",
+      "specialOfferDuplicateRange": "يجب ألا تتكرر فترات العروض الخاصة",
+      "specialOfferDuplicateStart": "يجب ألا يتكرر وقت بداية العرض الخاص",
+      "specialOfferDuplicateEnd": "يجب ألا يتكرر وقت نهاية العرض الخاص",
+      "specialOfferOverlap": "يجب ألا تتداخل فترات العروض الخاصة"
     },
     "messages": {
       "createSuccess": "تم إنشاء المنتج بنجاح",

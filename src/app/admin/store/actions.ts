@@ -17,6 +17,21 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
   // Use admin client to bypass RLS for insert
   const adminClient = createAdminClient()
 
+  const specialOffers =
+    input.special_offers && input.special_offers.length > 0
+      ? input.special_offers
+      : input.special_price != null &&
+          input.special_price_start_at &&
+          input.special_price_end_at
+        ? [
+            {
+              price: input.special_price,
+              start_at: input.special_price_start_at,
+              end_at: input.special_price_end_at,
+            },
+          ]
+        : [];
+
   // Create the store item
   const { data: storeItem, error: itemError } = await adminClient
     .from('store_items')
@@ -29,9 +44,10 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
       price_normal: input.price_normal,
       price_mastor: input.price_mastor,
       price_botl: input.price_botl,
-      special_price: input.special_price ?? null,
-      special_price_start_at: input.special_price_start_at ?? null,
-      special_price_end_at: input.special_price_end_at ?? null,
+      // Legacy fields kept for backwards compatibility; new UI uses `store_item_special_offers`
+      special_price: null,
+      special_price_start_at: null,
+      special_price_end_at: null,
       is_available_to_all_classes: input.is_available_to_all_classes ?? true,
       is_active: true,
       created_by: user.id,
@@ -42,6 +58,22 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
 
   if (itemError) {
     throw new Error(`Failed to create store item: ${itemError.message}`)
+  }
+
+  // Create special offers if provided (new model)
+  if (specialOffers.length > 0) {
+    const offersRows = specialOffers.map((o) => ({
+      store_item_id: storeItem.id,
+      price: o.price,
+      start_at: o.start_at,
+      end_at: o.end_at,
+    }))
+    const { error: offersError } = await adminClient
+      .from('store_item_special_offers')
+      .insert(offersRows)
+    if (offersError) {
+      throw new Error(`Failed to create special offers: ${offersError.message}`)
+    }
   }
 
   // Create church associations if provided
@@ -112,11 +144,15 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
   const adminClient = createAdminClient()
 
   // Extract junction table data from input
-  const { church_ids, diocese_ids, class_ids, ...itemData } = input
+  const { church_ids, diocese_ids, class_ids, special_offers, ...itemData } = input
 
   // Update the store item
   const updateData: Omit<UpdateStoreItemInput, 'church_ids' | 'diocese_ids' | 'class_ids'> & { updated_by: string } = {
     ...itemData,
+    // Legacy fields deprecated: keep them cleared once an item is edited with the new UI
+    special_price: itemData.special_price ?? null,
+    special_price_start_at: itemData.special_price_start_at ?? null,
+    special_price_end_at: itemData.special_price_end_at ?? null,
     updated_by: user.id,
   }
 
@@ -127,6 +163,30 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
 
   if (itemError) {
     throw new Error(`Failed to update store item: ${itemError.message}`)
+  }
+
+  // Replace special offers if provided (new model)
+  if (special_offers !== undefined) {
+    await adminClient
+      .from('store_item_special_offers')
+      .delete()
+      .eq('store_item_id', itemId)
+
+    const offers = special_offers ?? []
+    if (offers.length > 0) {
+      const offersRows = offers.map((o) => ({
+        store_item_id: itemId,
+        price: o.price,
+        start_at: o.start_at,
+        end_at: o.end_at,
+      }))
+      const { error: offersError } = await adminClient
+        .from('store_item_special_offers')
+        .insert(offersRows)
+      if (offersError) {
+        throw new Error(`Failed to update special offers: ${offersError.message}`)
+      }
+    }
   }
 
   // Update church associations if provided

@@ -5,6 +5,7 @@
     "cancel": "Cancel",
     "cancelling": "Cancelling...",
     "delete": "Delete",
+    "add": "Add",
     "remove": "Remove",
     "edit": "Edit",
     "create": "Create",
@@ -61,6 +62,7 @@
     "none": "None",
     "view": "View",
     "hours": "hours",
+    "minutes": "minutes",
     "viewDetails": "View Details"
   },
   "status": {
@@ -647,6 +649,10 @@
     "locked": "Locked",
     "needMorePoints": "Need {points} more points",
     "special": "Special",
+    "specialEndsIn": "Ends in {time}",
+    "timeLeftDays": "{count, plural, one {# day} other {# days}}",
+    "timeLeftHours": "{count, plural, one {# hour} other {# hours}}",
+    "timeLeftMinutes": "{count, plural, one {# minute} other {# minutes}}",
     "itemAdded": "Item added to cart",
     "itemRemoved": "Item removed from cart",
     "inStock": "in stock",
@@ -752,10 +758,7 @@
     "searchStudentDescription": "Search for a student by name, email, or user ID to create an order for them.",
     "selectItemsDescription": "Click on items to add them to the order.",
     "orderSummary": "Order Summary",
-    "availablePoints": "Available Points",
-    "insufficientPoints": "Insufficient points. This order requires {required} points but the student only has {available} points available.",
     "totalOrders": "Total Orders",
-    "totalQuantity": "Total Quantity",
     "totalRevenue": "Total Revenue",
     "fulfillmentRate": "Fulfillment Rate",
     "itemsSold": "items sold",
@@ -1641,6 +1644,8 @@
     "stockManagement": "Stock Management",
     "pricing": "Pricing",
     "specialOffer": "Special offer",
+    "specialOfferRules": "Special offers cannot repeat price/start/end and their date ranges must not overlap.",
+    "duration": "Duration",
     "classAvailability": "Class Availability",
     "availableInDioceses": "Available in Dioceses",
     "availableInChurches": "Available in Churches",
@@ -1672,7 +1677,13 @@
     "errors": {
       "fillRequired": "Please fill in all required fields",
       "specialOfferIncomplete": "Please enter special price, start, and end",
-      "specialOfferInvalidRange": "Special offer end must be after start"
+      "specialOfferInvalidRange": "Special offer end must be after start",
+      "specialOfferAtLeastOne": "Add at least one special offer",
+      "specialOfferDuplicatePrice": "Special offer prices must be unique",
+      "specialOfferDuplicateRange": "Special offer date ranges must be unique",
+      "specialOfferDuplicateStart": "Special offer start date/time must be unique",
+      "specialOfferDuplicateEnd": "Special offer end date/time must be unique",
+      "specialOfferOverlap": "Special offer date ranges must not overlap"
     },
     "messages": {
       "createSuccess": "Store item created successfully",

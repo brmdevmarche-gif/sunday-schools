@@ -36,7 +36,8 @@ export default async function StorePage() {
       *,
       store_item_churches (church_id),
       store_item_dioceses (diocese_id),
-      store_item_classes (class_id)
+      store_item_classes (class_id),
+      store_item_special_offers (id, price, start_at, end_at)
     `
     )
     .eq("is_active", true);

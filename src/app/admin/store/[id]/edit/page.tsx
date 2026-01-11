@@ -5,6 +5,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import EditStoreItemClient from "./EditStoreItemClient";
 import type { StoreItem } from "@/lib/types";
+import type { StoreItemSpecialOffer } from "@/lib/types";
 
 interface Church {
   id: string;
@@ -39,7 +40,7 @@ export default async function EditStoreItemPage({
     redirect("/admin/store");
   }
 
-  const [churchLinks, dioceseLinks, classLinks] = await Promise.all([
+  const [churchLinks, dioceseLinks, classLinks, offersRes] = await Promise.all([
     adminClient
       .from("store_item_churches")
       .select("church_id")
@@ -52,6 +53,11 @@ export default async function EditStoreItemPage({
       .from("store_item_classes")
       .select("class_id")
       .eq("store_item_id", id),
+    adminClient
+      .from("store_item_special_offers")
+      .select("id, store_item_id, price, start_at, end_at, created_at, updated_at")
+      .eq("store_item_id", id)
+      .order("start_at", { ascending: true }),
   ]);
 
   const initialChurchIds =
@@ -60,6 +66,9 @@ export default async function EditStoreItemPage({
     dioceseLinks.data?.map((r) => r.diocese_id).filter(Boolean) || [];
   const initialClassIds =
     classLinks.data?.map((r) => r.class_id).filter(Boolean) || [];
+
+  const initialSpecialOffers =
+    (offersRes.data as unknown as StoreItemSpecialOffer[]) || [];
 
   // Fetch selection data based on role (same approach as store management page)
   let churches: Church[] = [];
@@ -97,6 +106,7 @@ export default async function EditStoreItemPage({
         initialChurchIds={initialChurchIds}
         initialDioceseIds={initialDioceseIds}
         initialClassIds={initialClassIds}
+        initialSpecialOffers={initialSpecialOffers}
       />
     </AdminLayout>
   );

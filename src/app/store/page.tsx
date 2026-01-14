@@ -264,8 +264,7 @@ export default async function StorePage({ searchParams }: StorePageProps) {
       *,
       store_item_churches (church_id),
       store_item_dioceses (diocese_id),
-      store_item_classes (class_id),
-      store_item_special_offers (id, price, start_at, end_at)
+      store_item_classes (class_id)
     `
     )
     .eq("is_active", true);

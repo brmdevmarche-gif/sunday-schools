@@ -36,21 +36,38 @@ function getEffectiveUnitPrice(
   tier: PriceTier,
   now: Date
 ): number {
-  const specialPrice: number | null | undefined = storeItem?.special_price
   const startRaw: string | null | undefined = storeItem?.special_price_start_at
   const endRaw: string | null | undefined = storeItem?.special_price_end_at
 
-  // Special offer is active only when all are present and within window
-  if (specialPrice != null && startRaw && endRaw) {
+  // Check if special offer is active (within time window)
+  if (startRaw && endRaw) {
     const start = new Date(startRaw)
     const end = new Date(endRaw)
     if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
       if (now >= start && now <= end) {
-        return specialPrice
+        // Use tier-specific special price if available
+        switch (tier) {
+          case 'mastor': {
+            const specialPrice = storeItem?.special_price_mastor
+            if (specialPrice != null) return specialPrice
+            break
+          }
+          case 'botl': {
+            const specialPrice = storeItem?.special_price_botl
+            if (specialPrice != null) return specialPrice
+            break
+          }
+          default: {
+            const specialPrice = storeItem?.special_price_normal
+            if (specialPrice != null) return specialPrice
+            break
+          }
+        }
       }
     }
   }
 
+  // Fall back to regular tier pricing
   switch (tier) {
     case 'mastor':
       return storeItem.price_mastor

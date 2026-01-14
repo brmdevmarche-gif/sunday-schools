@@ -21,34 +21,17 @@ export interface StoreItem {
   price_normal: number;
   price_mastor: number;
   price_botl: number;
-  /**
-   * Legacy single-offer fields (kept for backwards compatibility / migrations).
-   * New code should prefer `special_offers`.
-   */
-  special_price?: number | null;
+  special_price_normal?: number | null;
+  special_price_mastor?: number | null;
+  special_price_botl?: number | null;
   special_price_start_at?: string | null;
   special_price_end_at?: string | null;
-  /**
-   * New multi-offer model (array of special offers).
-   * When present, these override the legacy single-offer fields.
-   */
-  special_offers?: StoreItemSpecialOffer[];
   is_active: boolean;
   is_available_to_all_classes: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
   updated_by: string | null;
-}
-
-export interface StoreItemSpecialOffer {
-  id: string;
-  store_item_id: string;
-  price: number;
-  start_at: string;
-  end_at: string;
-  created_at: string;
-  updated_at: string;
 }
 
 // =====================================================
@@ -89,16 +72,11 @@ export interface CreateStoreItemInput {
   price_normal: number;
   price_mastor: number;
   price_botl: number;
-  /** Legacy single-offer fields (deprecated; prefer `special_offers`) */
-  special_price?: number;
+  special_price_normal?: number;
+  special_price_mastor?: number;
+  special_price_botl?: number;
   special_price_start_at?: string;
   special_price_end_at?: string;
-  /** New multi-offer model */
-  special_offers?: Array<{
-    price: number;
-    start_at: string;
-    end_at: string;
-  }>;
   church_ids?: string[]; // Multiple churches
   diocese_ids?: string[]; // Multiple dioceses (item available to all churches in these dioceses)
   class_ids?: string[]; // Specific classes (if not available to all)
@@ -114,16 +92,11 @@ export interface UpdateStoreItemInput {
   price_normal?: number;
   price_mastor?: number;
   price_botl?: number;
-  /** Legacy single-offer fields (deprecated; prefer `special_offers`) */
-  special_price?: number | null;
+  special_price_normal?: number | null;
+  special_price_mastor?: number | null;
+  special_price_botl?: number | null;
   special_price_start_at?: string | null;
   special_price_end_at?: string | null;
-  /** New multi-offer model. If provided, replaces all existing offers for the item. */
-  special_offers?: Array<{
-    price: number;
-    start_at: string;
-    end_at: string;
-  }> | null;
   is_active?: boolean;
   church_ids?: string[];
   diocese_ids?: string[];

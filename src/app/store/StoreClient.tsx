@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,11 @@ import {
   ArrowLeft,
   Search,
   Lock,
+  Users,
 } from "lucide-react";
 import type { StoreItem, PriceTier, ParentChild } from "@/lib/types";
 import { createOrderAction } from "../admin/store/orders/actions";
+import { ChildContextBanner } from "@/components/parents";
 
 interface CartItem {
   item: StoreItem;
@@ -85,7 +87,9 @@ export default function StoreClient({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasScrolled, setHasScrolled] = useState(false);
-  const [nowTs, setNowTs] = useState(() => Date.now());
+  const [isChildSelectOpen, setIsChildSelectOpen] = useState(false);
+
+  const isParent = userProfile.role === "parent";
 
   useEffect(() => {
     function handleScroll() {
@@ -94,12 +98,6 @@ export default function StoreClient({
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Keep "time left" labels up to date without being too chatty.
-  useEffect(() => {
-    const id = window.setInterval(() => setNowTs(Date.now()), 60_000);
-    return () => window.clearInterval(id);
   }, []);
 
   // Determine user's price tier based on their profile
@@ -145,49 +143,40 @@ export default function StoreClient({
     toast.success(t("store.itemRemoved"));
   }
 
-  function getActiveSpecialOffer(item: StoreItem) {
-    const now = new Date(nowTs);
-
-    // New multi-offer model
-    if (Array.isArray(item.special_offers) && item.special_offers.length > 0) {
-      for (const offer of item.special_offers) {
-        const start = new Date(offer.start_at);
-        const end = new Date(offer.end_at);
-        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
-        if (now >= start && now <= end) return offer;
-      }
-    }
-
-    // Legacy single-offer fallback
+  function getItemPrice(item: StoreItem, tier: PriceTier): number {
+    // Special offer overrides tier pricing during its window
     if (
-      item.special_price != null &&
       item.special_price_start_at &&
       item.special_price_end_at
     ) {
+      const now = new Date();
       const start = new Date(item.special_price_start_at);
       const end = new Date(item.special_price_end_at);
       if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
         if (now >= start && now <= end) {
-          return {
-            id: "legacy",
-            store_item_id: item.id,
-            price: item.special_price,
-            start_at: item.special_price_start_at,
-            end_at: item.special_price_end_at,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-          };
+          // Use tier-specific special price if available
+          switch (tier) {
+            case "mastor": {
+              const specialPrice = item.special_price_mastor;
+              if (specialPrice != null) return specialPrice;
+              break;
+            }
+            case "botl": {
+              const specialPrice = item.special_price_botl;
+              if (specialPrice != null) return specialPrice;
+              break;
+            }
+            default: {
+              const specialPrice = item.special_price_normal;
+              if (specialPrice != null) return specialPrice;
+              break;
+            }
+          }
         }
       }
     }
 
-    return null;
-  }
-
-  function getItemPrice(item: StoreItem, tier: PriceTier): number {
-    const activeOffer = getActiveSpecialOffer(item);
-    if (activeOffer) return activeOffer.price;
-
+    // Fall back to regular tier pricing
     switch (tier) {
       case "mastor":
         return item.price_mastor;
@@ -210,34 +199,25 @@ export default function StoreClient({
   }
 
   function isSpecialActive(item: StoreItem): boolean {
-    return getActiveSpecialOffer(item) != null;
-  }
-
-  const timeLeftFormatter = useMemo(() => {
-    function format(endIso: string): string {
-      const end = new Date(endIso).getTime();
-      if (Number.isNaN(end)) return "";
-      const diffMs = end - nowTs;
-      if (diffMs <= 0) return "";
-
-      const minutes = Math.ceil(diffMs / 60_000);
-      const hours = Math.ceil(diffMs / 3_600_000);
-      const days = Math.ceil(diffMs / 86_400_000);
-
-      if (days >= 2) return t("store.timeLeftDays", { count: days });
-      if (hours >= 2) return t("store.timeLeftHours", { count: hours });
-      return t("store.timeLeftMinutes", { count: Math.max(1, minutes) });
+    if (
+      !item.special_price_start_at ||
+      !item.special_price_end_at
+    ) {
+      return false;
     }
-
-    return { format };
-  }, [nowTs, t]);
-
-  function getSpecialTimeLeftText(item: StoreItem): string | null {
-    const activeOffer = getActiveSpecialOffer(item);
-    if (!activeOffer) return null;
-    const formatted = timeLeftFormatter.format(activeOffer.end_at);
-    if (!formatted) return null;
-    return t("store.specialEndsIn", { time: formatted });
+    // Check if at least one special price is set
+    if (
+      item.special_price_normal == null &&
+      item.special_price_mastor == null &&
+      item.special_price_botl == null
+    ) {
+      return false;
+    }
+    const now = new Date();
+    const start = new Date(item.special_price_start_at);
+    const end = new Date(item.special_price_end_at);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+    return now >= start && now <= end;
   }
 
   function calculateTotal(): number {
@@ -280,13 +260,21 @@ export default function StoreClient({
         items: orderItems,
         notes: orderNotes || undefined,
         class_id: userClassIds[0] || undefined,
+        // Pass child ID if parent is ordering for a child
+        for_student_id: childContext?.id,
       });
 
       toast.success(t("store.orderPlaced"));
       setCart(new Map());
       setOrderNotes("");
       setIsCheckoutOpen(false);
-      router.push("/store/orders");
+
+      // Redirect to parent dashboard if ordering for child, otherwise to orders
+      if (childContext) {
+        router.push("/dashboard/parents");
+      } else {
+        router.push("/store/orders");
+      }
     } catch (error) {
       console.error("Error creating order:", error);
       const errorMessage =
@@ -315,27 +303,69 @@ export default function StoreClient({
     );
   });
 
+  // Handle child switching
+  const handleChildChange = (childId: string) => {
+    router.push(`/store?for=${childId}`);
+  };
+
+  // Handle checkout button click - prompt for child selection if parent without child context
+  function handleCheckoutClick() {
+    if (isParent && !childContext) {
+      setIsChildSelectOpen(true);
+    } else {
+      setIsCheckoutOpen(true);
+    }
+  }
+
+  // Handle child selection from dialog
+  function handleChildSelect(childId: string) {
+    setIsChildSelectOpen(false);
+    router.push(`/store?for=${childId}`);
+  }
+
   return (
     <>
       {/* Header */}
-      <div className="border-b bg-card sticky top-0 z-10">
+      <div className="border-b bg-card sticky z-10 top-0">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label={t("common.back") || "Back"}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.back()}
+                aria-label={t("common.back") || "Back"}
+              >
                 <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">{t("store.title")}</h1>
+                {childContext && (
+                  <h3 className="text-sm text-muted-foreground">
+                    {t("parents.actions.orderForChild", {
+                      name: childContext.full_name,
+                    })}
+                  </h3>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/store/orders")}
-              >
-                {t("store.myOrders")}
-              </Button>
+              {/* Child selector - compact avatar that opens bottom sheet */}
+              {/* {childContext && (
+                <ChildContextBanner
+                  child={childContext}
+                  allChildren={allChildren}
+                  onChildChange={handleChildChange}
+                />
+              )} */}
+              {!childContext && (
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/store/orders")}
+                >
+                  {t("store.myOrders")}
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -432,7 +462,6 @@ export default function StoreClient({
               const price = getItemPrice(item, userPriceTier);
               const basePrice = getBaseTierPrice(item, userPriceTier);
               const specialActive = isSpecialActive(item);
-              const specialTimeLeft = specialActive ? getSpecialTimeLeftText(item) : null;
               const inCart = cart.has(item.id);
               const cartQuantity = cart.get(item.id)?.quantity || 0;
               const remainingPoints =
@@ -473,11 +502,6 @@ export default function StoreClient({
                         <p className="text-xs text-muted-foreground">
                           {t("store.points")}
                         </p>
-                        {specialTimeLeft && (
-                          <p className="text-xs text-destructive mt-1">
-                            {specialTimeLeft}
-                          </p>
-                        )}
                       </div>
                       {specialActive && (
                         <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-1 text-xs font-semibold text-destructive">
@@ -563,7 +587,7 @@ export default function StoreClient({
 
       {/* Floating Cart Button (FAB) */}
       <Button
-        onClick={() => setIsCheckoutOpen(true)}
+        onClick={handleCheckoutClick}
         disabled={cart.size === 0}
         size="lg"
         className="fixed bottom-6 end-6 z-50 h-14 w-14 rounded-full shadow-lg gap-0 p-0"
@@ -828,6 +852,48 @@ export default function StoreClient({
                 </Button>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Child Selection Dialog for Parents */}
+      <Dialog open={isChildSelectOpen} onOpenChange={setIsChildSelectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("parents.selectChild")}</DialogTitle>
+            <DialogDescription>
+              {t("store.selectChildToOrder")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {allChildren.map((child) => (
+              <button
+                key={child.id}
+                onClick={() => handleChildSelect(child.id)}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-start"
+              >
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{child.full_name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {child.class_name || child.church_name || ""}
+                  </p>
+                </div>
+                <div className="text-sm font-medium text-amber-600">
+                  {child.points_balance} {t("common.pts")}
+                </div>
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsChildSelectOpen(false)}
+            >
+              {t("common.cancel")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

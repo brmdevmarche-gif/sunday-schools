@@ -88,6 +88,7 @@ export default function StoreClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isChildSelectOpen, setIsChildSelectOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const isParent = userProfile.role === "parent";
 
@@ -98,6 +99,15 @@ export default function StoreClient({
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Update current time every minute to refresh time left display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
   }, []);
 
   // Determine user's price tier based on their profile
@@ -144,30 +154,30 @@ export default function StoreClient({
   }
 
   function getItemPrice(item: StoreItem, tier: PriceTier): number {
-    // Special offer overrides tier pricing during its window
-    if (
-      item.special_price_start_at &&
-      item.special_price_end_at
-    ) {
-      const now = new Date();
-      const start = new Date(item.special_price_start_at);
-      const end = new Date(item.special_price_end_at);
-      if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+    const now = new Date();
+    
+    // Check special offers array for active offer
+    if (item.special_offers && item.special_offers.length > 0) {
+      for (const offer of item.special_offers) {
+        const start = new Date(offer.start_at);
+        const end = new Date(offer.end_at);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+        
         if (now >= start && now <= end) {
           // Use tier-specific special price if available
           switch (tier) {
             case "mastor": {
-              const specialPrice = item.special_price_mastor;
+              const specialPrice = offer.special_price_mastor;
               if (specialPrice != null) return specialPrice;
               break;
             }
             case "botl": {
-              const specialPrice = item.special_price_botl;
+              const specialPrice = offer.special_price_botl;
               if (specialPrice != null) return specialPrice;
               break;
             }
             default: {
-              const specialPrice = item.special_price_normal;
+              const specialPrice = offer.special_price_normal;
               if (specialPrice != null) return specialPrice;
               break;
             }
@@ -198,26 +208,48 @@ export default function StoreClient({
     }
   }
 
+  function getActiveSpecialOffer(item: StoreItem) {
+    if (!item.special_offers || item.special_offers.length === 0) return null;
+    
+    const now = currentTime; // Use state to trigger re-renders
+    for (const offer of item.special_offers) {
+      const start = new Date(offer.start_at);
+      const end = new Date(offer.end_at);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+      if (now >= start && now <= end) {
+        return offer;
+      }
+    }
+    return null;
+  }
+
   function isSpecialActive(item: StoreItem): boolean {
-    if (
-      !item.special_price_start_at ||
-      !item.special_price_end_at
-    ) {
-      return false;
+    return getActiveSpecialOffer(item) != null;
+  }
+
+  function getSpecialTimeLeft(item: StoreItem): string | null {
+    const offer = getActiveSpecialOffer(item);
+    if (!offer) return null;
+
+    const now = currentTime; // Use state to trigger re-renders
+    const end = new Date(offer.end_at);
+    const diff = end.getTime() - now.getTime();
+
+    if (diff <= 0) return null;
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) {
+      return t("store.timeLeftDays", { days });
+    } else if (hours > 0) {
+      return t("store.timeLeftHours", { hours });
+    } else if (minutes > 0) {
+      return t("store.timeLeftMinutes", { minutes });
+    } else {
+      return t("store.timeLeftMinutes", { minutes: 1 });
     }
-    // Check if at least one special price is set
-    if (
-      item.special_price_normal == null &&
-      item.special_price_mastor == null &&
-      item.special_price_botl == null
-    ) {
-      return false;
-    }
-    const now = new Date();
-    const start = new Date(item.special_price_start_at);
-    const end = new Date(item.special_price_end_at);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
-    return now >= start && now <= end;
   }
 
   function calculateTotal(): number {
@@ -504,9 +536,16 @@ export default function StoreClient({
                         </p>
                       </div>
                       {specialActive && (
-                        <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-1 text-xs font-semibold text-destructive">
-                          {t("store.special")}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-1 text-xs font-semibold text-destructive">
+                            {t("store.special")}
+                          </span>
+                          {getSpecialTimeLeft(item) && (
+                            <span className="text-xs text-muted-foreground font-medium">
+                              {getSpecialTimeLeft(item)}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
 

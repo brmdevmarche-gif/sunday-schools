@@ -256,7 +256,7 @@ export default async function StorePage({ searchParams }: StorePageProps) {
 
   const classIds = classAssignments?.map((a) => a.class_id) || [];
 
-  // Fetch available store items
+  // Fetch available store items with special offers
   const query = adminClient
     .from("store_items")
     .select(
@@ -264,7 +264,8 @@ export default async function StorePage({ searchParams }: StorePageProps) {
       *,
       store_item_churches (church_id),
       store_item_dioceses (diocese_id),
-      store_item_classes (class_id)
+      store_item_classes (class_id),
+      special_offers:store_item_special_offers (*)
     `
     )
     .eq("is_active", true);

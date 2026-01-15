@@ -10,6 +10,18 @@ import type { StockType, PriceTier, UserRole } from './base';
 // STORE ITEMS
 // =====================================================
 
+export interface StoreItemSpecialOffer {
+  id: string;
+  store_item_id: string;
+  special_price_normal: number | null;
+  special_price_mastor: number | null;
+  special_price_botl: number | null;
+  start_at: string;
+  end_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface StoreItem {
   id: string;
   church_id: string | null;
@@ -21,17 +33,14 @@ export interface StoreItem {
   price_normal: number;
   price_mastor: number;
   price_botl: number;
-  special_price_normal?: number | null;
-  special_price_mastor?: number | null;
-  special_price_botl?: number | null;
-  special_price_start_at?: string | null;
-  special_price_end_at?: string | null;
   is_active: boolean;
   is_available_to_all_classes: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
   updated_by: string | null;
+  // Special offers array (loaded via join)
+  special_offers?: StoreItemSpecialOffer[];
 }
 
 // =====================================================
@@ -63,6 +72,14 @@ export interface StoreItemClass {
 // STORE ITEM INPUT TYPES
 // =====================================================
 
+export interface CreateSpecialOfferInput {
+  special_price_normal?: number | null;
+  special_price_mastor?: number | null;
+  special_price_botl?: number | null;
+  start_at: string;
+  end_at: string;
+}
+
 export interface CreateStoreItemInput {
   name: string;
   description?: string;
@@ -72,15 +89,20 @@ export interface CreateStoreItemInput {
   price_normal: number;
   price_mastor: number;
   price_botl: number;
-  special_price_normal?: number;
-  special_price_mastor?: number;
-  special_price_botl?: number;
-  special_price_start_at?: string;
-  special_price_end_at?: string;
+  special_offers?: CreateSpecialOfferInput[]; // Array of special offers
   church_ids?: string[]; // Multiple churches
   diocese_ids?: string[]; // Multiple dioceses (item available to all churches in these dioceses)
   class_ids?: string[]; // Specific classes (if not available to all)
   is_available_to_all_classes?: boolean;
+}
+
+export interface UpdateSpecialOfferInput {
+  id?: string; // If provided, update existing; if not, create new
+  special_price_normal?: number | null;
+  special_price_mastor?: number | null;
+  special_price_botl?: number | null;
+  start_at?: string;
+  end_at?: string;
 }
 
 export interface UpdateStoreItemInput {
@@ -92,11 +114,7 @@ export interface UpdateStoreItemInput {
   price_normal?: number;
   price_mastor?: number;
   price_botl?: number;
-  special_price_normal?: number | null;
-  special_price_mastor?: number | null;
-  special_price_botl?: number | null;
-  special_price_start_at?: string | null;
-  special_price_end_at?: string | null;
+  special_offers?: UpdateSpecialOfferInput[]; // Array of special offers (full replacement)
   is_active?: boolean;
   church_ids?: string[];
   diocese_ids?: string[];

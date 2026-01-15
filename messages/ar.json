@@ -9,6 +9,9 @@
     "edit": "تعديل",
     "create": "إنشاء",
     "creating": "جاري الإنشاء...",
+    "add": "إضافة",
+    "selectAll": "تحديد الكل",
+    "deselectAll": "إلغاء تحديد الكل",
     "search": "بحث",
     "searching": "جاري البحث",
     "filter": "تصفية",
@@ -666,6 +669,10 @@
     "locked": "مقفل",
     "needMorePoints": "تحتاج {points} نقطة إضافية",
     "special": "عرض خاص",
+    "specialEndsIn": "ينتهي خلال",
+    "timeLeftDays": "{days, plural, one {يوم واحد متبقي} other {# أيام متبقية}}",
+    "timeLeftHours": "{hours, plural, one {ساعة واحدة متبقية} other {# ساعات متبقية}}",
+    "timeLeftMinutes": "{minutes, plural, one {دقيقة واحدة متبقية} other {# دقائق متبقية}}",
     "itemAdded": "تم إضافة العنصر إلى السلة",
     "itemRemoved": "تم إزالة العنصر من السلة",
     "inStock": "متوفر",
@@ -1696,10 +1703,15 @@
       "onDemand": "متاح حسب الطلب"
     },
     "errors": {
-      "fillRequired": "يرجى ملء جميع الحقول المطلوبة",
-      "specialOfferIncomplete": "يرجى إدخال سعر العرض ووقت البداية ووقت النهاية",
-      "specialOfferInvalidRange": "يجب أن يكون وقت نهاية العرض بعد وقت البداية"
-    },
+        "fillRequired": "يرجى ملء جميع الحقول المطلوبة",
+        "specialOfferIncomplete": "يرجى إدخال سعر العرض ووقت البداية ووقت النهاية",
+        "specialOfferInvalidRange": "يجب أن يكون وقت نهاية العرض بعد وقت البداية",
+        "specialOfferAtLeastOne": "يجب أن يحتوي كل عرض خاص على سعر واحد على الأقل (عادي أو ماستور أو بطل)",
+        "specialOfferDuplicatePrice": "لا يُسمح بقيم الأسعار المكررة. يجب أن يكون سعر كل فئة فريداً عبر جميع العروض.",
+        "specialOfferOverlap": "لا يمكن أن تتداخل فترات العروض الخاصة"
+      },
+      "specialOfferRules": "لا يمكن أن تتداخل فترات العروض الخاصة ولا يمكن تكرار قيم الأسعار لنفس الفئة.",
+      "noSpecialOffers": "لم تتم إضافة عروض خاصة. انقر على 'إضافة' لإنشاء عرض.",
     "messages": {
       "createSuccess": "تم إنشاء المنتج بنجاح",
       "createError": "فشل في إنشاء المنتج"

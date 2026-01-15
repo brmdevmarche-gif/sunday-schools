@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { updateStoreItemAction } from "../../actions";
 import type { ExtendedUser, StoreItem } from "@/lib/types";
@@ -83,12 +83,28 @@ export default function EditStoreItemClient({
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
 
-  const hasSpecial =
-    (item.special_price_normal != null || item.special_price_mastor != null || item.special_price_botl != null) &&
-    !!item.special_price_start_at &&
-    !!item.special_price_end_at;
 
-  const [formData, setFormData] = useState({
+  interface SpecialOfferForm {
+    id: string; // Can be database ID or temporary ID
+    special_price_normal: number | null;
+    special_price_mastor: number | null;
+    special_price_botl: number | null;
+    start_local: string;
+    end_local: string;
+  }
+
+  // Initialize special offers from item
+  const initialSpecialOffers: SpecialOfferForm[] = (item.special_offers || []).map((offer) => ({
+    id: offer.id,
+    special_price_normal: offer.special_price_normal,
+    special_price_mastor: offer.special_price_mastor,
+    special_price_botl: offer.special_price_botl,
+    start_local: isoToDatetimeLocal(offer.start_at),
+    end_local: isoToDatetimeLocal(offer.end_at),
+  }));
+
+  // Initialize formData with initial IDs - use a ref to ensure we only initialize once
+  const [formData, setFormData] = useState(() => ({
     name: item.name,
     description: item.description || "",
     image_url: item.image_url || "",
@@ -98,139 +114,135 @@ export default function EditStoreItemClient({
     price_mastor: item.price_mastor,
     price_botl: item.price_botl,
     is_active: item.is_active,
-    special_offer_enabled: hasSpecial,
-    special_price_normal: item.special_price_normal ?? 0,
-    special_price_mastor: item.special_price_mastor ?? 0,
-    special_price_botl: item.special_price_botl ?? 0,
-    special_start_local: isoToDatetimeLocal(item.special_price_start_at),
-    special_end_local: isoToDatetimeLocal(item.special_price_end_at),
-    church_ids: initialChurchIds,
-    diocese_ids: initialDioceseIds,
+    special_offers: initialSpecialOffers,
+    church_ids: [...initialChurchIds], // Create a copy to avoid reference issues
+    diocese_ids: [...initialDioceseIds], // Create a copy to avoid reference issues
     is_available_to_all_classes: item.is_available_to_all_classes,
-    class_ids: initialClassIds,
-  });
+    class_ids: [...initialClassIds], // Create a copy to avoid reference issues
+  }));
 
-  function setSpecialPreset(
-    preset:
-      | "now"
-      | "today"
-      | "thisWeek"
-      | "thisMonth"
-      | "tomorrow"
-      | "nextWeek"
-      | "nextMonth"
-  ) {
-    const now = new Date();
-    const start = new Date(now);
-    const end = new Date(now);
-
-    const startOfDay = (d: Date) => {
-      const x = new Date(d);
-      x.setHours(0, 0, 0, 0);
-      return x;
+  function addSpecialOffer() {
+    const newOffer: SpecialOfferForm = {
+      id: `temp-${Date.now()}-${Math.random()}`,
+      special_price_normal: null,
+      special_price_mastor: null,
+      special_price_botl: null,
+      start_local: "",
+      end_local: "",
     };
-    const endOfDay = (d: Date) => {
-      const x = new Date(d);
-      x.setHours(23, 59, 0, 0);
-      return x;
-    };
-    const startOfWeekSunday = (d: Date) => {
-      const x = startOfDay(d);
-      x.setDate(x.getDate() - x.getDay());
-      return x;
-    };
-    const endOfWeekSaturday = (d: Date) => {
-      const s = startOfWeekSunday(d);
-      const x = new Date(s);
-      x.setDate(s.getDate() + 6);
-      x.setHours(23, 59, 0, 0);
-      return x;
-    };
-    const startOfMonth = (d: Date) => {
-      const x = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
-      return x;
-    };
-    const endOfMonth = (d: Date) => {
-      const x = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 0, 0);
-      return x;
-    };
-
-    switch (preset) {
-      case "now": {
-        end.setDate(end.getDate() + 1);
-        break;
-      }
-      case "today": {
-        const s = startOfDay(now);
-        const e = endOfDay(now);
-        start.setTime(s.getTime());
-        end.setTime(e.getTime());
-        break;
-      }
-      case "tomorrow": {
-        const t = new Date(now);
-        t.setDate(t.getDate() + 1);
-        const s = startOfDay(t);
-        const e = endOfDay(t);
-        start.setTime(s.getTime());
-        end.setTime(e.getTime());
-        break;
-      }
-      case "thisWeek": {
-        const s = startOfWeekSunday(now);
-        const e = endOfWeekSaturday(now);
-        start.setTime(s.getTime());
-        end.setTime(e.getTime());
-        break;
-      }
-      case "nextWeek": {
-        const next = new Date(now);
-        next.setDate(next.getDate() + 7);
-        const s = startOfWeekSunday(next);
-        const e = endOfWeekSaturday(next);
-        start.setTime(s.getTime());
-        end.setTime(e.getTime());
-        break;
-      }
-      case "thisMonth": {
-        const s = startOfMonth(now);
-        const e = endOfMonth(now);
-        start.setTime(s.getTime());
-        end.setTime(e.getTime());
-        break;
-      }
-      case "nextMonth": {
-        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        const s = startOfMonth(next);
-        const e = endOfMonth(next);
-        start.setTime(s.getTime());
-        end.setTime(e.getTime());
-        break;
-      }
-    }
-
     setFormData({
       ...formData,
-      special_start_local: toDatetimeLocal(start),
-      special_end_local: toDatetimeLocal(end),
+      special_offers: [...formData.special_offers, newOffer],
     });
   }
 
-  // Filter churches based on selected dioceses
-  const filteredChurches =
-    formData.diocese_ids.length > 0
-      ? churches.filter((church) =>
-          formData.diocese_ids.includes(church.diocese_id)
-        )
-      : churches;
+  function removeSpecialOffer(offerId: string) {
+    setFormData({
+      ...formData,
+      special_offers: formData.special_offers.filter((o) => o.id !== offerId),
+    });
+  }
 
-  // Filter classes based on selected churches
-  const filteredClasses =
-    formData.church_ids.length > 0
-      ? classes.filter((classItem) =>
-          formData.church_ids.includes(classItem.church_id)
-        )
-      : classes;
+  function updateSpecialOffer(offerId: string, updates: Partial<SpecialOfferForm>) {
+    setFormData({
+      ...formData,
+      special_offers: formData.special_offers.map((o) =>
+        o.id === offerId ? { ...o, ...updates } : o
+      ),
+    });
+  }
+
+  // Validation functions
+  function validateSpecialOffers(): { valid: boolean; error?: string } {
+    const offers = formData.special_offers;
+    
+    // Check each offer has at least one price
+    for (const offer of offers) {
+      if (
+        offer.special_price_normal == null &&
+        offer.special_price_mastor == null &&
+        offer.special_price_botl == null
+      ) {
+        return { valid: false, error: t("createStoreItem.errors.specialOfferAtLeastOne") };
+      }
+      
+      if (!offer.start_local || !offer.end_local) {
+        return { valid: false, error: t("createStoreItem.errors.specialOfferIncomplete") };
+      }
+      
+      const start = new Date(offer.start_local);
+      const end = new Date(offer.end_local);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return { valid: false, error: t("createStoreItem.errors.specialOfferIncomplete") };
+      }
+      
+      if (start >= end) {
+        return { valid: false, error: t("createStoreItem.errors.specialOfferInvalidRange") };
+      }
+    }
+    
+    // Check for overlapping date ranges
+    for (let i = 0; i < offers.length; i++) {
+      for (let j = i + 1; j < offers.length; j++) {
+        const a = offers[i];
+        const b = offers[j];
+        const aStart = new Date(a.start_local);
+        const aEnd = new Date(a.end_local);
+        const bStart = new Date(b.start_local);
+        const bEnd = new Date(b.end_local);
+        
+        if (
+          (aStart <= bStart && aEnd > bStart) ||
+          (bStart <= aStart && bEnd > aStart) ||
+          (aStart >= bStart && aEnd <= bEnd) ||
+          (bStart >= aStart && bEnd <= aEnd)
+        ) {
+          return { valid: false, error: t("createStoreItem.errors.specialOfferOverlap") };
+        }
+      }
+    }
+    
+    // Check for duplicate prices per tier
+    const normalPrices = offers
+      .map((o) => o.special_price_normal)
+      .filter((p): p is number => p != null);
+    const mastorPrices = offers
+      .map((o) => o.special_price_mastor)
+      .filter((p): p is number => p != null);
+    const botlPrices = offers
+      .map((o) => o.special_price_botl)
+      .filter((p): p is number => p != null);
+    
+    if (new Set(normalPrices).size !== normalPrices.length) {
+      return { valid: false, error: t("createStoreItem.errors.specialOfferDuplicatePrice") };
+    }
+    if (new Set(mastorPrices).size !== mastorPrices.length) {
+      return { valid: false, error: t("createStoreItem.errors.specialOfferDuplicatePrice") };
+    }
+    if (new Set(botlPrices).size !== botlPrices.length) {
+      return { valid: false, error: t("createStoreItem.errors.specialOfferDuplicatePrice") };
+    }
+    
+    return { valid: true };
+  }
+
+  // Filter churches based on selected dioceses, but always include already selected churches
+  // Also show all churches if no dioceses are selected
+  const filteredChurches = churches.filter(
+    (church) =>
+      formData.diocese_ids.length === 0 ||
+      formData.diocese_ids.includes(church.diocese_id) ||
+      formData.church_ids.includes(church.id)
+  );
+
+  // Filter classes based on selected churches, but always include already selected classes
+  // Also show all classes if no churches are selected
+  const filteredClasses = classes.filter(
+    (classItem) =>
+      formData.church_ids.length === 0 ||
+      formData.church_ids.includes(classItem.church_id) ||
+      formData.class_ids.includes(classItem.id)
+  );
 
   function handleDioceseChange(dioceseId: string, checked: boolean) {
     let newDioceseIds: string[];
@@ -294,6 +306,47 @@ export default function EditStoreItemClient({
     }
   }
 
+  function handleSelectAllDioceses() {
+    const allSelected = dioceses.length > 0 && formData.diocese_ids.length === dioceses.length;
+    if (allSelected) {
+      // Deselect all
+      setFormData({
+        ...formData,
+        diocese_ids: [],
+        church_ids: [], // Also clear churches when deselecting all dioceses
+      });
+    } else {
+      // Select all
+      const allDioceseIds = dioceses.map((d) => d.id);
+      setFormData({
+        ...formData,
+        diocese_ids: allDioceseIds,
+      });
+    }
+  }
+
+  function handleSelectAllChurches() {
+    const allSelected = filteredChurches.length > 0 && 
+      formData.church_ids.length === filteredChurches.length &&
+      filteredChurches.every((c) => formData.church_ids.includes(c.id));
+    
+    if (allSelected) {
+      // Deselect all
+      setFormData({
+        ...formData,
+        church_ids: [],
+        class_ids: [], // Also clear classes when deselecting all churches
+      });
+    } else {
+      // Select all visible churches
+      const allChurchIds = filteredChurches.map((c) => c.id);
+      setFormData({
+        ...formData,
+        church_ids: Array.from(new Set([...formData.church_ids, ...allChurchIds])),
+      });
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -305,20 +358,11 @@ export default function EditStoreItemClient({
       return;
     }
 
-    const specialStartIso = formData.special_offer_enabled
-      ? datetimeLocalToIso(formData.special_start_local)
-      : null;
-    const specialEndIso = formData.special_offer_enabled
-      ? datetimeLocalToIso(formData.special_end_local)
-      : null;
-
-    if (formData.special_offer_enabled) {
-      if (!formData.special_price_normal || !formData.special_price_mastor || !formData.special_price_botl || !specialStartIso || !specialEndIso) {
-        toast.error(t("createStoreItem.errors.specialOfferIncomplete"));
-        return;
-      }
-      if (new Date(specialStartIso) >= new Date(specialEndIso)) {
-        toast.error(t("createStoreItem.errors.specialOfferInvalidRange"));
+    // Validate special offers
+    if (formData.special_offers.length > 0) {
+      const validation = validateSpecialOffers();
+      if (!validation.valid) {
+        toast.error(validation.error || t("createStoreItem.errors.specialOfferIncomplete"));
         return;
       }
     }
@@ -335,11 +379,14 @@ export default function EditStoreItemClient({
         price_mastor: formData.price_mastor,
         price_botl: formData.price_botl,
         is_active: formData.is_active,
-        special_price_normal: formData.special_offer_enabled ? formData.special_price_normal : null,
-        special_price_mastor: formData.special_offer_enabled ? formData.special_price_mastor : null,
-        special_price_botl: formData.special_offer_enabled ? formData.special_price_botl : null,
-        special_price_start_at: formData.special_offer_enabled ? specialStartIso : null,
-        special_price_end_at: formData.special_offer_enabled ? specialEndIso : null,
+        special_offers: formData.special_offers.map((offer) => ({
+          id: offer.id.startsWith("temp-") ? undefined : offer.id, // Only include DB IDs for updates
+          special_price_normal: offer.special_price_normal ?? undefined,
+          special_price_mastor: offer.special_price_mastor ?? undefined,
+          special_price_botl: offer.special_price_botl ?? undefined,
+          start_at: datetimeLocalToIso(offer.start_local)!,
+          end_at: datetimeLocalToIso(offer.end_local)!,
+        })),
         church_ids: formData.church_ids,
         diocese_ids: formData.diocese_ids,
         is_available_to_all_classes: formData.is_available_to_all_classes,
@@ -568,159 +615,156 @@ export default function EditStoreItemClient({
                   />
                 </div>
 
-                {/* Special Offer */}
-                <div className="rounded-md border p-3 space-y-3">
+                {/* Special Offers */}
+                <div className="rounded-md border p-4 space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="special_offer_enabled">
-                      {t("createStoreItem.specialOffer")}
-                    </Label>
-                    <Switch
-                      id="special_offer_enabled"
-                      checked={formData.special_offer_enabled}
-                      onCheckedChange={(checked) =>
-                        setFormData({
-                          ...formData,
-                          special_offer_enabled: checked,
-                          ...(checked
-                            ? {}
-                            : {
-                                special_price_normal: 0,
-                                special_price_mastor: 0,
-                                special_price_botl: 0,
-                                special_start_local: "",
-                                special_end_local: "",
-                              }),
-                        })
-                      }
-                    />
+                    <div>
+                      <Label>{t("createStoreItem.specialOffer")}</Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t("createStoreItem.specialOfferRules")}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={addSpecialOffer}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      {t("common.add")}
+                    </Button>
                   </div>
 
-                  {formData.special_offer_enabled && (
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="special_price_normal">
-                          {t("createStoreItem.fields.priceNormal")} ({t("createStoreItem.specialOffer")})
-                        </Label>
-                        <Input
-                          id="special_price_normal"
-                          type="number"
-                          min="0"
-                          value={formData.special_price_normal}
-                          onFocus={(e) => {
-                            if (e.currentTarget.value === "0") e.currentTarget.select();
-                          }}
-                          onChange={(e) => {
-                            const normalized = normalizeNonNegativeIntInput(e.target.value);
-                            setFormData({
-                              ...formData,
-                              special_price_normal: toNonNegativeInt(normalized, 0),
-                            });
-                          }}
-                        />
-                      </div>
+                  {formData.special_offers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {t("createStoreItem.noSpecialOffers")}
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.special_offers.map((offer, index) => (
+                        <div
+                          key={offer.id}
+                          className="border rounded-lg p-4 space-y-3 bg-muted/30"
+                        >
+                          <div className="flex items-center justify-between">
+                            <Label className="text-base">
+                              {t("createStoreItem.specialOffer")} #{index + 1}
+                            </Label>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeSpecialOffer(offer.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="special_price_mastor">
-                          {t("createStoreItem.fields.priceMastor")} ({t("createStoreItem.specialOffer")})
-                        </Label>
-                        <Input
-                          id="special_price_mastor"
-                          type="number"
-                          min="0"
-                          value={formData.special_price_mastor}
-                          onFocus={(e) => {
-                            if (e.currentTarget.value === "0") e.currentTarget.select();
-                          }}
-                          onChange={(e) => {
-                            const normalized = normalizeNonNegativeIntInput(e.target.value);
-                            setFormData({
-                              ...formData,
-                              special_price_mastor: toNonNegativeInt(normalized, 0),
-                            });
-                          }}
-                        />
-                      </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-2">
+                              <Label>
+                                {t("createStoreItem.fields.priceNormal")}
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={offer.special_price_normal ?? ""}
+                                onFocus={(e) => {
+                                  if (e.currentTarget.value === "0" || e.currentTarget.value === "")
+                                    e.currentTarget.select();
+                                }}
+                                onChange={(e) => {
+                                  const normalized = normalizeNonNegativeIntInput(e.target.value);
+                                  updateSpecialOffer(offer.id, {
+                                    special_price_normal:
+                                      normalized === "" ? null : toNonNegativeInt(normalized, 0),
+                                  });
+                                }}
+                                placeholder={t("createStoreItem.placeholders.points")}
+                              />
+                            </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="special_price_botl">
-                          {t("createStoreItem.fields.priceBotl")} ({t("createStoreItem.specialOffer")})
-                        </Label>
-                        <Input
-                          id="special_price_botl"
-                          type="number"
-                          min="0"
-                          value={formData.special_price_botl}
-                          onFocus={(e) => {
-                            if (e.currentTarget.value === "0") e.currentTarget.select();
-                          }}
-                          onChange={(e) => {
-                            const normalized = normalizeNonNegativeIntInput(e.target.value);
-                            setFormData({
-                              ...formData,
-                              special_price_botl: toNonNegativeInt(normalized, 0),
-                            });
-                          }}
-                        />
-                      </div>
+                            <div className="space-y-2">
+                              <Label>
+                                {t("createStoreItem.fields.priceMastor")}
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={offer.special_price_mastor ?? ""}
+                                onFocus={(e) => {
+                                  if (e.currentTarget.value === "0" || e.currentTarget.value === "")
+                                    e.currentTarget.select();
+                                }}
+                                onChange={(e) => {
+                                  const normalized = normalizeNonNegativeIntInput(e.target.value);
+                                  updateSpecialOffer(offer.id, {
+                                    special_price_mastor:
+                                      normalized === "" ? null : toNonNegativeInt(normalized, 0),
+                                  });
+                                }}
+                                placeholder={t("createStoreItem.placeholders.points")}
+                              />
+                            </div>
 
-                      <div className="flex flex-wrap gap-2">
-                        <Button type="button" size="sm" variant="secondary" onClick={() => setSpecialPreset("now")}>
-                          {t("createStoreItem.presets.now")}
-                        </Button>
-                        <Button type="button" size="sm" variant="secondary" onClick={() => setSpecialPreset("today")}>
-                          {t("createStoreItem.presets.today")}
-                        </Button>
-                        <Button type="button" size="sm" variant="secondary" onClick={() => setSpecialPreset("thisWeek")}>
-                          {t("createStoreItem.presets.thisWeek")}
-                        </Button>
-                        <Button type="button" size="sm" variant="secondary" onClick={() => setSpecialPreset("thisMonth")}>
-                          {t("createStoreItem.presets.thisMonth")}
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setSpecialPreset("tomorrow")}>
-                          {t("createStoreItem.presets.tomorrow")}
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setSpecialPreset("nextWeek")}>
-                          {t("createStoreItem.presets.nextWeek")}
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setSpecialPreset("nextMonth")}>
-                          {t("createStoreItem.presets.nextMonth")}
-                        </Button>
-                      </div>
+                            <div className="space-y-2">
+                              <Label>
+                                {t("createStoreItem.fields.priceBotl")}
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={offer.special_price_botl ?? ""}
+                                onFocus={(e) => {
+                                  if (e.currentTarget.value === "0" || e.currentTarget.value === "")
+                                    e.currentTarget.select();
+                                }}
+                                onChange={(e) => {
+                                  const normalized = normalizeNonNegativeIntInput(e.target.value);
+                                  updateSpecialOffer(offer.id, {
+                                    special_price_botl:
+                                      normalized === "" ? null : toNonNegativeInt(normalized, 0),
+                                  });
+                                }}
+                                placeholder={t("createStoreItem.placeholders.points")}
+                              />
+                            </div>
+                          </div>
 
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="special_start">
-                            {t("createStoreItem.fields.specialStart")}
-                          </Label>
-                          <Input
-                            id="special_start"
-                            type="datetime-local"
-                            value={formData.special_start_local}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                special_start_local: e.target.value,
-                              })
-                            }
-                          />
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label>
+                                {t("createStoreItem.fields.specialStart")} *
+                              </Label>
+                              <Input
+                                type="datetime-local"
+                                value={offer.start_local}
+                                onChange={(e) =>
+                                  updateSpecialOffer(offer.id, {
+                                    start_local: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>
+                                {t("createStoreItem.fields.specialEnd")} *
+                              </Label>
+                              <Input
+                                type="datetime-local"
+                                value={offer.end_local}
+                                onChange={(e) =>
+                                  updateSpecialOffer(offer.id, {
+                                    end_local: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="special_end">
-                            {t("createStoreItem.fields.specialEnd")}
-                          </Label>
-                          <Input
-                            id="special_end"
-                            type="datetime-local"
-                            value={formData.special_end_local}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                special_end_local: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -733,7 +777,19 @@ export default function EditStoreItemClient({
                 {dioceses.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>{t("createStoreItem.availableInDioceses")}</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>{t("createStoreItem.availableInDioceses")}</CardTitle>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSelectAllDioceses}
+                        >
+                          {dioceses.length > 0 && formData.diocese_ids.length === dioceses.length
+                            ? t("common.deselectAll")
+                            : t("common.selectAll")}
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <div className="border rounded p-2 max-h-40 overflow-y-auto">
@@ -761,7 +817,21 @@ export default function EditStoreItemClient({
                 {churches.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>{t("createStoreItem.availableInChurches")}</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>{t("createStoreItem.availableInChurches")}</CardTitle>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSelectAllChurches}
+                        >
+                          {filteredChurches.length > 0 &&
+                          formData.church_ids.length === filteredChurches.length &&
+                          filteredChurches.every((c) => formData.church_ids.includes(c.id))
+                            ? t("common.deselectAll")
+                            : t("common.selectAll")}
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <div className="border rounded p-2 max-h-40 overflow-y-auto">

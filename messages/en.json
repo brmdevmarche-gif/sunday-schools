@@ -9,6 +9,9 @@
     "edit": "Edit",
     "create": "Create",
     "creating": "Creating...",
+    "add": "Add",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
     "search": "Search",
     "searching": "Searching",
     "filter": "Filter",
@@ -668,6 +671,10 @@
     "locked": "Locked",
     "needMorePoints": "Need {points} more points",
     "special": "Special",
+    "specialEndsIn": "Ends in",
+    "timeLeftDays": "{days, plural, one {# day left} other {# days left}}",
+    "timeLeftHours": "{hours, plural, one {# hour left} other {# hours left}}",
+    "timeLeftMinutes": "{minutes, plural, one {# minute left} other {# minutes left}}",
     "itemAdded": "Item added to cart",
     "itemRemoved": "Item removed from cart",
     "inStock": "in stock",
@@ -1699,8 +1706,13 @@
     "errors": {
       "fillRequired": "Please fill in all required fields",
       "specialOfferIncomplete": "Please enter special price, start, and end",
-      "specialOfferInvalidRange": "Special offer end must be after start"
+      "specialOfferInvalidRange": "Special offer end must be after start",
+      "specialOfferAtLeastOne": "Each special offer must have at least one price (normal, mastor, or botl)",
+      "specialOfferDuplicatePrice": "Duplicate price values are not allowed. Each tier price must be unique across all offers.",
+      "specialOfferOverlap": "Special offer date ranges cannot overlap"
     },
+    "specialOfferRules": "Special offers cannot have overlapping date ranges and cannot repeat price values for the same tier.",
+    "noSpecialOffers": "No special offers added. Click 'Add' to create one.",
     "messages": {
       "createSuccess": "Store item created successfully",
       "createError": "Failed to create store item"

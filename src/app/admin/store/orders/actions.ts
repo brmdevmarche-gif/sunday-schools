@@ -36,29 +36,29 @@ function getEffectiveUnitPrice(
   tier: PriceTier,
   now: Date
 ): number {
-  const startRaw: string | null | undefined = storeItem?.special_price_start_at
-  const endRaw: string | null | undefined = storeItem?.special_price_end_at
-
-  // Check if special offer is active (within time window)
-  if (startRaw && endRaw) {
-    const start = new Date(startRaw)
-    const end = new Date(endRaw)
-    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+  // Check special offers array for active offer
+  const specialOffers = storeItem?.special_offers || []
+  if (Array.isArray(specialOffers) && specialOffers.length > 0) {
+    for (const offer of specialOffers) {
+      const start = new Date(offer.start_at)
+      const end = new Date(offer.end_at)
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue
+      
       if (now >= start && now <= end) {
         // Use tier-specific special price if available
         switch (tier) {
           case 'mastor': {
-            const specialPrice = storeItem?.special_price_mastor
+            const specialPrice = offer.special_price_mastor
             if (specialPrice != null) return specialPrice
             break
           }
           case 'botl': {
-            const specialPrice = storeItem?.special_price_botl
+            const specialPrice = offer.special_price_botl
             if (specialPrice != null) return specialPrice
             break
           }
           default: {
-            const specialPrice = storeItem?.special_price_normal
+            const specialPrice = offer.special_price_normal
             if (specialPrice != null) return specialPrice
             break
           }

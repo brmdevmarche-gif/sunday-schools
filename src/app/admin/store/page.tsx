@@ -61,10 +61,10 @@ export default async function StorePage({
   const fromIdx = (page - 1) * pageSize;
   const toIdx = fromIdx + pageSize - 1;
 
-  // Fetch store items based on role + pagination + date filter
+  // Fetch store items based on role + pagination + date filter (with special offers)
   let itemsQuery = supabase
     .from("store_items")
-    .select("*", { count: "exact" })
+    .select("*, special_offers:store_item_special_offers (*)", { count: "exact" })
     .order("created_at", { ascending: false });
 
   if (from) itemsQuery = itemsQuery.gte("created_at", from);

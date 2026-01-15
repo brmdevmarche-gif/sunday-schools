@@ -17,24 +17,22 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
   // Use admin client to bypass RLS for insert
   const adminClient = createAdminClient()
 
+  // Extract special offers from input
+  const { special_offers, ...itemInput } = input
+
   // Create the store item
   const { data: storeItem, error: itemError } = await adminClient
     .from('store_items')
     .insert({
-      name: input.name,
-      description: input.description || null,
-      image_url: input.image_url || null,
-      stock_type: input.stock_type,
-      stock_quantity: input.stock_quantity,
-      price_normal: input.price_normal,
-      price_mastor: input.price_mastor,
-      price_botl: input.price_botl,
-      special_price_normal: input.special_price_normal ?? null,
-      special_price_mastor: input.special_price_mastor ?? null,
-      special_price_botl: input.special_price_botl ?? null,
-      special_price_start_at: input.special_price_start_at ?? null,
-      special_price_end_at: input.special_price_end_at ?? null,
-      is_available_to_all_classes: input.is_available_to_all_classes ?? true,
+      name: itemInput.name,
+      description: itemInput.description || null,
+      image_url: itemInput.image_url || null,
+      stock_type: itemInput.stock_type,
+      stock_quantity: itemInput.stock_quantity,
+      price_normal: itemInput.price_normal,
+      price_mastor: itemInput.price_mastor,
+      price_botl: itemInput.price_botl,
+      is_available_to_all_classes: itemInput.is_available_to_all_classes ?? true,
       is_active: true,
       created_by: user.id,
       updated_by: user.id,
@@ -44,6 +42,27 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
 
   if (itemError) {
     throw new Error(`Failed to create store item: ${itemError.message}`)
+  }
+
+  // Create special offers if provided
+  if (special_offers && special_offers.length > 0) {
+    const offersToInsert = special_offers.map(offer => ({
+      store_item_id: storeItem.id,
+      special_price_normal: offer.special_price_normal ?? null,
+      special_price_mastor: offer.special_price_mastor ?? null,
+      special_price_botl: offer.special_price_botl ?? null,
+      start_at: offer.start_at,
+      end_at: offer.end_at,
+    }))
+
+    const { error: offersError } = await adminClient
+      .from('store_item_special_offers')
+      .insert(offersToInsert)
+
+    if (offersError) {
+      console.error('Failed to create special offers:', offersError)
+      // Don't throw, item is already created - user can add offers later
+    }
   }
 
   // Create church associations if provided
@@ -113,11 +132,11 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
   // Use admin client to bypass RLS for update
   const adminClient = createAdminClient()
 
-  // Extract junction table data from input
-  const { church_ids, diocese_ids, class_ids, ...itemData } = input
+  // Extract junction table data and special offers from input
+  const { church_ids, diocese_ids, class_ids, special_offers, ...itemData } = input
 
-  // Update the store item
-  const updateData: Omit<UpdateStoreItemInput, 'church_ids' | 'diocese_ids' | 'class_ids'> & { updated_by: string } = {
+  // Update the store item (excluding special offers which are handled separately)
+  const updateData: Omit<UpdateStoreItemInput, 'church_ids' | 'diocese_ids' | 'class_ids' | 'special_offers'> & { updated_by: string } = {
     ...itemData,
     updated_by: user.id,
   }
@@ -129,6 +148,40 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
 
   if (itemError) {
     throw new Error(`Failed to update store item: ${itemError.message}`)
+  }
+
+  // Update special offers (full replacement strategy)
+  if (special_offers !== undefined) {
+    // Delete all existing special offers for this item
+    await adminClient
+      .from('store_item_special_offers')
+      .delete()
+      .eq('store_item_id', itemId)
+
+    // Insert new special offers if any
+    if (special_offers.length > 0) {
+      const offersToInsert = special_offers
+        .filter(offer => offer.start_at && offer.end_at) // Only insert valid offers
+        .map(offer => ({
+          store_item_id: itemId,
+          special_price_normal: offer.special_price_normal ?? null,
+          special_price_mastor: offer.special_price_mastor ?? null,
+          special_price_botl: offer.special_price_botl ?? null,
+          start_at: offer.start_at!,
+          end_at: offer.end_at!,
+        }))
+
+      if (offersToInsert.length > 0) {
+        const { error: offersError } = await adminClient
+          .from('store_item_special_offers')
+          .insert(offersToInsert)
+
+        if (offersError) {
+          console.error('Failed to update special offers:', offersError)
+          throw new Error(`Failed to update special offers: ${offersError.message}`)
+        }
+      }
+    }
   }
 
   // Update church associations if provided

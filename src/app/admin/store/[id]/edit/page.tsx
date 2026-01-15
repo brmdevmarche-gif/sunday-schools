@@ -31,7 +31,7 @@ export default async function EditStoreItemPage({
 
   const { data: item, error: itemError } = await adminClient
     .from("store_items")
-    .select("*")
+    .select("*, special_offers:store_item_special_offers (*)")
     .eq("id", id)
     .single();
 
@@ -54,14 +54,8 @@ export default async function EditStoreItemPage({
       .eq("store_item_id", id),
   ]);
 
-  const initialChurchIds =
-    churchLinks.data?.map((r) => r.church_id).filter(Boolean) || [];
-  const initialDioceseIds =
-    dioceseLinks.data?.map((r) => r.diocese_id).filter(Boolean) || [];
-  const initialClassIds =
-    classLinks.data?.map((r) => r.class_id).filter(Boolean) || [];
 
-  // Fetch selection data based on role (same approach as store management page)
+  // First, fetch all selection data based on role
   let churches: Church[] = [];
   let dioceses: { id: string; name: string }[] = [];
   let classes: { id: string; name: string; church_id: string }[] = [];
@@ -86,6 +80,36 @@ export default async function EditStoreItemPage({
     classes = classesData || [];
   }
 
+  // Now fetch the initial IDs from junction tables
+  const initialChurchIds =
+    churchLinks.data?.map((r) => r.church_id).filter(Boolean) || [];
+  const initialDioceseIds =
+    dioceseLinks.data?.map((r) => r.diocese_id).filter(Boolean) || [];
+  const initialClassIds =
+    classLinks.data?.map((r) => r.class_id).filter(Boolean) || [];
+
+  // Ensure parent dioceses are included for selected churches
+  const churchDioceseIds = new Set<string>();
+  initialChurchIds.forEach((churchId) => {
+    const church = churches.find((c) => c.id === churchId);
+    if (church?.diocese_id) {
+      churchDioceseIds.add(church.diocese_id);
+    }
+  });
+  
+  // Ensure parent churches are included for selected classes
+  const classChurchIds = new Set<string>();
+  initialClassIds.forEach((classId) => {
+    const classItem = classes.find((c) => c.id === classId);
+    if (classItem?.church_id) {
+      classChurchIds.add(classItem.church_id);
+    }
+  });
+  
+  // Merge initial IDs with parent IDs (create new arrays to avoid mutation)
+  const finalDioceseIds = Array.from(new Set([...initialDioceseIds, ...Array.from(churchDioceseIds)]));
+  const finalChurchIds = Array.from(new Set([...initialChurchIds, ...Array.from(classChurchIds)]));
+
   return (
     <AdminLayout>
       <EditStoreItemClient
@@ -94,8 +118,8 @@ export default async function EditStoreItemPage({
         churches={churches}
         dioceses={dioceses}
         classes={classes}
-        initialChurchIds={initialChurchIds}
-        initialDioceseIds={initialDioceseIds}
+        initialChurchIds={finalChurchIds}
+        initialDioceseIds={finalDioceseIds}
         initialClassIds={initialClassIds}
       />
     </AdminLayout>

@@ -19,6 +19,7 @@ export interface ParentChild {
   pending_approvals_count: number;
   current_streak?: number;
   badges_count?: number;
+  price_tier?: "normal" | "mastor" | "botl";
 }
 
 // Child details with full stats

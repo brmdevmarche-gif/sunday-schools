@@ -59,13 +59,22 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
     if (relationships && relationships.length > 0) {
       // Get points balance for each child
       const childIds = relationships.map((r) => r.student_id);
-      const { data: balances } = await adminClient
-        .from("student_points_balance")
-        .select("user_id, available_points")
-        .in("user_id", childIds);
+      const [balancesResult, childrenProfilesResult] = await Promise.all([
+        adminClient
+          .from("student_points_balance")
+          .select("user_id, available_points")
+          .in("user_id", childIds),
+        adminClient
+          .from("users")
+          .select("id, price_tier")
+          .in("id", childIds),
+      ]);
 
       const balanceMap = new Map(
-        balances?.map((b) => [b.user_id, b.available_points]) || []
+        balancesResult.data?.map((b) => [b.user_id, b.available_points]) || []
+      );
+      const priceTierMap = new Map(
+        childrenProfilesResult.data?.map((u) => [u.id, u.price_tier || "normal"]) || []
       );
 
       allChildren = relationships.map((r) => {
@@ -92,6 +101,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
           points_balance: balanceMap.get(user.id) || 0,
           total_earned: 0,
           pending_approvals_count: 0,
+          price_tier: priceTierMap.get(user.id) || "normal",
         };
       });
 

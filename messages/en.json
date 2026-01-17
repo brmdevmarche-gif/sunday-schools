@@ -28,6 +28,8 @@
     "phone": "Phone",
     "address": "Address",
     "description": "Description",
+    "church": "Church",
+    "diocese": "Diocese",
     "date": "Date",
     "from": "From",
     "to": "To",
@@ -72,7 +74,8 @@
     "registeredByParent": "Registered by Parent",
     "orderedByParent": "Ordered by Parent",
     "self": "Self",
-    "menu": "Menu"
+    "menu": "Menu",
+    "processing": "Processing..."
   },
   "status": {
     "pending": "Pending",
@@ -1539,6 +1542,7 @@
     "subscribeToTrip": "Subscribe to Trip",
     "subscribeDescription": "Fill in the information below to subscribe to this trip",
     "selectChildToBook": "Select which child you want to book this trip for",
+    "additionalInfo": "Additional Information",
     "emergencyContact": "Emergency Contact (Optional)",
     "emergencyContactPlaceholder": "Name and phone number",
     "medicalInfo": "Medical Information (Optional)",
@@ -1860,6 +1864,9 @@
       "enterTransportation": "Enter transportation details",
       "enterWhatToBring": "Enter what participants should bring"
     },
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "selectDateTime": "Select date and time",
     "actions": {
       "addDestination": "Add Destination",
       "removeDestination": "Remove",
@@ -1870,6 +1877,7 @@
       "clearSelection": "Clear Selection",
       "markAsPaid": "Mark as Paid",
       "markAsUnpaid": "Mark as Unpaid",
+      "pay": "Pay",
       "viewDetailedStats": "View Detailed Stats",
       "creating": "Creating...",
       "updating": "Updating...",
@@ -1884,6 +1892,12 @@
       "paid": "Paid",
       "unpaid": "Unpaid"
     },
+    "partiallyPaid": "Partially Paid",
+    "paymentFor": "Payment for",
+    "paymentAmount": "Payment Amount",
+    "fulfillAllAmount": "Fulfill all amount for this trip",
+    "paymentError": "Failed to process payment",
+    "oneDayTripEndDateNote": "For one-day trips, the end date is automatically set to the start date.",
     "table": {
       "student": "Student",
       "contact": "Contact",
@@ -1906,6 +1920,16 @@
       "updateError": "Failed to update trip",
       "participantUpdated": "Participant updated successfully",
       "participantUpdateError": "Failed to update participant",
+      "invalidPaymentStatus": "Invalid payment status. Please use: pending, paid, partially paid, or refunded",
+      "paymentExceedsPrice": "Payment amount cannot exceed the trip price ({max})",
+      "paymentExceedsRemaining": "Payment amount cannot exceed the remaining amount ({max})",
+      "maxPaymentAmount": "Maximum payment amount: {max}",
+      "paymentStatus": "Payment Status",
+      "amountPaid": "Amount Paid",
+      "amountRemaining": "Amount Remaining",
+      "totalPrice": "Total Price",
+      "remaining": "Remaining",
+      "complete": "Complete",
       "participantsUpdated": "{count} participants updated successfully",
       "participantsUpdateError": "Failed to update participants",
       "selected": "{count} selected"

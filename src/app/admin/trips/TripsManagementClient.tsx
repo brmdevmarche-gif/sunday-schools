@@ -367,7 +367,7 @@ export default function TripsManagementClient({
                       <span className="font-medium">Destinations:</span>
                     </div>
                     <div className="pl-6 space-y-1">
-                      {trip.destinations.map((dest, idx) => (
+                      {trip.destinations.slice(0, 2).map((dest, idx) => (
                         <p
                           key={dest.id}
                           className="text-xs text-muted-foreground"
@@ -375,6 +375,11 @@ export default function TripsManagementClient({
                           {idx + 1}. {dest.destination_name}
                         </p>
                       ))}
+                      {trip.destinations.length > 2 && (
+                        <p className="text-xs text-muted-foreground">
+                          +{trip.destinations.length - 2} more
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -396,14 +401,13 @@ export default function TripsManagementClient({
                       </span>
                     </div>
                   )}
-                  {trip.max_participants && (
-                    <div className="flex items-center gap-2 col-span-2">
-                      <Users className="h-4 w-4 text-orange-500" />
-                      <span className="text-muted-foreground">
-                        Max: {trip.max_participants} participants
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 col-span-2">
+                    <Users className="h-4 w-4 text-orange-500" />
+                    <span className="text-muted-foreground">
+                      Subscribed: {(trip as any).subscribed_count || 0}
+                      {trip.max_participants && ` / ${trip.max_participants}`}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2 col-span-2">
                     <span className="font-medium">
                       Price: {getCurrencySymbol()}

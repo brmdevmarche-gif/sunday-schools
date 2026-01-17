@@ -10,7 +10,7 @@
 
 export type TripType = "one_day" | "spiritual" | "volunteering" | "fun" | "retreat" | "carnival" | "tournament" | "other";
 export type TripStatus = "active" | "started" | "ended" | "canceled" | "soldout";
-export type TripPaymentStatus = "pending" | "paid" | "refunded";
+export type TripPaymentStatus = "pending" | "paid" | "partially_paid" | "refunded";
 export type TripApprovalStatus = "pending" | "approved" | "rejected";
 
 // =====================================================
@@ -116,6 +116,7 @@ export interface TripParticipant {
   parent_approval: boolean | null;
   approval_status: TripApprovalStatus;
   payment_status: TripPaymentStatus;
+  amount_paid?: number | null;
   approved_at: string | null;
   approved_by: string | null;
   emergency_contact: string | null;
@@ -205,6 +206,7 @@ export interface UpdateTripParticipantInput {
   participant_id: string;
   approval_status?: TripApprovalStatus;
   payment_status?: TripPaymentStatus;
+  amount_paid?: number;
 }
 
 // =====================================================

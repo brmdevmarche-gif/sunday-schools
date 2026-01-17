@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -33,20 +34,26 @@ import {
   Package,
 } from "lucide-react";
 import { subscribeToTripAction } from "../actions";
-import type { TripWithDetails, ExtendedUser } from "@/lib/types";
+import type { TripWithDetails, ExtendedUser, ParentChild } from "@/lib/types";
 
 interface TripDetailsClientProps {
   trip: TripWithDetails;
   userProfile: ExtendedUser;
+  childContext?: ParentChild | null;
+  allChildren?: ParentChild[];
 }
 
 export default function TripDetailsClient({
   trip,
   userProfile,
+  childContext,
+  allChildren = [],
 }: TripDetailsClientProps) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
+
+  const isParent = userProfile.role === "parent";
 
   // Get currency symbol based on locale
   const getCurrencySymbol = () => {
@@ -54,6 +61,8 @@ export default function TripDetailsClient({
   };
   const [isSubscribeDialogOpen, setIsSubscribeDialogOpen] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+  const [isChildSelectOpen, setIsChildSelectOpen] = useState(false);
   const [subscribeForm, setSubscribeForm] = useState({
     emergency_contact: "",
     medical_info: "",
@@ -63,10 +72,16 @@ export default function TripDetailsClient({
   const isApproved = trip.my_participation?.approval_status === "approved";
   const isPending = trip.my_participation?.approval_status === "pending";
 
-  // Get the price based on user's tier
+  // Get the price based on user's tier (or child's tier if parent)
   function getUserPrice() {
-    if (userProfile.price_tier === "mastor") return trip.price_mastor;
-    if (userProfile.price_tier === "botl") return trip.price_botl;
+    // If parent booking for child, use child's price_tier
+    // Otherwise, use the logged-in user's price_tier
+    const priceTier = childContext 
+      ? (childContext.price_tier || "normal")
+      : (userProfile.price_tier || "normal");
+    
+    if (priceTier === "mastor") return trip.price_mastor;
+    if (priceTier === "botl") return trip.price_botl;
     return trip.price_normal;
   }
 
@@ -120,6 +135,21 @@ export default function TripDetailsClient({
     }
   }
 
+  function handleSubscribeClick() {
+    // If parent without child context, prompt to select child first
+    if (isParent && !childContext) {
+      setIsChildSelectOpen(true);
+    } else {
+      setIsSubscribeDialogOpen(true);
+    }
+  }
+
+  function handleChildSelect(childId: string) {
+    setIsChildSelectOpen(false);
+    // Navigate to trip details page with child context
+    router.push(`/trips/${trip.id}?for=${childId}`);
+  }
+
   async function handleSubscribe() {
     setIsSubscribing(true);
     try {
@@ -127,11 +157,19 @@ export default function TripDetailsClient({
         trip_id: trip.id,
         emergency_contact: subscribeForm.emergency_contact || undefined,
         medical_info: subscribeForm.medical_info || undefined,
+        // Pass child ID if parent is booking for a child
+        for_student_id: childContext?.id,
       });
       toast.success(t("studentTrips.subscribeSuccess"));
       setIsSubscribeDialogOpen(false);
       setSubscribeForm({ emergency_contact: "", medical_info: "" });
-      router.refresh();
+
+      // Redirect to parent dashboard if booking for child, otherwise refresh
+      if (childContext) {
+        router.push("/dashboard/parents");
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       console.error("Error subscribing to trip:", error);
       toast.error(
@@ -433,7 +471,7 @@ export default function TripDetailsClient({
                     {trip.status === "active" && trip.available ? (
                       <Button
                         className="w-full"
-                        onClick={() => setIsSubscribeDialogOpen(true)}
+                        onClick={handleSubscribeClick}
                       >
                         {t("studentTrips.subscribeToTrip")}
                       </Button>
@@ -473,39 +511,59 @@ export default function TripDetailsClient({
               )}
             </div>
 
-            <div>
-              <Label htmlFor="emergency_contact">
-                {t("studentTrips.emergencyContact")}
-              </Label>
-              <Input
-                id="emergency_contact"
-                value={subscribeForm.emergency_contact}
-                onChange={(e) =>
-                  setSubscribeForm({
-                    ...subscribeForm,
-                    emergency_contact: e.target.value,
-                  })
-                }
-                placeholder={t("studentTrips.emergencyContactPlaceholder")}
-              />
-            </div>
+            <div className="border rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowAdditionalInfo(!showAdditionalInfo)}
+                className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent transition-colors"
+              >
+                <span className="text-sm font-medium">
+                  {t("studentTrips.additionalInfo")} ({t("common.optional")})
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                    showAdditionalInfo ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {showAdditionalInfo && (
+                <div className="space-y-4 p-4 pt-0 border-t">
+                  <div>
+                    <Label htmlFor="emergency_contact">
+                      {t("studentTrips.emergencyContact")}
+                    </Label>
+                    <Input
+                      id="emergency_contact"
+                      value={subscribeForm.emergency_contact}
+                      onChange={(e) =>
+                        setSubscribeForm({
+                          ...subscribeForm,
+                          emergency_contact: e.target.value,
+                        })
+                      }
+                      placeholder={t("studentTrips.emergencyContactPlaceholder")}
+                    />
+                  </div>
 
-            <div>
-              <Label htmlFor="medical_info">
-                {t("studentTrips.medicalInfo")}
-              </Label>
-              <Textarea
-                id="medical_info"
-                value={subscribeForm.medical_info}
-                onChange={(e) =>
-                  setSubscribeForm({
-                    ...subscribeForm,
-                    medical_info: e.target.value,
-                  })
-                }
-                placeholder={t("studentTrips.medicalInfoPlaceholder")}
-                rows={3}
-              />
+                  <div>
+                    <Label htmlFor="medical_info">
+                      {t("studentTrips.medicalInfo")}
+                    </Label>
+                    <Textarea
+                      id="medical_info"
+                      value={subscribeForm.medical_info}
+                      onChange={(e) =>
+                        setSubscribeForm({
+                          ...subscribeForm,
+                          medical_info: e.target.value,
+                        })
+                      }
+                      placeholder={t("studentTrips.medicalInfoPlaceholder")}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -524,6 +582,47 @@ export default function TripDetailsClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Child Selection Dialog for Parents */}
+      {isParent && (
+        <Dialog open={isChildSelectOpen} onOpenChange={setIsChildSelectOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("parents.selectChild")}</DialogTitle>
+              <DialogDescription>
+                {t("studentTrips.selectChildToBook")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {allChildren.map((child) => (
+                <button
+                  key={child.id}
+                  onClick={() => handleChildSelect(child.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-start"
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{child.full_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {child.class_name || child.church_name || ""}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsChildSelectOpen(false)}
+              >
+                {t("common.cancel")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -42,6 +43,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -152,6 +154,20 @@ export default function TripDetailsClient({
     Map<string, { status: AttendanceStatus; notes?: string }>
   >(new Map());
   const [isSavingAttendance, setIsSavingAttendance] = useState(false);
+
+  // Filters state
+  const [approvalStatusFilter, setApprovalStatusFilter] = useState<TripApprovalStatus | "all">("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<TripPaymentStatus | "partially_paid" | "all">("all");
+  const [classFilter, setClassFilter] = useState<string>("all");
+  const [churchFilter, setChurchFilter] = useState<string>("all");
+  const [dioceseFilter, setDioceseFilter] = useState<string>("all");
+
+  // Payment popup state
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [selectedParticipantForPayment, setSelectedParticipantForPayment] = useState<TripParticipantWithUser | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<string>("");
+  const [fulfillAllAmount, setFulfillAllAmount] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   function formatDateTime(dateString: string | null) {
     if (!dateString) return "N/A";
@@ -295,6 +311,7 @@ export default function TripDetailsClient({
     updates: {
       approval_status?: TripApprovalStatus;
       payment_status?: TripPaymentStatus;
+      amount_paid?: number;
     }
   ) {
     setIsUpdating(participantId);
@@ -315,6 +332,7 @@ export default function TripDetailsClient({
                   updates.approval_status === "approved"
                     ? new Date().toISOString()
                     : p.approved_at,
+                amount_paid: updates.amount_paid !== undefined ? updates.amount_paid : p.amount_paid,
               }
             : p
         )
@@ -367,11 +385,15 @@ export default function TripDetailsClient({
       toast.success(t("trips.messages.participantUpdated"));
     } catch (error) {
       console.error("Error updating participant:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("trips.messages.participantUpdateError")
-      );
+      let errorMessage = t("trips.messages.participantUpdateError");
+      if (error instanceof Error) {
+        if (error.message === "INVALID_PAYMENT_STATUS") {
+          errorMessage = t("trips.messages.invalidPaymentStatus");
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      toast.error(errorMessage);
     } finally {
       setIsUpdating(null);
     }
@@ -1017,9 +1039,10 @@ export default function TripDetailsClient({
         <TabsContent value="participants">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{t("trips.participants")}</CardTitle>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle>{t("trips.participants")}</CardTitle>
+                  <div className="flex items-center gap-2">
                   {selectedParticipants.size > 0 && (
                     <>
                       <span className="text-sm text-muted-foreground">
@@ -1065,10 +1088,110 @@ export default function TripDetailsClient({
                     </Button>
                   )}
                 </div>
+                </div>
+                {/* Filters */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2 border-t">
+                  <div className="space-y-1">
+                    <Label className="text-xs">{t("trips.table.approvalStatus")}</Label>
+                    <Select value={approvalStatusFilter} onValueChange={(v) => setApprovalStatusFilter(v as TripApprovalStatus | "all")}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("common.all")}</SelectItem>
+                        <SelectItem value="pending">{t("trips.stats.pendingApproval")}</SelectItem>
+                        <SelectItem value="approved">{t("trips.stats.approved")}</SelectItem>
+                        <SelectItem value="rejected">{t("trips.stats.rejected")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">{t("trips.table.paymentStatus")}</Label>
+                    <Select value={paymentStatusFilter} onValueChange={(v) => setPaymentStatusFilter(v as TripPaymentStatus | "partially_paid" | "all")}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("common.all")}</SelectItem>
+                        <SelectItem value="pending">{t("trips.stats.unpaid")}</SelectItem>
+                        <SelectItem value="partially_paid">{t("trips.partiallyPaid")}</SelectItem>
+                        <SelectItem value="paid">{t("trips.stats.paid")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {trip.classes && trip.classes.length > 0 && (
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t("common.class")}</Label>
+                      <Select value={classFilter} onValueChange={setClassFilter}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t("common.all")}</SelectItem>
+                          {trip.classes.map((cls: any) => (
+                            <SelectItem key={cls.class_id} value={cls.class_id}>
+                              {cls.class_name || cls.class_id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  {trip.churches && trip.churches.length > 0 && (
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t("common.church")}</Label>
+                      <Select value={churchFilter} onValueChange={setChurchFilter}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t("common.all")}</SelectItem>
+                          {trip.churches.map((church: any) => (
+                            <SelectItem key={church.church_id} value={church.church_id}>
+                              {church.church_name || church.church_id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  {trip.dioceses && trip.dioceses.length > 0 && (
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t("common.diocese")}</Label>
+                      <Select value={dioceseFilter} onValueChange={setDioceseFilter}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t("common.all")}</SelectItem>
+                          {trip.dioceses.map((diocese: any) => (
+                            <SelectItem key={diocese.diocese_id} value={diocese.diocese_id}>
+                              {diocese.diocese_name || diocese.diocese_id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              {participants.length === 0 ? (
+              {(() => {
+                // Filter participants
+                const filteredParticipants = participants.filter((p: any) => {
+                  if (approvalStatusFilter !== "all" && p.approval_status !== approvalStatusFilter) return false;
+                  if (paymentStatusFilter !== "all") {
+                    if (paymentStatusFilter === "partially_paid" && p.payment_status !== "partially_paid") return false;
+                    if (paymentStatusFilter !== "partially_paid" && p.payment_status !== paymentStatusFilter) return false;
+                  }
+                  if (classFilter !== "all" && (!p.class_info || p.class_info.id !== classFilter)) return false;
+                  if (churchFilter !== "all" && (!p.church_info || p.church_info.id !== churchFilter)) return false;
+                  if (dioceseFilter !== "all" && (!p.diocese_info || p.diocese_info.id !== dioceseFilter)) return false;
+                  return true;
+                });
+
+                return filteredParticipants.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-lg font-medium">
@@ -1085,10 +1208,16 @@ export default function TripDetailsClient({
                       <TableHead className="w-12">
                         <Checkbox
                           checked={
-                            selectedParticipants.size === participants.length &&
-                            participants.length > 0
+                            selectedParticipants.size === filteredParticipants.length &&
+                            filteredParticipants.length > 0
                           }
-                          onCheckedChange={toggleAll}
+                          onCheckedChange={() => {
+                            if (selectedParticipants.size === filteredParticipants.length) {
+                              setSelectedParticipants(new Set());
+                            } else {
+                              setSelectedParticipants(new Set(filteredParticipants.map((p: any) => p.id)));
+                            }
+                          }}
                         />
                       </TableHead>
                       <TableHead>{t("trips.table.student")}</TableHead>
@@ -1100,7 +1229,7 @@ export default function TripDetailsClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {participants.map((participant) => (
+                    {filteredParticipants.map((participant: any) => (
                       <TableRow key={participant.id}>
                         <TableCell>
                           <Checkbox
@@ -1161,13 +1290,39 @@ export default function TripDetailsClient({
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            className={getStatusColor(
-                              participant.payment_status
-                            )}
-                          >
-                            {participant.payment_status}
-                          </Badge>
+                          {(() => {
+                            const userTier = (participant.user as any)?.price_tier || "normal";
+                            const tripPrice = userTier === "mastor" ? trip.price_mastor : userTier === "botl" ? trip.price_botl : trip.price_normal;
+                            const amountPaid = participant.amount_paid || 0;
+                            const amountRemaining = Math.max(0, tripPrice - amountPaid);
+                            const progressPercentage = tripPrice > 0 ? (amountPaid / tripPrice) * 100 : 0;
+                            const locale = useLocale();
+                            const currencySymbol = locale === "ar" ? "ج.م" : "E.L";
+                            
+                            return (
+                              <div className="space-y-2 min-w-[200px]">
+                                <div className="flex items-center justify-between gap-2">
+                                  <Badge
+                                    className={getStatusColor(participant.payment_status)}
+                                  >
+                                    {participant.payment_status === "partially_paid" 
+                                      ? t("trips.partiallyPaid")
+                                      : participant.payment_status === "paid"
+                                      ? t("trips.stats.paid")
+                                      : t("trips.stats.unpaid")}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {currencySymbol}{amountPaid.toFixed(2)} / {currencySymbol}{tripPrice.toFixed(2)}
+                                  </span>
+                                </div>
+                                <Progress value={progressPercentage} className="h-2" />
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <span>{t("trips.messages.remaining")}: {currencySymbol}{amountRemaining.toFixed(2)}</span>
+                                  <span>{progressPercentage.toFixed(0)}%</span>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
@@ -1178,66 +1333,76 @@ export default function TripDetailsClient({
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-start gap-1">
-                            {participant.approval_status !== "approved" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  handleUpdateParticipant(participant.id, {
-                                    approval_status: "approved",
-                                  })
-                                }
-                                disabled={isUpdating === participant.id}
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
-                                {t("trips.actions.approve")}
-                              </Button>
-                            )}
-                            {participant.approval_status !== "rejected" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  handleUpdateParticipant(participant.id, {
-                                    approval_status: "rejected",
-                                  })
-                                }
-                                disabled={isUpdating === participant.id}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                {t("trips.actions.reject")}
-                              </Button>
-                            )}
-                            {participant.payment_status !== "paid" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  handleUpdateParticipant(participant.id, {
-                                    payment_status: "paid",
-                                  })
-                                }
-                                disabled={isUpdating === participant.id}
-                              >
-                                <DollarSign className="h-4 w-4 mr-1" />
-                                {t("trips.actions.markAsPaid")}
-                              </Button>
-                            )}
-                            {participant.payment_status === "paid" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  handleUpdateParticipant(participant.id, {
-                                    payment_status: "pending",
-                                  })
-                                }
-                                disabled={isUpdating === participant.id}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                {t("trips.actions.markAsUnpaid")}
-                              </Button>
+                            {participant.approval_status === "approved" ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setSelectedParticipantForPayment(participant);
+                                    // Calculate user's price and remaining amount
+                                    const userTier = (participant.user as any)?.price_tier || "normal";
+                                    const tripPrice = userTier === "mastor" ? trip.price_mastor : userTier === "botl" ? trip.price_botl : trip.price_normal;
+                                    const currentAmountPaid = participant.amount_paid || 0;
+                                    const amountRemaining = Math.max(0, tripPrice - currentAmountPaid);
+                                    setPaymentAmount(amountRemaining > 0 ? amountRemaining.toString() : "0");
+                                    setFulfillAllAmount(amountRemaining > 0);
+                                    setIsPaymentDialogOpen(true);
+                                  }}
+                                  disabled={isUpdating === participant.id}
+                                >
+                                  <CreditCard className="h-4 w-4 mr-1" />
+                                  {t("trips.actions.pay")}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    handleUpdateParticipant(participant.id, {
+                                      approval_status: "rejected",
+                                    })
+                                  }
+                                  disabled={isUpdating === participant.id}
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  {t("trips.actions.reject")}
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                {participant.approval_status !== "approved" && participant.payment_status !== "paid" && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() =>
+                                      handleUpdateParticipant(participant.id, {
+                                        approval_status: "approved",
+                                      })
+                                    }
+                                    disabled={isUpdating === participant.id}
+                                  >
+                                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                                    {t("trips.actions.approve")}
+                                  </Button>
+                                )}
+                                {participant.approval_status !== "rejected" && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() =>
+                                      handleUpdateParticipant(participant.id, {
+                                        approval_status: "rejected",
+                                      })
+                                    }
+                                    disabled={isUpdating === participant.id}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    {t("trips.actions.reject")}
+                                  </Button>
+                                )}
+                              </>
                             )}
                           </div>
                         </TableCell>
@@ -1245,7 +1410,8 @@ export default function TripDetailsClient({
                     ))}
                   </TableBody>
                 </Table>
-              )}
+              );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1953,6 +2119,203 @@ export default function TripDetailsClient({
               onClick={() => setIsAddParticipantsOpen(false)}
             >
               {t("common.close")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("trips.actions.markAsPaid")}</DialogTitle>
+            <DialogDescription>
+              {selectedParticipantForPayment && (
+                <span>
+                  {t("trips.paymentFor")} {selectedParticipantForPayment.user?.full_name || selectedParticipantForPayment.user?.email}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedParticipantForPayment && (() => {
+              const userTier = (selectedParticipantForPayment.user as any)?.price_tier || "normal";
+              const tripPrice = userTier === "mastor" ? trip.price_mastor : userTier === "botl" ? trip.price_botl : trip.price_normal;
+              const currentAmountPaid = selectedParticipantForPayment.amount_paid || 0;
+              const amountRemaining = Math.max(0, tripPrice - currentAmountPaid);
+              const progressPercentage = tripPrice > 0 ? (currentAmountPaid / tripPrice) * 100 : 0;
+              const currencySymbol = locale === "ar" ? "ج.م" : "E.L";
+              const maxPayment = amountRemaining; // Can only pay remaining amount
+              
+              return (
+                <>
+                  {/* Current Payment Status */}
+                  <div className="space-y-3 p-4 bg-muted rounded-lg">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{t("trips.messages.paymentStatus")}</span>
+                        <Badge className={getStatusColor(selectedParticipantForPayment.payment_status)}>
+                          {selectedParticipantForPayment.payment_status === "partially_paid" 
+                            ? t("trips.partiallyPaid")
+                            : selectedParticipantForPayment.payment_status === "paid"
+                            ? t("trips.stats.paid")
+                            : t("trips.stats.unpaid")}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{t("trips.messages.amountPaid")}</span>
+                          <span className="font-medium">{currencySymbol}{currentAmountPaid.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{t("trips.messages.amountRemaining")}</span>
+                          <span className="font-medium">{currencySymbol}{amountRemaining.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{t("trips.messages.totalPrice")}</span>
+                          <span className="font-medium">{currencySymbol}{tripPrice.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <Progress value={progressPercentage} className="h-2" />
+                      <p className="text-xs text-center text-muted-foreground">
+                        {progressPercentage.toFixed(0)}% {t("trips.messages.complete")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Payment Amount Input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_amount">{t("trips.paymentAmount")}</Label>
+                    <Input
+                      id="payment_amount"
+                      type="number"
+                      min="0"
+                      max={maxPayment}
+                      step="0.01"
+                      value={paymentAmount}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numValue = parseFloat(value);
+                        
+                        // Prevent entering more than remaining amount
+                        if (value && !isNaN(numValue) && numValue > maxPayment) {
+                          setPaymentAmount(maxPayment.toString());
+                          toast.error(t("trips.messages.paymentExceedsRemaining", { max: maxPayment }));
+                        } else {
+                          setPaymentAmount(value);
+                        }
+                        
+                        if (fulfillAllAmount) {
+                          setFulfillAllAmount(false);
+                        }
+                      }}
+                      disabled={fulfillAllAmount}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {t("trips.messages.maxPaymentAmount", { max: maxPayment })}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="fulfill_all"
+                      checked={fulfillAllAmount}
+                      disabled={amountRemaining <= 0}
+                      onCheckedChange={(checked) => {
+                        setFulfillAllAmount(checked === true);
+                        if (checked && amountRemaining > 0) {
+                          setPaymentAmount(amountRemaining.toString());
+                        } else if (!checked) {
+                          setPaymentAmount("");
+                        }
+                      }}
+                    />
+                    <Label htmlFor="fulfill_all" className="cursor-pointer">
+                      {t("trips.fulfillAllAmount")}
+                    </Label>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsPaymentDialogOpen(false);
+                setSelectedParticipantForPayment(null);
+                setPaymentAmount("");
+                setFulfillAllAmount(false);
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!selectedParticipantForPayment) return;
+                setIsProcessingPayment(true);
+                try {
+                  const amount = parseFloat(paymentAmount);
+                  const userTier = (selectedParticipantForPayment.user as any)?.price_tier || "normal";
+                  const tripPrice = userTier === "mastor" ? trip.price_mastor : userTier === "botl" ? trip.price_botl : trip.price_normal;
+                  
+                  // Get current amount paid (default to 0 if not set)
+                  const currentAmountPaid = selectedParticipantForPayment.amount_paid || 0;
+                  
+                  // Calculate new total amount paid
+                  const newAmountPaid = currentAmountPaid + amount;
+                  
+                  // Validate that new total doesn't exceed trip price
+                  if (newAmountPaid > tripPrice) {
+                    toast.error(t("trips.messages.paymentExceedsPrice", { max: tripPrice }));
+                    setIsProcessingPayment(false);
+                    return;
+                  }
+                  
+                  // Determine payment status based on new total
+                  let paymentStatus: TripPaymentStatus = "paid";
+                  if (newAmountPaid < tripPrice) {
+                    paymentStatus = "partially_paid";
+                  }
+
+                  await handleUpdateParticipant(selectedParticipantForPayment.id, {
+                    payment_status: paymentStatus,
+                    amount_paid: newAmountPaid,
+                  });
+
+                  setIsPaymentDialogOpen(false);
+                  setSelectedParticipantForPayment(null);
+                  setPaymentAmount("");
+                  setFulfillAllAmount(false);
+                } catch (error) {
+                  console.error("Error processing payment:", error);
+                  let errorMessage = t("trips.paymentError");
+                  if (error instanceof Error) {
+                    if (error.message === "INVALID_PAYMENT_STATUS") {
+                      errorMessage = t("trips.messages.invalidPaymentStatus");
+                    } else {
+                      errorMessage = error.message;
+                    }
+                  }
+                  toast.error(errorMessage);
+                } finally {
+                  setIsProcessingPayment(false);
+                }
+              }}
+              disabled={
+                isProcessingPayment || 
+                !paymentAmount || 
+                parseFloat(paymentAmount) <= 0 ||
+                !selectedParticipantForPayment ||
+                (selectedParticipantForPayment && (() => {
+                  const userTier = (selectedParticipantForPayment.user as any)?.price_tier || "normal";
+                  const tripPrice = userTier === "mastor" ? trip.price_mastor : userTier === "botl" ? trip.price_botl : trip.price_normal;
+                  const currentAmountPaid = selectedParticipantForPayment.amount_paid || 0;
+                  const amountRemaining = Math.max(0, tripPrice - currentAmountPaid);
+                  return amountRemaining <= 0;
+                })()) || false
+              }
+            >
+              {isProcessingPayment ? t("common.processing") : t("trips.actions.markAsPaid")}
             </Button>
           </DialogFooter>
         </DialogContent>

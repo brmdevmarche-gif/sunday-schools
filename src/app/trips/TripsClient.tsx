@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
@@ -48,6 +49,7 @@ interface UserProfile {
   email?: string;
   church_id?: string | null;
   diocese_id?: string | null;
+  price_tier?: "normal" | "mastor" | "botl" | null;
 }
 
 interface TripsClientProps {
@@ -75,6 +77,7 @@ export default function TripsClient({
   );
   const [isSubscribeDialogOpen, setIsSubscribeDialogOpen] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [subscribeForm, setSubscribeForm] = useState({
     emergency_contact: "",
     medical_info: "",
@@ -137,6 +140,19 @@ export default function TripsClient({
   const getCurrencySymbol = () => {
     return locale === "ar" ? "ج.م" : "E.L";
   };
+
+  // Get the price based on user's tier (or child's tier if parent)
+  function getUserPrice(trip: TripWithDetails) {
+    // If parent booking for child, use child's price_tier
+    // Otherwise, use the logged-in user's price_tier
+    const priceTier = childContext 
+      ? ((childContext as any).price_tier || "normal")
+      : (userProfile.price_tier || "normal");
+    
+    if (priceTier === "mastor") return trip.price_mastor;
+    if (priceTier === "botl") return trip.price_botl;
+    return trip.price_normal;
+  }
 
   function handleSubscribeClick(trip: TripWithDetails) {
     setSelectedTrip(trip);
@@ -403,14 +419,10 @@ export default function TripsClient({
                         </div>
                       )}
                       <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-green-500" />
                         <span className="font-medium">
-                          {t("studentTrips.price")}:{" "}
-                          {locale === "ar" ? "ج.م" : "E.L"}
-                          {trip.price_normal} ({t("studentTrips.normal")}),{" "}
-                          {locale === "ar" ? "ج.م" : "E.L"}
-                          {trip.price_mastor} ({t("studentTrips.mastor")}),{" "}
-                          {locale === "ar" ? "ج.م" : "E.L"}
-                          {trip.price_botl} ({t("studentTrips.botl")})
+                          {t("studentTrips.price")}: {getCurrencySymbol()}
+                          {getUserPrice(trip)}
                         </span>
                       </div>
                     </div>
@@ -489,39 +501,59 @@ export default function TripsClient({
               </div>
             )}
 
-            <div>
-              <Label htmlFor="emergency_contact">
-                {t("studentTrips.emergencyContact")}
-              </Label>
-              <Input
-                id="emergency_contact"
-                value={subscribeForm.emergency_contact}
-                onChange={(e) =>
-                  setSubscribeForm({
-                    ...subscribeForm,
-                    emergency_contact: e.target.value,
-                  })
-                }
-                placeholder={t("studentTrips.emergencyContactPlaceholder")}
-              />
-            </div>
+            <div className="border rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowAdditionalInfo(!showAdditionalInfo)}
+                className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent transition-colors"
+              >
+                <span className="text-sm font-medium">
+                  {t("studentTrips.additionalInfo")} ({t("common.optional")})
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                    showAdditionalInfo ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {showAdditionalInfo && (
+                <div className="space-y-4 p-4 pt-0 border-t">
+                  <div>
+                    <Label htmlFor="emergency_contact">
+                      {t("studentTrips.emergencyContact")}
+                    </Label>
+                    <Input
+                      id="emergency_contact"
+                      value={subscribeForm.emergency_contact}
+                      onChange={(e) =>
+                        setSubscribeForm({
+                          ...subscribeForm,
+                          emergency_contact: e.target.value,
+                        })
+                      }
+                      placeholder={t("studentTrips.emergencyContactPlaceholder")}
+                    />
+                  </div>
 
-            <div>
-              <Label htmlFor="medical_info">
-                {t("studentTrips.medicalInfo")}
-              </Label>
-              <Textarea
-                id="medical_info"
-                value={subscribeForm.medical_info}
-                onChange={(e) =>
-                  setSubscribeForm({
-                    ...subscribeForm,
-                    medical_info: e.target.value,
-                  })
-                }
-                placeholder={t("studentTrips.medicalInfoPlaceholder")}
-                rows={3}
-              />
+                  <div>
+                    <Label htmlFor="medical_info">
+                      {t("studentTrips.medicalInfo")}
+                    </Label>
+                    <Textarea
+                      id="medical_info"
+                      value={subscribeForm.medical_info}
+                      onChange={(e) =>
+                        setSubscribeForm({
+                          ...subscribeForm,
+                          medical_info: e.target.value,
+                        })
+                      }
+                      placeholder={t("studentTrips.medicalInfoPlaceholder")}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

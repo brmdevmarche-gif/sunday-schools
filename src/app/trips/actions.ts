@@ -181,13 +181,17 @@ export async function subscribeToTripAction(input: SubscribeToTripInput & { for_
 
   // Check if trip is full
   if (trip.max_participants) {
-    const { data: participants } = await adminClient
+    const { count, error: countError } = await adminClient
       .from('trip_participants')
-      .select('id', { count: 'exact', head: true })
+      .select('*', { count: 'exact', head: true })
       .eq('trip_id', input.trip_id)
       .eq('approval_status', 'approved')
 
-    const participantCount = participants?.length || 0
+    if (countError) {
+      throw new Error(`Failed to check trip capacity: ${countError.message}`)
+    }
+
+    const participantCount = count || 0
     if (participantCount >= trip.max_participants) {
       throw new Error('This trip is full')
     }
@@ -205,7 +209,7 @@ export async function subscribeToTripAction(input: SubscribeToTripInput & { for_
       medical_info: input.medical_info || null,
       registered_by: registeredBy,
     })
-    .select()
+    .select('id, trip_id, user_id, approval_status, payment_status, emergency_contact, medical_info, registered_at, registered_by')
     .single()
 
   if (error) {

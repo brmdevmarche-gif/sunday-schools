@@ -104,26 +104,63 @@ export default function CreateTripClient({
     fetchClasses();
   }, [churchIds]);
 
-  const [formData, setFormData] = useState<Partial<CreateTripInput>>({
-    title: "",
-    description: "",
-    image_url: "",
-    start_datetime: "",
-    end_datetime: "",
-    trip_type: "one_day" as TripType,
-    status: "active" as TripStatus,
-    available: true,
-    price_normal: 0,
-    price_mastor: 0,
-    price_botl: 0,
-    max_participants: undefined,
-    requires_parent_approval: true,
-    transportation_details: "",
-    what_to_bring: "",
+  // Helper function to get today's date in ISO format
+  function getTodayDateTime(): string {
+    const now = new Date();
+    // Format: YYYY-MM-DDTHH:mm (ISO format without seconds)
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  const [formData, setFormData] = useState<Partial<CreateTripInput>>(() => {
+    const today = getTodayDateTime();
+    return {
+      title: "",
+      description: "",
+      image_url: "",
+      start_datetime: today,
+      end_datetime: today,
+      trip_type: "one_day" as TripType,
+      status: "active" as TripStatus,
+      available: true,
+      price_normal: 0,
+      price_mastor: 0,
+      price_botl: 0,
+      max_participants: undefined,
+      requires_parent_approval: true,
+      transportation_details: "",
+      what_to_bring: "",
+    };
   });
 
   function handleInputChange(field: string, value: unknown) {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      
+      // When trip type is selected, auto-fill dates to today
+      if (field === "trip_type") {
+        const today = getTodayDateTime();
+        updated.start_datetime = today;
+        
+        // If one_day type, set end_datetime to same as start_datetime (today)
+        if (value === "one_day") {
+          updated.end_datetime = today;
+        } else {
+          // For other types, also set end_datetime to today by default
+          updated.end_datetime = today;
+        }
+      } 
+      // If trip type is one_day and start_datetime is changed, set end_datetime to start_datetime
+      else if (field === "start_datetime" && prev.trip_type === "one_day") {
+        updated.end_datetime = value as string;
+      }
+      
+      return updated;
+    });
   }
 
   function handleChurchChange(churchId: string, checked: boolean) {
@@ -394,15 +431,30 @@ export default function CreateTripClient({
                   sheetTitle={t("startDate")}
                 />
 
-                <DateTimePicker
-                  value={formData.end_datetime || ""}
-                  onChange={(value) =>
-                    handleInputChange("end_datetime", value)
-                  }
-                  label={`${t("endDate")} *`}
-                  placeholder={t("selectDateTime")}
-                  sheetTitle={t("endDate")}
-                />
+                {formData.trip_type !== "one_day" && (
+                  <DateTimePicker
+                    value={formData.end_datetime || ""}
+                    onChange={(value) =>
+                      handleInputChange("end_datetime", value)
+                    }
+                    label={`${t("endDate")} *`}
+                    placeholder={t("selectDateTime")}
+                    sheetTitle={t("endDate")}
+                  />
+                )}
+                {formData.trip_type === "one_day" && formData.start_datetime && (
+                  <div className="space-y-2">
+                    <Label>{t("endDate")}</Label>
+                    <Input
+                      value={formData.start_datetime}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {t("oneDayTripEndDateNote")}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

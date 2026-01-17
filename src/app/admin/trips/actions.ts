@@ -372,14 +372,42 @@ export async function getTripByIdAction(tripId: string) {
     }
   }
 
+  // Enrich classes, churches, and dioceses with names
+  const enrichedClasses = await Promise.all((classes || []).map(async (cls: any) => {
+    const { data: classData } = await adminClient
+      .from('classes')
+      .select('id, name')
+      .eq('id', cls.class_id)
+      .maybeSingle()
+    return { ...cls, class_name: classData?.name }
+  }))
+
+  const enrichedChurches = await Promise.all((churches || []).map(async (church: any) => {
+    const { data: churchData } = await adminClient
+      .from('churches')
+      .select('id, name')
+      .eq('id', church.church_id)
+      .maybeSingle()
+    return { ...church, church_name: churchData?.name }
+  }))
+
+  const enrichedDioceses = await Promise.all((dioceses || []).map(async (diocese: any) => {
+    const { data: dioceseData } = await adminClient
+      .from('dioceses')
+      .select('id, name')
+      .eq('id', diocese.diocese_id)
+      .maybeSingle()
+    return { ...diocese, diocese_name: dioceseData?.name }
+  }))
+
   return { 
     success: true, 
     data: { 
       ...trip, 
       destinations: destinations || [],
-      churches: churches || [],
-      dioceses: dioceses || [],
-      classes: classes || [],
+      churches: enrichedChurches || [],
+      dioceses: enrichedDioceses || [],
+      classes: enrichedClasses || [],
       organizers: organizers || [],
     } 
   }
@@ -512,6 +540,17 @@ export async function getTripsAction(filters?: {
       return acc
     }, {})
 
+    // Get subscribed counts for each trip (reuse tripIds from above)
+    const { data: participantsData } = await adminClient
+      .from('trip_participants')
+      .select('trip_id')
+      .in('trip_id', tripIds)
+
+    const subscribedCountsByTrip = (participantsData || []).reduce((acc: Record<string, number>, p) => {
+      acc[p.trip_id] = (acc[p.trip_id] || 0) + 1
+      return acc
+    }, {})
+
     // Attach to trips
     const tripsWithDetails = data.map(trip => ({
       ...trip,
@@ -519,6 +558,7 @@ export async function getTripsAction(filters?: {
       churches: churchesByTrip[trip.id] || [],
       dioceses: diocesesByTrip[trip.id] || [],
       classes: classesByTrip[trip.id] || [],
+      subscribed_count: subscribedCountsByTrip[trip.id] || 0,
     }))
 
     return { success: true, data: tripsWithDetails }
@@ -542,7 +582,8 @@ export async function getTripParticipantsAction(tripId: string) {
         full_name,
         email,
         phone,
-        user_code
+        user_code,
+        church_id
       ),
       registrar:users!registered_by(
         id,
@@ -558,7 +599,55 @@ export async function getTripParticipantsAction(tripId: string) {
     throw new Error(`Failed to fetch participants: ${error.message}`)
   }
 
-  return { success: true, data: data || [] }
+  // Enrich participants with class and diocese info
+  const enrichedParticipants = await Promise.all((data || []).map(async (participant: any) => {
+    // Get user's class
+    const { data: classAssignment } = await adminClient
+      .from('class_assignments')
+      .select(`
+        class_id,
+        classes:classes!class_assignments_class_id_fkey(
+          id,
+          name,
+          church_id
+        )
+      `)
+      .eq('user_id', participant.user_id)
+      .eq('assignment_type', 'student')
+      .eq('is_active', true)
+      .maybeSingle()
+
+    // Get church info
+    let churchInfo = null
+    if (participant.user?.church_id) {
+      const { data: church } = await adminClient
+        .from('churches')
+        .select('id, name, diocese_id')
+        .eq('id', participant.user.church_id)
+        .maybeSingle()
+      churchInfo = church
+    }
+
+    // Get diocese info
+    let dioceseInfo = null
+    if (churchInfo?.diocese_id) {
+      const { data: diocese } = await adminClient
+        .from('dioceses')
+        .select('id, name')
+        .eq('id', churchInfo.diocese_id)
+        .maybeSingle()
+      dioceseInfo = diocese
+    }
+
+    return {
+      ...participant,
+      class_info: classAssignment?.classes || null,
+      church_info: churchInfo,
+      diocese_info: dioceseInfo,
+    }
+  }))
+
+  return { success: true, data: enrichedParticipants }
 }
 
 /**
@@ -595,6 +684,10 @@ export async function updateTripParticipantAction(input: UpdateTripParticipantIn
     updateData.payment_status = input.payment_status
   }
 
+  if (input.amount_paid !== undefined) {
+    updateData.amount_paid = input.amount_paid
+  }
+
   const { data, error } = await adminClient
     .from('trip_participants')
     .update(updateData)
@@ -603,6 +696,10 @@ export async function updateTripParticipantAction(input: UpdateTripParticipantIn
     .single()
 
   if (error) {
+    // Provide a more user-friendly error message for constraint violations
+    if (error.message?.includes('trip_participants_payment_status_check')) {
+      throw new Error('INVALID_PAYMENT_STATUS')
+    }
     throw new Error(`Failed to update participant: ${error.message}`)
   }
 

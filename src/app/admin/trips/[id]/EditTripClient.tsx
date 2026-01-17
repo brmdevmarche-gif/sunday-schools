@@ -82,6 +82,18 @@ export default function EditTripClient({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  // Helper function to get today's date in ISO format
+  function getTodayDateTime(): string {
+    const now = new Date();
+    // Format: YYYY-MM-DDTHH:mm (ISO format without seconds)
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
   const [formData, setFormData] = useState<Partial<UpdateTripInput>>({
     id: trip.id,
     title: trip.title,
@@ -124,7 +136,29 @@ export default function EditTripClient({
     field: string,
     value: string | number | boolean | undefined
   ) {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      
+      // When trip type is selected, auto-fill dates to today
+      if (field === "trip_type") {
+        const today = getTodayDateTime();
+        updated.start_datetime = today;
+        
+        // If one_day type, set end_datetime to same as start_datetime (today)
+        if (value === "one_day") {
+          updated.end_datetime = today;
+        } else {
+          // For other types, also set end_datetime to today by default
+          updated.end_datetime = today;
+        }
+      } 
+      // If trip type is one_day and start_datetime is changed, set end_datetime to start_datetime
+      else if (field === "start_datetime" && prev.trip_type === "one_day") {
+        updated.end_datetime = value as string;
+      }
+      
+      return updated;
+    });
   }
 
   function handleChurchChange(churchId: string, checked: boolean) {
@@ -191,11 +225,21 @@ export default function EditTripClient({
     if (
       !formData.title ||
       !formData.start_datetime ||
-      !formData.end_datetime ||
       !formData.trip_type
     ) {
       toast.error("Please fill in all required fields");
       return;
+    }
+
+    // For non-one-day trips, end_datetime is required
+    if (formData.trip_type !== "one_day" && !formData.end_datetime) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // For one-day trips, set end_datetime to start_datetime
+    if (formData.trip_type === "one_day") {
+      formData.end_datetime = formData.start_datetime;
     }
 
     setIsLoading(true);
@@ -353,15 +397,30 @@ export default function EditTripClient({
                   sheetTitle={t("startDate")}
                 />
 
-                <DateTimePicker
-                  value={formData.end_datetime || ""}
-                  onChange={(value) =>
-                    handleInputChange("end_datetime", value)
-                  }
-                  label={`${t("endDate")} *`}
-                  placeholder={t("selectDateTime")}
-                  sheetTitle={t("endDate")}
-                />
+                {formData.trip_type !== "one_day" && (
+                  <DateTimePicker
+                    value={formData.end_datetime || ""}
+                    onChange={(value) =>
+                      handleInputChange("end_datetime", value)
+                    }
+                    label={`${t("endDate")} *`}
+                    placeholder={t("selectDateTime")}
+                    sheetTitle={t("endDate")}
+                  />
+                )}
+                {formData.trip_type === "one_day" && formData.start_datetime && (
+                  <div className="space-y-2">
+                    <Label>{t("endDate")}</Label>
+                    <Input
+                      value={formData.start_datetime}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {t("oneDayTripEndDateNote")}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

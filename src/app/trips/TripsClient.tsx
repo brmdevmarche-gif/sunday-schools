@@ -34,6 +34,7 @@ import {
   Clock,
   Users,
   DollarSign,
+  Info,
   ArrowLeft,
   CheckCircle2,
   XCircle,

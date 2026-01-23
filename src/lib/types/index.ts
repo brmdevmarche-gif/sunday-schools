@@ -19,6 +19,7 @@ export * from './modules/announcements';
 export * from './modules/enhanced-activities';
 export * from './modules/gamification';
 export * from './modules/parents';
+export * from './modules/permissions';
 
 // =====================================================
 // USAGE EXAMPLES:

@@ -42,10 +42,10 @@ export async function createTripAction(input: CreateTripInput) {
     throw new Error('Unauthorized')
   }
 
-  const adminClient = createAdminClient()
-
   // Extract associations from input
   const { destinations, church_ids, diocese_ids, class_ids, ...tripData } = input
+
+  const adminClient = createAdminClient()
 
   // Create the trip
   const { data: trip, error: tripError } = await adminClient
@@ -70,12 +70,14 @@ export async function createTripAction(input: CreateTripInput) {
       visit_order: dest.visit_order || index + 1,
     }))
 
-    const { error: destError } = await adminClient
+    // Use user-scoped client so RLS sees the creator as auth.uid()
+    const { error: destError } = await supabase
       .from('trip_destinations')
       .insert(destinationsToInsert)
 
     if (destError) {
       console.error('Failed to create destinations:', destError)
+      throw new Error(`Failed to create destinations: ${destError.message}`)
     }
   }
 
@@ -142,9 +144,9 @@ export async function updateTripAction(input: UpdateTripInput) {
     throw new Error('Not authenticated')
   }
 
-  const adminClient = createAdminClient()
-
   const { id, destinations, church_ids, diocese_ids, class_ids, ...updateData } = input
+
+  const adminClient = createAdminClient()
 
   // Update the trip
   const { data: trip, error: tripError } = await adminClient
@@ -160,11 +162,16 @@ export async function updateTripAction(input: UpdateTripInput) {
 
   // Update destinations if provided
   if (destinations !== undefined) {
-    // Delete existing destinations
-    await adminClient
+    // Delete existing destinations (user-scoped client so RLS applies correctly)
+    const { error: deleteError } = await supabase
       .from('trip_destinations')
       .delete()
       .eq('trip_id', id)
+
+    if (deleteError) {
+      console.error('Failed to delete existing destinations:', deleteError)
+      throw new Error(`Failed to update destinations: ${deleteError.message}`)
+    }
 
     // Insert new destinations
     if (destinations.length > 0) {
@@ -175,12 +182,13 @@ export async function updateTripAction(input: UpdateTripInput) {
         visit_order: dest.visit_order || index + 1,
       }))
 
-      const { error: destError } = await adminClient
+      const { error: destError } = await supabase
         .from('trip_destinations')
         .insert(destinationsToInsert)
 
       if (destError) {
         console.error('Failed to update destinations:', destError)
+        throw new Error(`Failed to update destinations: ${destError.message}`)
       }
     }
   }

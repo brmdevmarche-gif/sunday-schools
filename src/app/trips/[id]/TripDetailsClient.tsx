@@ -409,48 +409,82 @@ export default function TripDetailsClient({
               </CardHeader>
               <CardContent className="space-y-4">
                 {isSubscribed ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      {isApproved ? (
-                        <>
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          <span className="font-medium text-green-600">
-                            {t("studentTrips.approved")}
-                          </span>
-                        </>
-                      ) : isPending ? (
-                        <>
-                          <Clock className="h-5 w-5 text-yellow-500" />
-                          <span className="font-medium text-yellow-600">
-                            {t("studentTrips.pendingApproval")}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <XCircle className="h-5 w-5 text-red-500" />
-                          <span className="font-medium text-red-600">
-                            {t("studentTrips.rejected")}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                  (() => {
+                    const totalPrice = getUserPrice();
+                    const amountPaid = trip.my_participation?.amount_paid || 0;
+                    const amountRemaining = Math.max(0, totalPrice - amountPaid);
+                    const paymentStatus = trip.my_participation?.payment_status;
 
-                    {trip.my_participation?.payment_status && (
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <span className="text-sm text-muted-foreground">
-                          {t("studentTrips.payment")}:
-                        </span>
-                        <Badge
-                          variant={
-                            trip.my_participation.payment_status === "paid"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {trip.my_participation.payment_status}
-                        </Badge>
-                      </div>
-                    )}
+                    return (
+                      <>
+                        <div className="flex items-center gap-2">
+                          {isApproved ? (
+                            <>
+                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              <span className="font-medium text-green-600">
+                                {t("studentTrips.approved")}
+                              </span>
+                            </>
+                          ) : isPending ? (
+                            <>
+                              <Clock className="h-5 w-5 text-yellow-500" />
+                              <span className="font-medium text-yellow-600">
+                                {t("studentTrips.pendingApproval")}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-5 w-5 text-red-500" />
+                              <span className="font-medium text-red-600">
+                                {t("studentTrips.rejected")}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        {paymentStatus && (
+                          <div className="pt-2 border-t space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">
+                                {t("studentTrips.payment")}:
+                              </span>
+                              <Badge
+                                variant={
+                                  paymentStatus === "paid"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {paymentStatus === "partially_paid"
+                                  ? t("trips.partiallyPaid")
+                                  : paymentStatus === "paid"
+                                  ? t("studentTrips.paid")
+                                  : t("trips.stats.unpaid")}
+                              </Badge>
+                            </div>
+
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div className="flex items-center justify-between">
+                                <span>{t("trips.messages.amountPaid")}:</span>
+                                <span className="font-medium">
+                                  {getCurrencySymbol()}
+                                  {amountPaid.toFixed(2)}{" "}
+                                  <span className="text-xs text-muted-foreground">
+                                    / {getCurrencySymbol()}
+                                    {totalPrice.toFixed(2)}
+                                  </span>
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span>{t("trips.messages.amountRemaining")}:</span>
+                                <span className="font-medium">
+                                  {getCurrencySymbol()}
+                                  {amountRemaining.toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                     {trip.my_participation?.emergency_contact && (
                       <div className="pt-2 border-t">
@@ -462,7 +496,9 @@ export default function TripDetailsClient({
                         </p>
                       </div>
                     )}
-                  </>
+                      </>
+                    );
+                  })()
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground">
@@ -489,29 +525,99 @@ export default function TripDetailsClient({
       </div>
 
       {/* Subscribe Dialog */}
-      <Dialog
-        open={isSubscribeDialogOpen}
-        onOpenChange={setIsSubscribeDialogOpen}
-      >
-        <DialogContent>
+      <Dialog open={isSubscribeDialogOpen} onOpenChange={setIsSubscribeDialogOpen}>
+        <DialogContent className="sm:max-w-lg w-[96vw] max-h-[92vh] p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-2xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("studentTrips.subscribeToTrip")}</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
+              {t("studentTrips.subscribeToTrip")}
+            </DialogTitle>
             <DialogDescription>
               {t("studentTrips.subscribeDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="font-medium">{trip.title}</p>
-              {trip.start_datetime && (
-                <p className="text-sm text-muted-foreground">
-                  {formatDateTime(trip.start_datetime)}
+            {/* Event Details (important block, no card wrapper) */}
+            <div className="space-y-4 pb-4 border-b">
+              <div className="space-y-1">
+                <p className="font-semibold text-2xl sm:text-3xl">
+                  {trip.title}
                 </p>
-              )}
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                  <span className="font-semibold text-xl sm:text-2xl text-primary">
+                    {getCurrencySymbol()}
+                    {getUserPrice()}
+                  </span>
+                </div>
+                {trip.destinations && trip.destinations.length > 0 && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                    <span className="text-sm sm:text-base text-muted-foreground">
+                      {trip.destinations[0].destination_name}
+                      {trip.destinations.length > 1 &&
+                        ` +${trip.destinations.length - 1} ${t("common.more")}`}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm sm:text-base">
+                {trip.start_datetime && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                    <span className="text-muted-foreground">
+                      {t("studentTrips.start")}:{" "}
+                      {formatDateTime(trip.start_datetime)}
+                    </span>
+                  </div>
+                )}
+                {trip.end_datetime && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                    <span className="text-muted-foreground">
+                      {t("studentTrips.end")}: {formatDateTime(trip.end_datetime)}
+                    </span>
+                  </div>
+                )}
+                {trip.requires_parent_approval && (
+                  <div className="flex items-center gap-2">
+                    <Info className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                    <span className="text-muted-foreground">
+                      {t("studentTrips.parentApprovalRequired")}
+                    </span>
+                  </div>
+                )}
+
+                {trip.destinations && trip.destinations.length > 0 && (
+                  <div className="flex flex-col gap-1 pt-2 border-t mt-1">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                      <span className="font-medium">
+                        {t("studentTrips.destinations")}
+                      </span>
+                    </div>
+                    <div className="pl-5 space-y-1">
+                      {trip.destinations.slice(0, 2).map((dest, idx) => (
+                        <p
+                          key={dest.id}
+                          className="text-xs sm:text-sm text-muted-foreground"
+                        >
+                          {idx + 1}. {dest.destination_name}
+                        </p>
+                      ))}
+                      {trip.destinations.length > 2 && (
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          +{trip.destinations.length - 2} {t("common.more")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="border rounded-lg">
+            {/* Optional extra info */}
+            <div className="border rounded-2xl">
               <button
                 type="button"
                 onClick={() => setShowAdditionalInfo(!showAdditionalInfo)}
@@ -567,14 +673,20 @@ export default function TripDetailsClient({
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
             <Button
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => setIsSubscribeDialogOpen(false)}
             >
               {t("studentTrips.cancel")}
             </Button>
-            <Button onClick={handleSubscribe} disabled={isSubscribing}>
+            <Button
+              className="w-full sm:w-auto"
+              size="lg"
+              onClick={handleSubscribe}
+              disabled={isSubscribing}
+            >
               {isSubscribing
                 ? t("studentTrips.subscribing")
                 : t("studentTrips.subscribe")}

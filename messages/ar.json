@@ -1883,6 +1883,7 @@
       "paid": "مدفوع",
       "unpaid": "غير مدفوع"
     },
+    "partiallyPaid": "مدفوع جزئياً",
     "table": {
       "student": "الطالب",
       "contact": "جهة الاتصال",

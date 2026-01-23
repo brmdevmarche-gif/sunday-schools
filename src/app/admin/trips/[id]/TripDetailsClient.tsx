@@ -1335,25 +1335,42 @@ export default function TripDetailsClient({
                           <div className="flex items-center justify-start gap-1">
                             {participant.approval_status === "approved" ? (
                               <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setSelectedParticipantForPayment(participant);
-                                    // Calculate user's price and remaining amount
-                                    const userTier = (participant.user as any)?.price_tier || "normal";
-                                    const tripPrice = userTier === "mastor" ? trip.price_mastor : userTier === "botl" ? trip.price_botl : trip.price_normal;
-                                    const currentAmountPaid = participant.amount_paid || 0;
-                                    const amountRemaining = Math.max(0, tripPrice - currentAmountPaid);
-                                    setPaymentAmount(amountRemaining > 0 ? amountRemaining.toString() : "0");
-                                    setFulfillAllAmount(amountRemaining > 0);
-                                    setIsPaymentDialogOpen(true);
-                                  }}
-                                  disabled={isUpdating === participant.id}
-                                >
-                                  <CreditCard className="h-4 w-4 mr-1" />
-                                  {t("trips.actions.pay")}
-                                </Button>
+                                {participant.payment_status !== "paid" && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setSelectedParticipantForPayment(participant);
+                                      // Calculate user's price and remaining amount
+                                      const userTier =
+                                        (participant.user as any)?.price_tier ||
+                                        "normal";
+                                      const tripPrice =
+                                        userTier === "mastor"
+                                          ? trip.price_mastor
+                                          : userTier === "botl"
+                                          ? trip.price_botl
+                                          : trip.price_normal;
+                                      const currentAmountPaid =
+                                        participant.amount_paid || 0;
+                                      const amountRemaining = Math.max(
+                                        0,
+                                        tripPrice - currentAmountPaid
+                                      );
+                                      setPaymentAmount(
+                                        amountRemaining > 0
+                                          ? amountRemaining.toString()
+                                          : "0"
+                                      );
+                                      setFulfillAllAmount(amountRemaining > 0);
+                                      setIsPaymentDialogOpen(true);
+                                    }}
+                                    disabled={isUpdating === participant.id}
+                                  >
+                                    <DollarSign className="h-4 w-4 mr-1" />
+                                    {t("trips.actions.pay")}
+                                  </Button>
+                                )}
                                 <Button
                                   size="sm"
                                   variant="ghost"

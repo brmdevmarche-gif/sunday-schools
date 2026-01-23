@@ -17,7 +17,11 @@ export default async function AdminOrdersPage({
   }
 
   // Check if user is admin
-  if (!["super_admin", "diocese_admin", "church_admin", "store_manager"].includes(profile.role)) {
+  if (
+    !["super_admin", "diocese_admin", "church_admin", "store_manager"].includes(
+      profile.role
+    )
+  ) {
     redirect("/");
   }
 
@@ -49,11 +53,34 @@ export default async function AdminOrdersPage({
     pageSize,
   });
 
-  // Fetch filter options
+  // Scope filter options based on admin role so dropdowns don't show everything
+  let diocesesQuery = supabase.from("dioceses").select("id, name").order("name");
+  let churchesQuery = supabase
+    .from("churches")
+    .select("id, name, diocese_id")
+    .order("name");
+  let classesQuery = supabase
+    .from("classes")
+    .select("id, name, church_id")
+    .order("name");
+
+  if (profile.role === "diocese_admin" && profile.diocese_id) {
+    diocesesQuery = diocesesQuery.eq("id", profile.diocese_id);
+    churchesQuery = churchesQuery.eq("diocese_id", profile.diocese_id);
+  }
+
+  if (profile.role === "church_admin" && profile.church_id) {
+    churchesQuery = churchesQuery.eq("id", profile.church_id);
+    classesQuery = classesQuery.eq("church_id", profile.church_id);
+    if (profile.diocese_id) {
+      diocesesQuery = diocesesQuery.eq("id", profile.diocese_id);
+    }
+  }
+
   const [diocesesResult, churchesResult, classesResult] = await Promise.all([
-    supabase.from("dioceses").select("id, name").order("name"),
-    supabase.from("churches").select("id, name, diocese_id").order("name"),
-    supabase.from("classes").select("id, name, church_id").order("name"),
+    diocesesQuery,
+    churchesQuery,
+    classesQuery,
   ]);
 
   return (

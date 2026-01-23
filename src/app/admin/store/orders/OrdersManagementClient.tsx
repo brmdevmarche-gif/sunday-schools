@@ -42,6 +42,9 @@ import {
   MoreVertical,
   Filter,
   Search,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { ResponsiveFilters } from "@/components/ui/filter-sheet";
 import { Pagination } from "@/components/ui/pagination";
@@ -164,6 +167,7 @@ export default function OrdersManagementClient({
   const [churchFilter, setChurchFilter] = useState<string>("all");
   const [classFilter, setClassFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
@@ -312,6 +316,38 @@ export default function OrdersManagementClient({
     searchQuery,
   ]);
 
+  const groupedOrders = useMemo(() => {
+    const groups = new Map<
+      string,
+      { key: string; label: string; orders: Order[] }
+    >();
+
+    for (const order of filteredOrders) {
+      const d = new Date(order.created_at);
+      if (Number.isNaN(d.getTime())) continue;
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const key = `${yyyy}-${mm}`;
+      const label = new Date(yyyy, d.getMonth(), 1).toLocaleString(undefined, {
+        month: "long",
+        year: "numeric",
+      });
+
+      const existing = groups.get(key);
+      if (existing) existing.orders.push(order);
+      else groups.set(key, { key, label, orders: [order] });
+    }
+
+    return Array.from(groups.values()).sort((a, b) =>
+      b.key.localeCompare(a.key)
+    );
+  }, [filteredOrders]);
+
+  useEffect(() => {
+    // Expand all month groups by default whenever the result set changes
+    setExpandedMonths(new Set(groupedOrders.map((g) => g.key)));
+  }, [groupedOrders]);
+
   function getStatusColor(status: string) {
     switch (status) {
       case "pending":
@@ -326,6 +362,15 @@ export default function OrdersManagementClient({
       default:
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
+  }
+
+  function toggleMonth(key: string) {
+    setExpandedMonths((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   }
 
   function toggleOrderSelection(orderId: string) {
@@ -392,7 +437,8 @@ export default function OrdersManagementClient({
     });
 
     if (orderIds.length === 0) {
-      toast.error(t("store.noOrdersSelected"));
+      // All selected orders are already fulfilled – nothing to update
+      toast.error(t("store.cannotChangeFulfilled"));
       return;
     }
 
@@ -563,7 +609,11 @@ export default function OrdersManagementClient({
                 onClick={() => handleBulkUpdateStatus("approved")}
                 disabled={isProcessing || selectedOrders.size === 0}
               >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                )}
                 {t("store.approveSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
               </Button>
@@ -573,7 +623,11 @@ export default function OrdersManagementClient({
                 onClick={() => handleBulkUpdateStatus("rejected")}
                 disabled={isProcessing || selectedOrders.size === 0}
               >
-                <XCircle className="h-4 w-4 mr-2" />
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <XCircle className="h-4 w-4 mr-2" />
+                )}
                 {t("store.rejectSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
               </Button>
@@ -583,7 +637,11 @@ export default function OrdersManagementClient({
                 onClick={() => handleBulkUpdateStatus("fulfilled")}
                 disabled={isProcessing || selectedOrders.size === 0}
               >
-                <Package className="h-4 w-4 mr-2" />
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Package className="h-4 w-4 mr-2" />
+                )}
                 {t("store.fulfillSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
               </Button>
@@ -664,134 +722,213 @@ export default function OrdersManagementClient({
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {filteredOrders.map((order) => (
-              <Card key={order.id}>
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    <Checkbox
-                      checked={selectedOrders.has(order.id)}
-                      onCheckedChange={() => toggleOrderSelection(order.id)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg">
-                            {order.users?.full_name || order.users?.email}
-                          </CardTitle>
-                          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                            {order.users?.user_code && (
-                              <>
-                                <span className="font-mono">
-                                  ID: {order.users.user_code}
-                                </span>
-                                <span>•</span>
-                              </>
-                            )}
-                            <span>#{order.id.slice(0, 8)}</span>
-                            <span>•</span>
-                            <span>
-                              {new Date(order.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {order.ordered_by_parent_id && order.parent && (
-                            <ParentActionBadge
-                              parentName={order.parent.full_name || undefined}
-                            />
-                          )}
-                          <Badge className={getStatusColor(order.status)}>
-                            {t(`store.status.${order.status}`)}
-                          </Badge>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>
-                                {t("common.actions")}
-                              </DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => setSelectedOrder(order)}
-                              >
-                                {t("store.viewDetails")}
-                              </DropdownMenuItem>
-                              {order.status === "pending" && (
-                                <>
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleUpdateStatus(order.id, "approved")
-                                    }
-                                  >
-                                    {t("store.approve")}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleUpdateStatus(order.id, "rejected")
-                                    }
-                                  >
-                                    {t("store.reject")}
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                              {order.status === "approved" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleUpdateStatus(order.id, "fulfilled")
-                                  }
-                                >
-                                  {t("store.markFulfilled")}
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
-                      {order.order_items.slice(0, 3).map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-2 bg-muted px-3 py-1 rounded-md text-sm"
-                        >
-                          {item.store_items?.image_url && (
-                            <img
-                              src={item.store_items.image_url}
-                              alt={item.item_name}
-                              className="w-6 h-6 rounded object-cover"
-                            />
-                          )}
-                          <span>
-                            {item.item_name} × {item.quantity}
-                          </span>
-                        </div>
-                      ))}
-                      {order.order_items.length > 3 && (
-                        <div className="flex items-center px-3 py-1 text-sm text-muted-foreground">
-                          +{order.order_items.length - 3} {t("store.more")}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">
-                        {order.total_points} {t("store.points")}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="space-y-6">
+            {/* Top Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageSizeChange={onPageSizeChange}
+                showPageSize
+                showItemCount
+                labels={{
+                  previous: t("common.previous"),
+                  next: t("common.next"),
+                  page: t("common.page"),
+                  of: t("common.of"),
+                  items: t("store.orders"),
+                  itemsPerPage: t("common.perPage"),
+                }}
+              />
+            )}
 
-            {/* Pagination */}
+            <div className="space-y-6">
+              {groupedOrders.map((group) => {
+                const isExpanded = expandedMonths.has(group.key);
+                return (
+                  <div key={group.key} className="space-y-2">
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-left hover:bg-muted"
+                      onClick={() => toggleMonth(group.key)}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        <span className="font-semibold">{group.label}</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {group.orders.length} {t("store.orders")}
+                      </span>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="space-y-4">
+                        {group.orders.map((order) => (
+                          <Card key={order.id}>
+                            <CardHeader>
+                              <div className="flex items-start gap-4">
+                                <Checkbox
+                                  checked={selectedOrders.has(order.id)}
+                                  onCheckedChange={() =>
+                                    toggleOrderSelection(order.id)
+                                  }
+                                  className="mt-1"
+                                />
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle className="text-lg">
+                                        {order.users?.full_name ||
+                                          order.users?.email}
+                                      </CardTitle>
+                                      <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                        {order.users?.user_code && (
+                                          <>
+                                            <span className="font-mono">
+                                              ID: {order.users.user_code}
+                                            </span>
+                                            <span>•</span>
+                                          </>
+                                        )}
+                                        <span>#{order.id.slice(0, 8)}</span>
+                                        <span>•</span>
+                                        <span>
+                                          {new Date(
+                                            order.created_at
+                                          ).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {order.ordered_by_parent_id &&
+                                        order.parent && (
+                                          <ParentActionBadge
+                                            parentName={
+                                              order.parent.full_name ||
+                                              undefined
+                                            }
+                                          />
+                                        )}
+                                      <Badge
+                                        className={getStatusColor(order.status)}
+                                      >
+                                        {t(`store.status.${order.status}`)}
+                                      </Badge>
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                          >
+                                            <MoreVertical className="h-4 w-4" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuLabel>
+                                            {t("common.actions")}
+                                          </DropdownMenuLabel>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              setSelectedOrder(order)
+                                            }
+                                          >
+                                            {t("store.viewDetails")}
+                                          </DropdownMenuItem>
+                                          {order.status === "pending" && (
+                                            <>
+                                              <DropdownMenuItem
+                                                onClick={() =>
+                                                  handleUpdateStatus(
+                                                    order.id,
+                                                    "approved"
+                                                  )
+                                                }
+                                              >
+                                                {t("store.approve")}
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                onClick={() =>
+                                                  handleUpdateStatus(
+                                                    order.id,
+                                                    "rejected"
+                                                  )
+                                                }
+                                              >
+                                                {t("store.reject")}
+                                              </DropdownMenuItem>
+                                            </>
+                                          )}
+                                          {order.status === "approved" && (
+                                            <DropdownMenuItem
+                                              onClick={() =>
+                                                handleUpdateStatus(
+                                                  order.id,
+                                                  "fulfilled"
+                                                )
+                                              }
+                                            >
+                                              {t("store.markFulfilled")}
+                                            </DropdownMenuItem>
+                                          )}
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap gap-2">
+                                  {order.order_items.slice(0, 3).map((item) => (
+                                    <div
+                                      key={item.id}
+                                      className="flex items-center gap-2 bg-muted px-3 py-1 rounded-md text-sm"
+                                    >
+                                      {item.store_items?.image_url && (
+                                        <img
+                                          src={item.store_items.image_url}
+                                          alt={item.item_name}
+                                          className="w-6 h-6 rounded object-cover"
+                                        />
+                                      )}
+                                      <span>
+                                        {item.item_name} × {item.quantity}
+                                      </span>
+                                    </div>
+                                  ))}
+                                  {order.order_items.length > 3 && (
+                                    <div className="flex items-center px-3 py-1 text-sm text-muted-foreground">
+                                      +{order.order_items.length - 3}{" "}
+                                      {t("store.more")}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold">
+                                    {order.total_points} {t("store.points")}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom Pagination */}
             {totalPages > 1 && (
               <Pagination
                 currentPage={currentPage}

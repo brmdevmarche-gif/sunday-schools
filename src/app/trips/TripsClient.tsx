@@ -418,12 +418,29 @@ export default function TripsClient({
                           </span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-green-500" />
-                        <span className="font-medium">
-                          {t("studentTrips.price")}: {getCurrencySymbol()}
-                          {getUserPrice(trip)}
-                        </span>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-green-500" />
+                          <span className="font-medium">
+                            {t("studentTrips.price")}: {getCurrencySymbol()}
+                            {getUserPrice(trip)}
+                          </span>
+                        </div>
+                        {isSubscribed && trip.my_participation && (
+                          (() => {
+                            const totalPrice = getUserPrice(trip);
+                            const amountPaid = (trip.my_participation as any)
+                              .amount_paid || 0;
+                            if (totalPrice <= 0 || amountPaid <= 0) return null;
+                            return (
+                              <span className="text-xs text-muted-foreground text-right">
+                                {getCurrencySymbol()}
+                                {amountPaid.toFixed(2)} / {getCurrencySymbol()}
+                                {totalPrice.toFixed(2)}
+                              </span>
+                            );
+                          })()
+                        )}
                       </div>
                     </div>
 
@@ -436,10 +453,15 @@ export default function TripsClient({
                               <span className="text-green-600">
                                 {t("studentTrips.approved")}
                               </span>
-                              {trip.my_participation?.payment_status ===
-                                "paid" && (
+                              {trip.my_participation?.payment_status && (
                                 <Badge className="ml-auto">
-                                  {t("studentTrips.paid")}
+                                  {trip.my_participation.payment_status ===
+                                  "partially_paid"
+                                    ? t("trips.partiallyPaid")
+                                    : trip.my_participation.payment_status ===
+                                      "paid"
+                                    ? t("studentTrips.paid")
+                                    : t("trips.stats.unpaid")}
                                 </Badge>
                               )}
                             </>
@@ -477,13 +499,12 @@ export default function TripsClient({
       </div>
 
       {/* Subscribe Dialog */}
-      <Dialog
-        open={isSubscribeDialogOpen}
-        onOpenChange={setIsSubscribeDialogOpen}
-      >
-        <DialogContent>
+      <Dialog open={isSubscribeDialogOpen} onOpenChange={setIsSubscribeDialogOpen}>
+        <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] p-4 sm:p-6 overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("studentTrips.subscribeToTrip")}</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
+              {t("studentTrips.subscribeToTrip")}
+            </DialogTitle>
             <DialogDescription>
               {t("studentTrips.subscribeDescription")}
             </DialogDescription>
@@ -491,13 +512,52 @@ export default function TripsClient({
 
           <div className="space-y-4">
             {selectedTrip && (
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="font-medium">{selectedTrip.title}</p>
-                {selectedTrip.start_datetime && (
-                  <p className="text-sm text-muted-foreground">
-                    {formatDateTime(selectedTrip.start_datetime)}
+              <div className="p-3 sm:p-4 bg-muted rounded-lg space-y-2">
+                <div>
+                  <p className="font-semibold text-base">
+                    {selectedTrip.title}
                   </p>
-                )}
+                  {selectedTrip.start_datetime && (
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      {formatDateTime(selectedTrip.start_datetime)}
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                    <span className="text-muted-foreground">
+                      {t("studentTrips.start")}:{" "}
+                      {selectedTrip.start_datetime
+                        ? formatDateTime(selectedTrip.start_datetime)
+                        : "-"}
+                    </span>
+                  </div>
+                  {selectedTrip.end_datetime && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                      <span className="text-muted-foreground">
+                        {t("studentTrips.end")}:{" "}
+                        {formatDateTime(selectedTrip.end_datetime)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                    <span className="text-muted-foreground">
+                      {t("studentTrips.price")}: {getCurrencySymbol()}
+                      {getUserPrice(selectedTrip)}
+                    </span>
+                  </div>
+                  {selectedTrip.requires_parent_approval && (
+                    <div className="flex items-center gap-2">
+                      <Info className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                      <span className="text-muted-foreground">
+                        {t("studentTrips.parentApprovalRequired")}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

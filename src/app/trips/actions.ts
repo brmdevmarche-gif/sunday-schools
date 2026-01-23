@@ -48,10 +48,10 @@ export async function getAvailableTripsAction() {
       return acc
     }, {})
 
-    // Get user's participations
+    // Get user's participations (including payment info)
     const { data: participations } = await adminClient
       .from('trip_participants')
-      .select('trip_id, approval_status, payment_status')
+      .select('trip_id, approval_status, payment_status, amount_paid')
       .eq('user_id', user.id)
 
     const participationsByTrip = (participations || []).reduce((acc: Record<string, any>, p) => {

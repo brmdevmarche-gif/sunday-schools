@@ -4,6 +4,8 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import UserDetailsClient from './UserDetailsClient'
 import { getTranslations } from 'next-intl/server'
 import { getChurchesData, getDiocesesData } from '../actions'
+import { getRolesSimple } from '@/lib/sunday-school/roles-simple'
+import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 async function getUserDetails(userId: string) {
   const supabase = await createClient()
@@ -70,8 +72,18 @@ async function getUserDetails(userId: string) {
     .order('login_at', { ascending: false })
     .limit(10)
 
+  // Get user's custom roles
+  const { data: userRoles } = await supabase
+    .from('user_roles')
+    .select('role_id')
+    .eq('user_id', userId)
+    .limit(1) // Get the first custom role (users typically have one)
+
   return {
-    user,
+    user: {
+      ...user,
+      custom_role_id: userRoles?.[0]?.role_id || null,
+    },
     classAssignments: classAssignments || [],
     attendanceRecords: attendanceRecords || [],
     relationships: parentRelationships || [],
@@ -104,9 +116,7 @@ export default async function UserDetailsPage({
     .eq('id', currentUser.id)
     .single()
 
-  if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
-    redirect('/dashboard')
-  }
+  // Permission check will be done by PageWithPermissions
 
   const userDetails = await getUserDetails(id)
 
@@ -114,20 +124,24 @@ export default async function UserDetailsPage({
     notFound()
   }
 
-  // Get churches and dioceses for editing
-  const [churches, dioceses] = await Promise.all([
+  // Get churches, dioceses, and roles for editing
+  const [churches, dioceses, roles] = await Promise.all([
     getChurchesData(),
     getDiocesesData(),
+    getRolesSimple({ isActive: true }).catch(() => []), // Fetch roles, fallback to empty array on error
   ])
 
   return (
     <AdminLayout>
-      <UserDetailsClient
-        {...userDetails}
-        currentUserRole={profile.role}
-        churches={churches}
-        dioceses={dioceses}
-      />
+      <PageWithPermissions permission="users.view_detail">
+        <UserDetailsClient
+          {...userDetails}
+          currentUserRole={profile?.role ?? 'guest'}
+          churches={churches}
+          dioceses={dioceses}
+          roles={roles}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   )
 }

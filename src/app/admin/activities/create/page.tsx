@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import CreateActivityClient from "./CreateActivityClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function CreateActivityPage() {
   const profile = await getCurrentUserProfile();
@@ -10,15 +11,11 @@ export default async function CreateActivityPage() {
     redirect("/login");
   }
 
-  // Check if user has permission
-  const allowedRoles = ["super_admin", "diocese_admin", "church_admin", "teacher"];
-  if (!allowedRoles.includes(profile.role)) {
-    redirect("/admin/dashboard");
-  }
-
   return (
     <AdminLayout>
-      <CreateActivityClient userProfile={profile} />
+      <PageWithPermissions permission="activities.create">
+        <CreateActivityClient userProfile={profile} />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import {
   getUserPermissionCodes,
   currentUserHasPermission,
   getCurrentUserPermissions,
 } from '@/lib/sunday-school/roles.client'
+import { PermissionsContext } from '@/contexts/PermissionsContext'
 import type { Permission } from '@/lib/types/modules/permissions'
 
 interface UsePermissionsResult {
@@ -21,6 +22,7 @@ interface UsePermissionsResult {
 
 /**
  * React hook for checking user permissions in client components
+ * Uses the shared PermissionsContext if available, otherwise falls back to local state
  * 
  * @example
  * ```tsx
@@ -38,6 +40,12 @@ interface UsePermissionsResult {
  * ```
  */
 export function usePermissions(): UsePermissionsResult {
+  // Try to use context first (if PermissionsProvider is available)
+  const context = useContext(PermissionsContext)
+  if (context) {
+    return context
+  }
+
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [permissionCodes, setPermissionCodes] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -94,6 +102,7 @@ export function usePermissions(): UsePermissionsResult {
 
 /**
  * Hook to check a single permission
+ * Returns true during loading to prevent buttons from disappearing during initial load
  * 
  * @example
  * ```tsx
@@ -108,6 +117,9 @@ export function usePermissions(): UsePermissionsResult {
 export function useHasPermission(permissionCode: string): boolean {
   const { hasPermission, isLoading } = usePermissions()
   
-  if (isLoading) return false
+  // During loading, return true optimistically to prevent buttons from disappearing
+  // This prevents the "all buttons hidden" issue during initial load
+  if (isLoading) return true
+  
   return hasPermission(permissionCode)
 }

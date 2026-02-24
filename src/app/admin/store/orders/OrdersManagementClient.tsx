@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useHasPermission } from "@/hooks/usePermissions";
 import {
   ArrowLeft,
   Package,
@@ -161,6 +163,7 @@ export default function OrdersManagementClient({
   const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const canUpdateOrders = useHasPermission("store.orders_update");
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [dioceseFilter, setDioceseFilter] = useState<string>("all");
@@ -491,10 +494,13 @@ export default function OrdersManagementClient({
                 </p>
               </div>
             </div>
-            <Button onClick={() => router.push("/admin/store/orders/create")}>
+            <PermissionButton
+              permission="store.orders_create"
+              onClick={() => router.push("/admin/store/orders/create")}
+            >
               <Package className="h-4 w-4 mr-2" />
               {t("store.createOrderForStudent")}
-            </Button>
+            </PermissionButton>
           </div>
         </div>
       </div>
@@ -603,7 +609,8 @@ export default function OrdersManagementClient({
 
             {/* Bulk Actions - always visible */}
             <div className="flex gap-2 flex-wrap">
-              <Button
+              <PermissionButton
+                permission="store.orders_update"
                 variant="outline"
                 size="sm"
                 onClick={() => handleBulkUpdateStatus("approved")}
@@ -616,8 +623,9 @@ export default function OrdersManagementClient({
                 )}
                 {t("store.approveSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
-              </Button>
-              <Button
+              </PermissionButton>
+              <PermissionButton
+                permission="store.orders_update"
                 variant="outline"
                 size="sm"
                 onClick={() => handleBulkUpdateStatus("rejected")}
@@ -630,8 +638,9 @@ export default function OrdersManagementClient({
                 )}
                 {t("store.rejectSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
-              </Button>
-              <Button
+              </PermissionButton>
+              <PermissionButton
+                permission="store.orders_update"
                 variant="outline"
                 size="sm"
                 onClick={() => handleBulkUpdateStatus("fulfilled")}
@@ -644,7 +653,7 @@ export default function OrdersManagementClient({
                 )}
                 {t("store.fulfillSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
-              </Button>
+              </PermissionButton>
             </div>
           </div>
 
@@ -842,7 +851,7 @@ export default function OrdersManagementClient({
                                           >
                                             {t("store.viewDetails")}
                                           </DropdownMenuItem>
-                                          {order.status === "pending" && (
+                                          {canUpdateOrders && order.status === "pending" && (
                                             <>
                                               <DropdownMenuItem
                                                 onClick={() =>
@@ -866,7 +875,7 @@ export default function OrdersManagementClient({
                                               </DropdownMenuItem>
                                             </>
                                           )}
-                                          {order.status === "approved" && (
+                                          {canUpdateOrders && order.status === "approved" && (
                                             <DropdownMenuItem
                                               onClick={() =>
                                                 handleUpdateStatus(

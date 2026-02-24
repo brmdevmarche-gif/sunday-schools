@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AttendanceClient from "./AttendanceClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function AttendancePage() {
   const supabase = await createClient();
@@ -66,10 +67,12 @@ export default async function AttendancePage() {
 
   return (
     <AdminLayout>
-      <AttendanceClient
-        classes={classes as unknown as Array<{ id: string; name: string; church_id: string; churches: { name: string } | null }>}
-        userRole={profile.role}
-      />
+      <PageWithPermissions permission="attendance.view">
+        <AttendanceClient
+          classes={classes as unknown as Array<{ id: string; name: string; church_id: string; churches: { name: string } | null }>}
+          userRole={profile.role}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

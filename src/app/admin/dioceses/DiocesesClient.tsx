@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import {
   ResponsiveTable,
   type Column,
@@ -217,10 +218,10 @@ export default function DiocesesClient({
           <p className="text-muted-foreground mt-2">{t("dioceses.subtitle")}</p>
         </div>
         {!selectedDioceseId && (
-          <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+          <PermissionButton permission="dioceses.create" onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
             <Plus className="me-2 h-4 w-4" />
             {t("dioceses.addDiocese")}
-          </Button>
+          </PermissionButton>
         )}
       </div>
 
@@ -304,7 +305,8 @@ export default function DiocesesClient({
               onRowClick={(diocese) => router.push(`/admin/dioceses/${diocese.id}`)}
               renderActions={(diocese) => (
                 <div className="flex gap-1 justify-end">
-                  <Button
+                  <PermissionButton
+                    permission="users.assign_roles"
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
@@ -314,8 +316,9 @@ export default function DiocesesClient({
                     aria-label={t("dioceses.manageAdmins")}
                   >
                     <Shield className="h-4 w-4" />
-                  </Button>
-                  <Button
+                  </PermissionButton>
+                  <PermissionButton
+                    permission="dioceses.update"
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
@@ -325,8 +328,9 @@ export default function DiocesesClient({
                     aria-label={t("common.edit")}
                   >
                     <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
+                  </PermissionButton>
+                  <PermissionButton
+                    permission="dioceses.delete"
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
@@ -336,8 +340,9 @@ export default function DiocesesClient({
                     aria-label={t("common.delete")}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                  <Button
+                  </PermissionButton>
+                  <PermissionButton
+                    permission="dioceses.view_detail"
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
@@ -348,7 +353,7 @@ export default function DiocesesClient({
                     className="hidden sm:flex"
                   >
                     <ChevronRight className="h-4 w-4 rtl:rotate-180" />
-                  </Button>
+                  </PermissionButton>
                 </div>
               )}
               emptyState={

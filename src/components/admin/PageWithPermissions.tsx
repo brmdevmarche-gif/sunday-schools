@@ -1,6 +1,7 @@
 import { hasPermission, checkPermissionWithRedirect } from '@/lib/permissions/check'
 import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { UnauthorizedPage } from './UnauthorizedPage'
 
 interface PageWithPermissionsProps {
   permission: string | string[]
@@ -53,17 +54,8 @@ export async function PageWithPermissions({
       return <>{fallback}</>
     }
 
-    // Use the first permission for the redirect check
-    const check = await checkPermissionWithRedirect(
-      permissions[0],
-      redirectTo
-    )
-
-    if (check.redirectTo) {
-      redirect(check.redirectTo)
-    }
-
-    return null
+    // Show unauthorized page instead of redirecting
+    return <UnauthorizedPage permission={permissions} />
   }
 
   return <>{children}</>

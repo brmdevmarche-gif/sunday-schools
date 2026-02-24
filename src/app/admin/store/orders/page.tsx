@@ -4,6 +4,7 @@ import { getAllOrdersAction } from "./actions";
 import { createClient } from "@/lib/supabase/server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import OrdersManagementClient from "./OrdersManagementClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -16,14 +17,7 @@ export default async function AdminOrdersPage({
     redirect("/login");
   }
 
-  // Check if user is admin
-  if (
-    !["super_admin", "diocese_admin", "church_admin", "store_manager"].includes(
-      profile.role
-    )
-  ) {
-    redirect("/");
-  }
+  // Permission check will be done by PageWithPermissions
 
   const supabase = await createClient();
   const sp = await searchParams;
@@ -85,18 +79,20 @@ export default async function AdminOrdersPage({
 
   return (
     <AdminLayout>
-      <OrdersManagementClient
-        orders={orders}
-        totalCount={count}
-        page={page}
-        pageSize={pageSize}
-        from={from ?? null}
-        to={to ?? null}
-        userProfile={profile}
-        dioceses={diocesesResult.data || []}
-        churches={churchesResult.data || []}
-        classes={classesResult.data || []}
-      />
+      <PageWithPermissions permission="store.orders_view">
+        <OrdersManagementClient
+          orders={orders}
+          totalCount={count}
+          page={page}
+          pageSize={pageSize}
+          from={from ?? null}
+          to={to ?? null}
+          userProfile={profile}
+          dioceses={diocesesResult.data || []}
+          churches={churchesResult.data || []}
+          classes={classesResult.data || []}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

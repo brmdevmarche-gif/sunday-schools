@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/hooks/usePermissions";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -147,6 +149,25 @@ export default function SpiritualNotesAdminClient({
   const t = useTranslations();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Check permissions for tabs
+  const canViewSpiritualNotes = useHasPermission("activities.view_spiritual_notes");
+  const canManageParticipants = useHasPermission("activities.manage_participants");
+  const canUpdate = useHasPermission("activities.update");
+  const canCreate = useHasPermission("activities.create");
+  
+  const canViewSubmissions = canViewSpiritualNotes || canManageParticipants;
+  const canViewTemplates = canViewSpiritualNotes || canUpdate;
+
+  // Determine available tabs and default tab
+  const availableTabs = useMemo(() => {
+    const tabs: string[] = [];
+    if (canViewSubmissions) tabs.push("submissions");
+    if (canViewTemplates) tabs.push("templates");
+    return tabs;
+  }, [canViewSubmissions, canViewTemplates]);
+
+  const defaultTab = availableTabs[0] || "submissions";
   const [statusFilter, setStatusFilter] = useState<SubmissionStatus | "all">(
     "submitted"
   );
@@ -333,10 +354,13 @@ export default function SpiritualNotesAdminClient({
               </p>
             </div>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
+          <PermissionButton
+            permission="activities.create"
+            onClick={() => setShowCreateDialog(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             {t("spiritualNotes.admin.createTemplate") || "Create Template"}
-          </Button>
+          </PermissionButton>
         </div>
 
         {/* Stats */}
@@ -391,21 +415,26 @@ export default function SpiritualNotesAdminClient({
           </Card>
         </div>
 
-        <Tabs defaultValue="submissions" className="space-y-4">
+        <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList>
-            <TabsTrigger value="submissions">
-              <Heart className="h-4 w-4 mr-2" />
-              {t("spiritualNotes.admin.submissions") || "Submissions"} (
-              {notes.length})
-            </TabsTrigger>
-            <TabsTrigger value="templates">
-              <Sparkles className="h-4 w-4 mr-2" />
-              {t("spiritualNotes.admin.templates") || "Templates"} (
-              {templates.length})
-            </TabsTrigger>
+            {canViewSubmissions && (
+              <TabsTrigger value="submissions">
+                <Heart className="h-4 w-4 mr-2" />
+                {t("spiritualNotes.admin.submissions") || "Submissions"} (
+                {notes.length})
+              </TabsTrigger>
+            )}
+            {canViewTemplates && (
+              <TabsTrigger value="templates">
+                <Sparkles className="h-4 w-4 mr-2" />
+                {t("spiritualNotes.admin.templates") || "Templates"} (
+                {templates.length})
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="submissions" className="space-y-4">
+          {canViewSubmissions && (
+            <TabsContent value="submissions" className="space-y-4">
             {/* Filters */}
             <div className="flex flex-wrap gap-4">
               <div className="relative flex-1 min-w-[200px]">
@@ -485,13 +514,17 @@ export default function SpiritualNotesAdminClient({
                   </SelectItem>
                 </SelectContent>
               </Select>
-              {selectedIds.length > 0 && (
-                <Button onClick={handleBulkApprove} disabled={isReviewing}>
+              {selectedIds.length > 0 && canManageParticipants && (
+                <PermissionButton
+                  permission="activities.manage_participants"
+                  onClick={handleBulkApprove}
+                  disabled={isReviewing}
+                >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   {t("spiritualNotes.admin.approveSelected") ||
                     "Approve Selected"}{" "}
                   ({selectedIds.length})
-                </Button>
+                </PermissionButton>
               )}
             </div>
 
@@ -579,13 +612,15 @@ export default function SpiritualNotesAdminClient({
                         <TableCell>{note.points_requested}</TableCell>
                         <TableCell>{getStatusBadge(note.status)}</TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedNote(note)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          {canViewSubmissions && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedNote(note)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
@@ -594,78 +629,81 @@ export default function SpiritualNotesAdminClient({
               </Table>
             </Card>
           </TabsContent>
+          )}
 
-          <TabsContent value="templates">
-            <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("common.name") || "Name"}</TableHead>
-                    <TableHead>{t("spiritualNotes.type") || "Type"}</TableHead>
-                    <TableHead>{t("common.points") || "Points"}</TableHead>
-                    <TableHead>
-                      {t("spiritualNotes.admin.maxPerDay") || "Max/Day"}
-                    </TableHead>
-                    <TableHead>
-                      {t("spiritualNotes.admin.requiresApproval") ||
-                        "Requires Approval"}
-                    </TableHead>
-                    <TableHead>{t("common.status") || "Status"}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {templates.length === 0 ? (
+          {canViewTemplates && (
+            <TabsContent value="templates">
+              <Card>
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center py-8 text-muted-foreground"
-                      >
-                        {t("spiritualNotes.admin.noTemplates") ||
-                          "No templates found"}
-                      </TableCell>
+                      <TableHead>{t("common.name") || "Name"}</TableHead>
+                      <TableHead>{t("spiritualNotes.type") || "Type"}</TableHead>
+                      <TableHead>{t("common.points") || "Points"}</TableHead>
+                      <TableHead>
+                        {t("spiritualNotes.admin.maxPerDay") || "Max/Day"}
+                      </TableHead>
+                      <TableHead>
+                        {t("spiritualNotes.admin.requiresApproval") ||
+                          "Requires Approval"}
+                      </TableHead>
+                      <TableHead>{t("common.status") || "Status"}</TableHead>
                     </TableRow>
-                  ) : (
-                    templates.map((template) => (
-                      <TableRow key={template.id}>
-                        <TableCell className="font-medium">
-                          {template.name}
-                        </TableCell>
-                        <TableCell className="capitalize">
-                          {template.activity_type.replace("_", " ")}
-                        </TableCell>
-                        <TableCell>
-                          {template.base_points} {t("common.pts") || "pts"}
-                        </TableCell>
-                        <TableCell>{template.max_per_day || "-"}</TableCell>
-                        <TableCell>
-                          {template.requires_approval ? (
-                            <Badge variant="outline">
-                              {t("common.yes") || "Yes"}
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary">
-                              {t("common.no") || "No"}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {template.is_active ? (
-                            <Badge className="bg-green-500/10 text-green-700">
-                              {t("common.active") || "Active"}
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary">
-                              {t("common.inactive") || "Inactive"}
-                            </Badge>
-                          )}
+                  </TableHeader>
+                  <TableBody>
+                    {templates.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={6}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          {t("spiritualNotes.admin.noTemplates") ||
+                            "No templates found"}
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </Card>
-          </TabsContent>
+                    ) : (
+                      templates.map((template) => (
+                        <TableRow key={template.id}>
+                          <TableCell className="font-medium">
+                            {template.name}
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {template.activity_type.replace("_", " ")}
+                          </TableCell>
+                          <TableCell>
+                            {template.base_points} {t("common.pts") || "pts"}
+                          </TableCell>
+                          <TableCell>{template.max_per_day || "-"}</TableCell>
+                          <TableCell>
+                            {template.requires_approval ? (
+                              <Badge variant="outline">
+                                {t("common.yes") || "Yes"}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                {t("common.no") || "No"}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {template.is_active ? (
+                              <Badge className="bg-green-500/10 text-green-700">
+                                {t("common.active") || "Active"}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                {t("common.inactive") || "Inactive"}
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
@@ -760,23 +798,25 @@ export default function SpiritualNotesAdminClient({
             <Button variant="outline" onClick={() => setSelectedNote(null)}>
               {t("common.cancel") || "Cancel"}
             </Button>
-            {selectedNote?.status === "submitted" && (
+            {selectedNote?.status === "submitted" && canManageParticipants && (
               <>
-                <Button
+                <PermissionButton
+                  permission="activities.manage_participants"
                   variant="destructive"
                   onClick={() => handleReview(false)}
                   disabled={isReviewing}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
                   {t("common.reject") || "Reject"}
-                </Button>
-                <Button
+                </PermissionButton>
+                <PermissionButton
+                  permission="activities.manage_participants"
                   onClick={() => handleReview(true)}
                   disabled={isReviewing}
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   {t("common.approve") || "Approve"}
-                </Button>
+                </PermissionButton>
               </>
             )}
           </DialogFooter>

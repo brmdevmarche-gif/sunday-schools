@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/hooks/usePermissions";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -86,6 +88,8 @@ export default function ReadingsAdminClient({
 }: ReadingsAdminClientProps) {
   const t = useTranslations();
   const router = useRouter();
+  const canViewReadings = useHasPermission("activities.view_readings");
+  const canCreate = useHasPermission("activities.create");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const form = useForm<ReadingScheduleFormData>({
@@ -168,10 +172,13 @@ export default function ReadingsAdminClient({
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <PermissionButton
+          permission="activities.create"
+          onClick={() => setShowCreateDialog(true)}
+        >
           <Plus className="h-4 w-4 mr-2" />
           {t("readings.admin.createSchedule") || "Create Schedule"}
-        </Button>
+        </PermissionButton>
       </div>
 
       {/* Stats */}
@@ -288,9 +295,11 @@ export default function ReadingsAdminClient({
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      {canViewReadings && (
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Class, Church, Diocese, ExtendedUser } from '@/lib/types'
 import { getAnnouncementsAdminAction } from './actions'
 import AnnouncementsClient from './AnnouncementsClient'
+import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,9 +21,7 @@ export default async function AdminAnnouncementsPage() {
     .single()
 
   if (!profile) redirect('/login')
-  if (!['super_admin', 'diocese_admin', 'church_admin', 'teacher'].includes(profile.role)) {
-    redirect('/dashboard')
-  }
+  // Permission check will be done by PageWithPermissions
 
   // Fetch announcements (admin action uses admin client)
   const { data: announcements, schemaMissing } = await getAnnouncementsAdminAction()
@@ -65,15 +64,17 @@ export default async function AdminAnnouncementsPage() {
 
   return (
     <AdminLayout>
-      <AnnouncementsClient
-        initialAnnouncements={announcements as any}
-        dioceses={(dioceses as Diocese[]) || []}
-        churches={(churches as Church[]) || []}
-        classes={(classes as Class[]) || []}
-        userProfile={profile as ExtendedUser}
-        canScope={isSuperAdmin || isDioceseAdmin || isChurchAdmin || profile.role === 'teacher'}
-        schemaMissing={!!schemaMissing}
-      />
+      <PageWithPermissions permission="announcements.view">
+        <AnnouncementsClient
+          initialAnnouncements={announcements as any}
+          dioceses={(dioceses as Diocese[]) || []}
+          churches={(churches as Church[]) || []}
+          classes={(classes as Class[]) || []}
+          userProfile={profile as ExtendedUser}
+          canScope={isSuperAdmin || isDioceseAdmin || isChurchAdmin || profile.role === 'teacher'}
+          schemaMissing={!!schemaMissing}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   )
 }

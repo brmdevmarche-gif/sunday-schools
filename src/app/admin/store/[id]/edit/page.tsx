@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import EditStoreItemClient from "./EditStoreItemClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 import type { StoreItem } from "@/lib/types";
 
 interface Church {
@@ -21,9 +22,7 @@ export default async function EditStoreItemPage({
   const profile = await getCurrentUserProfile();
   if (!profile) redirect("/login");
 
-  const canManageStore =
-    profile.role === "super_admin" || profile.role === "church_admin";
-  if (!canManageStore) redirect("/admin/store");
+  // Permission check will be done by PageWithPermissions
 
   // Use normal client for auth context if needed, but admin client for data to avoid RLS edge-cases
   await createClient();
@@ -112,16 +111,18 @@ export default async function EditStoreItemPage({
 
   return (
     <AdminLayout>
-      <EditStoreItemClient
-        userProfile={profile}
-        item={item as StoreItem}
-        churches={churches}
-        dioceses={dioceses}
-        classes={classes}
-        initialChurchIds={finalChurchIds}
-        initialDioceseIds={finalDioceseIds}
-        initialClassIds={initialClassIds}
-      />
+      <PageWithPermissions permission="store.update">
+        <EditStoreItemClient
+          userProfile={profile}
+          item={item as StoreItem}
+          churches={churches}
+          dioceses={dioceses}
+          classes={classes}
+          initialChurchIds={finalChurchIds}
+          initialDioceseIds={finalDioceseIds}
+          initialClassIds={initialClassIds}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

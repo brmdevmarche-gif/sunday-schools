@@ -6,6 +6,7 @@ import { getMessages, getLocale } from 'next-intl/server';
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { NavigationProvider } from "@/components/NavigationProvider";
 import NavigationLoader from "@/components/NavigationLoader";
+import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -62,8 +63,10 @@ export default async function RootLayout({
             <NavigationProvider>
               <NavigationLoader />
               <NextIntlClientProvider messages={messages}>
-                {children}
-                <Toaster />
+                <PermissionsProvider>
+                  {children}
+                  <Toaster />
+                </PermissionsProvider>
               </NextIntlClientProvider>
             </NavigationProvider>
           </Suspense>

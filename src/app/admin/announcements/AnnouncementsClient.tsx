@@ -9,6 +9,7 @@ import type { AnnouncementTargetRole, Class, Church, CreateAnnouncementInput, Di
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PermissionButton } from '@/components/admin/PermissionButton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -465,9 +466,9 @@ export default function AnnouncementsClient(props: {
             </p>
           )}
         </div>
-        <Button asChild>
+        <PermissionButton permission="announcements.create" asChild>
           <Link href="/admin/announcements/create">{t('common.create')}</Link>
-        </Button>
+        </PermissionButton>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm() }}>
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
@@ -682,9 +683,9 @@ export default function AnnouncementsClient(props: {
               <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
                 {t('common.cancel')}
               </Button>
-              <Button onClick={save} disabled={saving}>
+              <PermissionButton permission="announcements.update" onClick={save} disabled={saving}>
                 {saving ? t('common.saving') : t('common.save')}
-              </Button>
+              </PermissionButton>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -775,18 +776,18 @@ export default function AnnouncementsClient(props: {
                   const status = computeStatus(a)
                   return (
                     <div className="flex gap-2 flex-wrap justify-end">
-                      <Button asChild variant="outline" size="sm">
+                      <PermissionButton permission="announcements.update" asChild variant="outline" size="sm">
                         <Link href={`/admin/announcements/${a.id}/edit`}>{t('common.edit')}</Link>
-                      </Button>
+                      </PermissionButton>
                       {status !== 'active' && (
-                        <Button variant="outline" size="sm" onClick={() => openRepublish(a)} className="hidden sm:inline-flex">
+                        <PermissionButton permission="announcements.republish" variant="outline" size="sm" onClick={() => openRepublish(a)} className="hidden sm:inline-flex">
                           {t('announcements.actions.republish')}
-                        </Button>
+                        </PermissionButton>
                       )}
                       {status === 'active' && (
-                        <Button variant="destructive" size="sm" onClick={() => openDeactivate(a)} className="hidden sm:inline-flex">
+                        <PermissionButton permission="announcements.delete" variant="destructive" size="sm" onClick={() => openDeactivate(a)} className="hidden sm:inline-flex">
                           {t('announcements.actions.deactivate')}
-                        </Button>
+                        </PermissionButton>
                       )}
                     </div>
                   )
@@ -822,9 +823,14 @@ export default function AnnouncementsClient(props: {
             <Button variant="outline" onClick={() => setDeactivateOpen(false)} disabled={deactivating}>
               {t('common.cancel')}
             </Button>
-            <Button variant="destructive" onClick={confirmDeactivate} disabled={deactivating}>
+            <PermissionButton 
+              permission="announcements.delete" 
+              variant="destructive" 
+              onClick={confirmDeactivate} 
+              disabled={deactivating}
+            >
               {deactivating ? t('common.saving') : t('announcements.actions.deactivate')}
-            </Button>
+            </PermissionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -877,9 +883,13 @@ export default function AnnouncementsClient(props: {
             <Button variant="outline" onClick={() => setRepublishOpen(false)} disabled={republishing}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={confirmRepublish} disabled={republishing}>
+            <PermissionButton 
+              permission="announcements.republish" 
+              onClick={confirmRepublish} 
+              disabled={republishing}
+            >
               {republishing ? t('common.saving') : t('announcements.actions.republish')}
-            </Button>
+            </PermissionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { DateTimePicker } from '@/components/ui/date-input'
+import { PermissionButton } from '@/components/admin/PermissionButton'
 import { createAnnouncementAction, getAnnouncementTypesAction, updateAnnouncementAction } from './actions'
 
 type Mode = 'create' | 'edit'
@@ -432,9 +433,13 @@ export default function AnnouncementForm(props: {
         <Button variant="outline" type="button" onClick={() => router.back()}>
           {t('common.back')}
         </Button>
-        <Button onClick={onSubmit} disabled={saving}>
+        <PermissionButton 
+          permission={props.mode === 'edit' ? 'announcements.update' : 'announcements.create'}
+          onClick={onSubmit} 
+          disabled={saving}
+        >
           {saving ? t('common.saving') : t('common.save')}
-        </Button>
+        </PermissionButton>
       </div>
     </div>
   )

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,23 @@ export default function EditActivityClient({
   const t = useTranslations();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check permissions for each tab
+  const canViewDetail = useHasPermission("activities.view_detail");
+  const canUpdate = useHasPermission("activities.update");
+  const canViewDetails = canViewDetail || canUpdate;
+  const canManageParticipants = useHasPermission("activities.manage_participants");
+  
+  // Determine available tabs and default tab
+  const availableTabs = useMemo(() => {
+    const tabs: string[] = [];
+    if (canViewDetails) tabs.push("details");
+    if (canManageParticipants) tabs.push("participants");
+    if (canManageParticipants) tabs.push("completions");
+    return tabs;
+  }, [canViewDetails, canManageParticipants]);
+
+  const defaultTab = availableTabs[0] || "details";
 
   const [formData, setFormData] = useState<Partial<UpdateActivityInput>>({
     id: activity.id,
@@ -119,23 +137,30 @@ export default function EditActivityClient({
         </div>
       </div>
 
-      <Tabs defaultValue="details" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList>
-          <TabsTrigger value="details">
-            {t("activities.details") || "Details"}
-          </TabsTrigger>
-          <TabsTrigger value="participants">
-            <Users className="h-4 w-4 mr-2" />
-            {t("activities.participants")}
-          </TabsTrigger>
-          <TabsTrigger value="completions">
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            {t("activities.completions")}
-          </TabsTrigger>
+          {canViewDetails && (
+            <TabsTrigger value="details">
+              {t("activities.details") || "Details"}
+            </TabsTrigger>
+          )}
+          {canManageParticipants && (
+            <TabsTrigger value="participants">
+              <Users className="h-4 w-4 mr-2" />
+              {t("activities.participants")}
+            </TabsTrigger>
+          )}
+          {canManageParticipants && (
+            <TabsTrigger value="completions">
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              {t("activities.completions")}
+            </TabsTrigger>
+          )}
         </TabsList>
 
-        <TabsContent value="details">
-          <form onSubmit={handleSubmit}>
+        {canViewDetails && (
+          <TabsContent value="details">
+            <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Main Form */}
               <div className="lg:col-span-2 space-y-6">
@@ -472,14 +497,16 @@ export default function EditActivityClient({
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex flex-col gap-2">
-                      <Button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full"
-                      >
-                        <Save className="mr-2 h-4 w-4" />
-                        {isLoading ? t("common.saving") : t("common.save")}
-                      </Button>
+                      {canUpdate && (
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full"
+                        >
+                          <Save className="mr-2 h-4 w-4" />
+                          {isLoading ? t("common.saving") : t("common.save")}
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="outline"
@@ -495,35 +522,40 @@ export default function EditActivityClient({
               </div>
             </div>
           </form>
-        </TabsContent>
+          </TabsContent>
+        )}
 
-        <TabsContent value="participants">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("activities.participants")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                {t("activities.participantsComingSoon") ||
-                  "Participants management coming soon"}
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {canManageParticipants && (
+          <TabsContent value="participants">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("activities.participants")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  {t("activities.participantsComingSoon") ||
+                    "Participants management coming soon"}
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
-        <TabsContent value="completions">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("activities.completions")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                {t("activities.completionsComingSoon") ||
-                  "Completions management coming soon"}
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {canManageParticipants && (
+          <TabsContent value="completions">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("activities.completions")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  {t("activities.completionsComingSoon") ||
+                    "Completions management coming soon"}
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

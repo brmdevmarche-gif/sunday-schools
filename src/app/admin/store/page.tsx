@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StoreClient from "./StoreClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 import type { StoreItem } from "@/lib/types";
 
 interface Church {
@@ -26,13 +27,7 @@ export default async function StorePage({
     redirect("/login");
   }
 
-  // Only super_admin and church_admin can manage store
-  const canManageStore =
-    profile.role === "super_admin" || profile.role === "church_admin";
-
-  if (!canManageStore) {
-    redirect("/admin");
-  }
+  // Permission check will be done by PageWithPermissions
 
   const sp = searchParams ? await searchParams : {};
 
@@ -123,18 +118,20 @@ export default async function StorePage({
 
   return (
     <AdminLayout>
-      <StoreClient
-        items={(items as StoreItem[]) || []}
-        totalCount={count ?? 0}
-        page={page}
-        pageSize={pageSize}
-        from={from ?? null}
-        to={to ?? null}
-        churches={churches}
-        dioceses={dioceses}
-        classes={classes}
-        userRole={profile.role}
-      />
+      <PageWithPermissions permission="store.view">
+        <StoreClient
+          items={(items as StoreItem[]) || []}
+          totalCount={count ?? 0}
+          page={page}
+          pageSize={pageSize}
+          from={from ?? null}
+          to={to ?? null}
+          churches={churches}
+          dioceses={dioceses}
+          classes={classes}
+          userRole={profile.role}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

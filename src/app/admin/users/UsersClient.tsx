@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
 import {
   Dialog,
@@ -54,6 +55,8 @@ import type {
   Church,
   Diocese,
 } from "@/lib/types/sunday-school";
+import type { Role } from "@/lib/types/modules/permissions";
+import { createClient } from "@/lib/supabase/client";
 import {
   updateUserRoleAction,
   activateUserAction,
@@ -66,12 +69,14 @@ interface UsersClientProps {
   initialUsers: ExtendedUser[];
   churches: Church[];
   dioceses: Diocese[];
+  roles?: Role[];
 }
 
 export default function UsersClient({
   initialUsers,
   churches,
   dioceses,
+  roles = [],
 }: UsersClientProps) {
   const router = useRouter();
   const t = useTranslations();
@@ -92,6 +97,7 @@ export default function UsersClient({
   // Role assignment form
   const [roleFormData, setRoleFormData] = useState({
     role: "" as UserRole,
+    custom_role_id: "",
     diocese_id: "",
     church_id: "",
   });
@@ -101,6 +107,7 @@ export default function UsersClient({
     email: "",
     password: "",
     role: "student" as UserRole,
+    custom_role_id: "",
     username: "",
     full_name: "",
     diocese_id: "",
@@ -127,10 +134,29 @@ export default function UsersClient({
     );
   });
 
-  function handleOpenRoleDialog(user: ExtendedUser) {
+  async function handleOpenRoleDialog(user: ExtendedUser) {
     setSelectedUser(user);
+    
+    // Fetch user's current custom role
+    let customRoleId = "";
+    try {
+      const supabase = createClient();
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', user.id)
+        .limit(1);
+      
+      if (userRoles && userRoles.length > 0) {
+        customRoleId = userRoles[0].role_id || "";
+      }
+    } catch (error) {
+      console.error("Error fetching user custom role:", error);
+    }
+    
     setRoleFormData({
       role: user.role,
+      custom_role_id: customRoleId,
       diocese_id: user.diocese_id || "",
       church_id: user.church_id || "",
     });
@@ -152,7 +178,10 @@ export default function UsersClient({
         selectedUser.id,
         roleFormData.role,
         roleFormData.diocese_id || null,
-        roleFormData.church_id || null
+        roleFormData.church_id || null,
+        undefined,
+        undefined,
+        roleFormData.custom_role_id || null
       );
       toast.success(t("users.userUpdated"));
       setIsRoleDialogOpen(false);
@@ -249,6 +278,7 @@ export default function UsersClient({
       email: "",
       password: "",
       role: "student",
+      custom_role_id: "",
       username: "",
       full_name: "",
       diocese_id: "",
@@ -267,6 +297,19 @@ export default function UsersClient({
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(createFormData.email)) {
+      toast.error(t("errors.invalidEmail") || "Invalid email format");
+      return;
+    }
+
+    // Validate password length
+    if (createFormData.password.length < 6) {
+      toast.error(t("users.passwordTooShort") || "Password must be at least 6 characters");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const result = await createUserAction({
@@ -277,6 +320,7 @@ export default function UsersClient({
         full_name: createFormData.full_name || undefined,
         church_id: createFormData.church_id || undefined,
         diocese_id: createFormData.diocese_id || undefined,
+        custom_role_id: createFormData.custom_role_id || undefined,
       });
       toast.success(t("users.userCreated"));
       setIsCreateDialogOpen(false);
@@ -406,18 +450,19 @@ export default function UsersClient({
           <p className="text-muted-foreground mt-2">{t("users.subtitle")}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button
+          <PermissionButton
+            permission="users.update"
             variant="outline"
             onClick={handleOpenLinkDialog}
             className="w-full sm:w-auto"
           >
             <LinkIcon className="me-2 h-4 w-4" />
             {t("users.linkParent")}
-          </Button>
-          <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+          </PermissionButton>
+          <PermissionButton permission="users.create" onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
             <UserPlus className="me-2 h-4 w-4" />
             {t("users.createUser")}
-          </Button>
+          </PermissionButton>
         </div>
       </div>
 
@@ -616,15 +661,17 @@ export default function UsersClient({
                         }
                         renderActions={(user) => (
                           <div className="flex justify-end gap-1">
-                            <Button
+                            <PermissionButton
+                              permission="users.update"
                               variant="ghost"
                               size="sm"
                               onClick={() => handleOpenRoleDialog(user)}
                               aria-label={t("users.editUser")}
                             >
                               <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
+                            </PermissionButton>
+                            <PermissionButton
+                              permission="users.update"
                               variant="ghost"
                               size="sm"
                               onClick={() => handleToggleActive(user)}
@@ -639,7 +686,7 @@ export default function UsersClient({
                               ) : (
                                 <UserCheck className="h-4 w-4 text-green-600" />
                               )}
-                            </Button>
+                            </PermissionButton>
                           </div>
                         )}
                       />
@@ -665,7 +712,7 @@ export default function UsersClient({
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>{t("users.role")} *</Label>
+              <Label>User Type *</Label>
               <Select
                 value={roleFormData.role}
                 onValueChange={(value) =>
@@ -691,6 +738,32 @@ export default function UsersClient({
                 </SelectContent>
               </Select>
             </div>
+
+            {roles.length > 0 && (
+              <div className="space-y-2">
+                <Label>Custom Role</Label>
+                <Select
+                  value={roleFormData.custom_role_id || "none"}
+                  onValueChange={(value) =>
+                    setRoleFormData({ ...roleFormData, custom_role_id: value === "none" ? "" : value })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a custom role (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {roles
+                      .filter((role) => role.is_active && !role.is_system_role)
+                      .map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.title}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {roleFormData.role === "diocese_admin" && (
               <div className="space-y-2">
@@ -826,7 +899,7 @@ export default function UsersClient({
             </div>
 
             <div className="space-y-2">
-              <Label>{t("users.role")} *</Label>
+              <Label>User Type *</Label>
               <Select
                 value={createFormData.role}
                 onValueChange={(value) =>
@@ -856,6 +929,36 @@ export default function UsersClient({
                 </SelectContent>
               </Select>
             </div>
+
+            {roles.length > 0 && (
+              <div className="space-y-2">
+                <Label>Custom Role</Label>
+                <Select
+                  value={createFormData.custom_role_id || "none"}
+                  onValueChange={(value) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      custom_role_id: value === "none" ? "" : value,
+                    })
+                  }
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a custom role (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {roles
+                      .filter((role) => role.is_active && !role.is_system_role)
+                      .map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.title}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">

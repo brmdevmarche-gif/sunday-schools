@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getTripByIdAction, getTripParticipantsAction, getTripDetailsAction, getTripOrganizersAction } from "../actions";
 import TripDetailsClient from "./TripDetailsClient";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function TripDetailsPage({
   params,
@@ -15,12 +16,6 @@ export default async function TripDetailsPage({
 
   if (!profile) {
     redirect("/login");
-  }
-
-  // Check if user has permission
-  const allowedRoles = ["super_admin", "diocese_admin", "church_admin", "teacher"];
-  if (!allowedRoles.includes(profile.role)) {
-    redirect("/admin/dashboard");
   }
 
   // Fetch trip details, participants, and organizers
@@ -37,13 +32,15 @@ export default async function TripDetailsPage({
 
   return (
     <AdminLayout>
-      <TripDetailsClient
-        trip={tripResult.data}
-        participants={participantsResult.data}
-        organizers={organizersResult.data || []}
-        stats={detailsResult.data.participantsStats}
-        userProfile={profile}
-      />
+      <PageWithPermissions permission="trips.view_detail">
+        <TripDetailsClient
+          trip={tripResult.data}
+          participants={participantsResult.data}
+          organizers={organizersResult.data || []}
+          stats={detailsResult.data.participantsStats}
+          userProfile={profile}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

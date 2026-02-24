@@ -15,6 +15,7 @@ import { Building2, Church, School, Users, Bell } from "lucide-react";
 import type { ExtendedUser } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { useHasPermission } from "@/hooks/usePermissions";
 
 interface DashboardClientProps {
   userProfile: ExtendedUser;
@@ -32,6 +33,15 @@ export default function DashboardClient({
 }: DashboardClientProps) {
   const t = useTranslations();
   const [annCount, setAnnCount] = useState(0);
+  
+  // Check permissions for Quick Actions and Stats
+  const canViewDashboard = useHasPermission('dashboard.view');
+  const canViewDioceses = useHasPermission('dioceses.view');
+  const canViewChurches = useHasPermission('churches.view');
+  const canViewClasses = useHasPermission('classes.view');
+  const canViewUsers = useHasPermission('users.view');
+  const canViewAnnouncementsInbox = useHasPermission('announcements.view_inbox');
+  const canMarkAttendance = useHasPermission('attendance.mark');
 
   useEffect(() => {
     async function loadCount() {
@@ -66,7 +76,7 @@ export default function DashboardClient({
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {userProfile.role === "super_admin" && (
+        {canViewDioceses && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -83,8 +93,7 @@ export default function DashboardClient({
           </Card>
         )}
 
-        {(userProfile.role === "super_admin" ||
-          userProfile.role === "diocese_admin") && (
+        {canViewChurches && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -103,24 +112,26 @@ export default function DashboardClient({
           </Card>
         )}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {userProfile.role === "teacher"
-                ? t("adminDashboard.stats.myClasses")
-                : t("adminDashboard.stats.totalClasses")}
-            </CardTitle>
-            <School className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.classes}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("adminDashboard.stats.sundaySchoolClasses")}
-            </p>
-          </CardContent>
-        </Card>
+        {canViewClasses && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {userProfile.role === "teacher"
+                  ? t("adminDashboard.stats.myClasses")
+                  : t("adminDashboard.stats.totalClasses")}
+              </CardTitle>
+              <School className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.classes}</div>
+              <p className="text-xs text-muted-foreground">
+                {t("adminDashboard.stats.sundaySchoolClasses")}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
-        {userProfile.role !== "teacher" && (
+        {canViewUsers && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -148,97 +159,97 @@ export default function DashboardClient({
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Link href="/admin/announcements/inbox" className="block">
-              <Card className="cursor-pointer hover:bg-muted transition-colors">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <span>{t("nav.announcements")}</span>
-                    {annCount > 0 && (
-                      <Badge className="text-xs px-2 py-0.5">{annCount}</Badge>
-                    )}
-                  </CardTitle>
-                  <Bell className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {t('announcements.inboxSubtitle')}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            {userProfile?.role === "super_admin" && (
-              <Card className="cursor-pointer hover:bg-muted transition-colors">
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    {t("adminDashboard.quickActions.manageDioceses")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {t("adminDashboard.quickActions.addEditDioceses")}
-                  </p>
-                </CardContent>
-              </Card>
+            {canViewAnnouncementsInbox && (
+              <Link href="/admin/announcements/inbox" className="block">
+                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <span>{t("nav.announcements")}</span>
+                      {annCount > 0 && (
+                        <Badge className="text-xs px-2 py-0.5">{annCount}</Badge>
+                      )}
+                    </CardTitle>
+                    <Bell className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {t('announcements.inboxSubtitle')}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
             )}
 
-            {(userProfile?.role === "super_admin" ||
-              userProfile?.role === "diocese_admin") && (
-              <Card className="cursor-pointer hover:bg-muted transition-colors">
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    {t("adminDashboard.quickActions.manageChurches")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {t("adminDashboard.quickActions.addEditChurches")}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="cursor-pointer hover:bg-muted transition-colors">
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {t("adminDashboard.quickActions.manageClasses")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {t("adminDashboard.quickActions.createOrganizeClasses")}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:bg-muted transition-colors">
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {t("adminDashboard.quickActions.manageUsers")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {t("adminDashboard.quickActions.addUsers")}
-                </p>
-              </CardContent>
-            </Card>
-
-            {userProfile?.role === "teacher" && (
-              <>
+            {canViewDioceses && (
+              <Link href="/admin/dioceses" className="block">
                 <Card className="cursor-pointer hover:bg-muted transition-colors">
                   <CardHeader>
                     <CardTitle className="text-base">
-                      {t("adminDashboard.quickActions.myClasses")}
+                      {t("adminDashboard.quickActions.manageDioceses")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      {t("adminDashboard.quickActions.viewAssignedClasses")}
+                      {t("adminDashboard.quickActions.addEditDioceses")}
                     </p>
                   </CardContent>
                 </Card>
+              </Link>
+            )}
 
+            {canViewChurches && (
+              <Link href="/admin/churches" className="block">
+                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {t("adminDashboard.quickActions.manageChurches")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {t("adminDashboard.quickActions.addEditChurches")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+
+            {canViewClasses && (
+              <Link href="/admin/classes" className="block">
+                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {t("adminDashboard.quickActions.manageClasses")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {t("adminDashboard.quickActions.createOrganizeClasses")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+
+            {canViewUsers && (
+              <Link href="/admin/users" className="block">
+                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {t("adminDashboard.quickActions.manageUsers")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {t("adminDashboard.quickActions.addUsers")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+
+            {canMarkAttendance && (
+              <Link href="/attendance" className="block">
                 <Card className="cursor-pointer hover:bg-muted transition-colors">
                   <CardHeader>
                     <CardTitle className="text-base">
@@ -251,26 +262,28 @@ export default function DashboardClient({
                     </p>
                   </CardContent>
                 </Card>
-              </>
+              </Link>
             )}
           </div>
         </CardContent>
       </Card>
 
       {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("adminDashboard.recentActivity.title")}</CardTitle>
-          <CardDescription>
-            {t("adminDashboard.recentActivity.description")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {t("adminDashboard.recentActivity.noActivity")}
-          </p>
-        </CardContent>
-      </Card>
+      {canViewDashboard && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("adminDashboard.recentActivity.title")}</CardTitle>
+            <CardDescription>
+              {t("adminDashboard.recentActivity.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              {t("adminDashboard.recentActivity.noActivity")}
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

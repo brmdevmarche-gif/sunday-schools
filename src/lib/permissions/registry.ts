@@ -120,6 +120,11 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       description: 'Assign students to classes',
       category: 'action',
     },
+    assign_users: {
+      name: 'Assign Teachers and Students',
+      description: 'Assign both teachers and students to classes in the same action',
+      category: 'action',
+    },
     view_birthdays: {
       name: 'View Class Birthdays',
       description: 'View class birthdays',
@@ -374,6 +379,11 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     delete: {
       name: 'Delete Announcement',
       description: 'Delete announcement',
+      category: 'action',
+    },
+    republish: {
+      name: 'Republish Announcement',
+      description: 'Republish deactivated or expired announcement',
       category: 'action',
     },
     view_inbox: {

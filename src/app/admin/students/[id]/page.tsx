@@ -2,6 +2,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import StudentDetailsClient from "./StudentDetailsClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 import {
   getStudentDetailsAction,
   getStudentActivitiesAction,
@@ -83,12 +84,14 @@ export default async function StudentDetailsPage({
 
   return (
     <AdminLayout>
-      <StudentDetailsClient
-        student={studentDetails}
-        activities={activities}
-        points={points}
-        orders={orders}
-      />
+      <PageWithPermissions permission="students.view_detail">
+        <StudentDetailsClient
+          student={studentDetails}
+          activities={activities}
+          points={points}
+          orders={orders}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

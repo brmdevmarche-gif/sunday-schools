@@ -2,6 +2,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { ChurchDetailsClient } from "./ChurchDetailsClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 import type {
   Church,
   Diocese,
@@ -118,14 +119,16 @@ export default async function ChurchDetailsPage({
 
   return (
     <AdminLayout>
-      <ChurchDetailsClient
-        church={church as Church}
-        diocese={diocese}
-        classes={(classes as Class[]) || []}
-        users={(usersWithAssignments as UserWithClassAssignments[]) || []}
-        isSuperAdmin={isSuperAdmin}
-        isChurchAdmin={isChurchAdmin}
-      />
+      <PageWithPermissions permission="churches.view_detail">
+        <ChurchDetailsClient
+          church={church as Church}
+          diocese={diocese}
+          classes={(classes as Class[]) || []}
+          users={(usersWithAssignments as UserWithClassAssignments[]) || []}
+          isSuperAdmin={isSuperAdmin}
+          isChurchAdmin={isChurchAdmin}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

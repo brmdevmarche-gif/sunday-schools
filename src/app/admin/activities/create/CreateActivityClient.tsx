@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/hooks/usePermissions";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +38,19 @@ export default function CreateActivityClient({
 }: CreateActivityClientProps) {
   const t = useTranslations();
   const router = useRouter();
+  const canCreate = useHasPermission("activities.create");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if no permission
+  useEffect(() => {
+    if (!canCreate) {
+      router.push("/admin/activities");
+    }
+  }, [canCreate, router]);
+
+  if (!canCreate) {
+    return null;
+  }
 
   const [formData, setFormData] = useState<Partial<CreateActivityInput>>({
     name: "",
@@ -284,7 +298,7 @@ export default function CreateActivityClient({
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">
-                    {t("activities.status") || "Status"}
+                    {t("common.status")}
                   </Label>
                   <Select
                     value={formData.status}
@@ -380,10 +394,15 @@ export default function CreateActivityClient({
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col gap-2">
-                  <Button type="submit" disabled={isLoading} className="w-full">
+                  <PermissionButton
+                    permission="activities.create"
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full"
+                  >
                     <Save className="mr-2 h-4 w-4" />
                     {isLoading ? t("common.saving") : t("common.save")}
-                  </Button>
+                  </PermissionButton>
                   <Button
                     type="button"
                     variant="outline"

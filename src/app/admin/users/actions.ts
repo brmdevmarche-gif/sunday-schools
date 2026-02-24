@@ -99,9 +99,29 @@ export async function updateUserRoleAction(
   dioceseId: string | null,
   churchId: string | null,
   fullName?: string,
-  username?: string
+  username?: string,
+  customRoleId?: string | null
 ) {
   const supabase = await createClient()
+
+  // Verify the current user has admin permissions
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
+    throw new Error('Not authorized to update users')
+  }
 
   const updateData: any = {
     role,
@@ -125,6 +145,31 @@ export async function updateUserRoleAction(
   if (error) {
     console.error('Error updating user role:', error)
     throw new Error('Failed to update user role')
+  }
+
+  // Handle custom role assignment
+  const adminClient = createAdminClient()
+  
+  // Remove all existing custom role assignments for this user
+  await adminClient
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId)
+
+  // Assign new custom role if provided
+  if (customRoleId) {
+    const { error: roleError } = await adminClient
+      .from('user_roles')
+      .insert({
+        user_id: userId,
+        role_id: customRoleId,
+        assigned_by: user.id,
+      })
+
+    if (roleError) {
+      console.error('Error assigning custom role:', roleError)
+      // Don't throw - user update succeeded, role assignment is optional
+    }
   }
 
   revalidatePath('/admin/users')
@@ -220,6 +265,7 @@ export async function createUserAction(input: {
   full_name?: string
   church_id?: string
   diocese_id?: string
+  custom_role_id?: string
 }) {
   const supabase = await createClient()
 
@@ -242,12 +288,23 @@ export async function createUserAction(input: {
     throw new Error('Not authorized to create users')
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!input.email || !emailRegex.test(input.email.trim())) {
+    throw new Error('Invalid email format')
+  }
+
+  // Validate password
+  if (!input.password || input.password.length < 6) {
+    throw new Error('Password must be at least 6 characters')
+  }
+
   // Use admin client for user creation
   const adminClient = createAdminClient()
 
   // Create user in auth.users
   const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-    email: input.email,
+    email: input.email.trim(),
     password: input.password,
     email_confirm: true,
     user_metadata: {
@@ -280,6 +337,22 @@ export async function createUserAction(input: {
   if (updateError) {
     console.error('Update error:', updateError)
     // User was created but profile update failed
+  }
+
+  // Assign custom role if provided
+  if (input.custom_role_id) {
+    const { error: roleError } = await adminClient
+      .from('user_roles')
+      .insert({
+        user_id: authData.user.id,
+        role_id: input.custom_role_id,
+        assigned_by: user.id,
+      })
+
+    if (roleError) {
+      console.error('Error assigning custom role:', roleError)
+      // Don't throw - user creation succeeded, role assignment is optional
+    }
   }
 
   // Fetch the complete user profile

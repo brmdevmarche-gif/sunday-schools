@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { createClient } from "@/lib/supabase/server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StoreItemDetailsClient from "./StoreItemDetailsClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -16,14 +17,7 @@ export default async function StoreItemDetailsPage({ params }: PageProps) {
     redirect("/login");
   }
 
-  // Check if user is admin
-  if (
-    !["super_admin", "diocese_admin", "church_admin", "store_manager"].includes(
-      profile.role
-    )
-  ) {
-    redirect("/");
-  }
+  // Permission check will be done by PageWithPermissions
 
   const supabase = await createClient();
 
@@ -141,13 +135,15 @@ export default async function StoreItemDetailsPage({ params }: PageProps) {
 
   return (
     <AdminLayout>
-      <StoreItemDetailsClient
-        item={item}
-        orderItems={orderItems || []}
-        stats={stats}
-        monthlyData={monthlyData}
-        tierDistribution={tierDistribution}
-      />
+      <PageWithPermissions permission="store.view_detail">
+        <StoreItemDetailsClient
+          item={item}
+          orderItems={orderItems || []}
+          stats={stats}
+          monthlyData={monthlyData}
+          tierDistribution={tierDistribution}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -912,10 +913,15 @@ export default function EditStoreItemClient({
               </CardContent>
             </Card>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <PermissionButton
+              permission="store.update"
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
               <Save className="mr-2 h-4 w-4" />
               {isLoading ? t("common.saving") : t("common.save")}
-            </Button>
+            </PermissionButton>
           </div>
         </div>
       </form>

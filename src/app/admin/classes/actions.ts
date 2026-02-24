@@ -27,21 +27,50 @@ export async function getClassesData(churchId?: string) {
 }
 
 export async function getClassStudentsCountData(classId: string) {
-  const supabase = await createClient()
+  try {
+    // Check if Supabase environment variables are configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.warn('Supabase environment variables not configured')
+      return 0
+    }
 
-  const { count, error } = await supabase
-    .from('class_assignments')
-    .select('*', { count: 'exact', head: true })
-    .eq('class_id', classId)
-    .eq('assignment_type', 'student')
-    .eq('is_active', true)
+    const supabase = await createClient()
 
-  if (error) {
-    console.error('Error fetching student count:', error)
+    const { count, error } = await supabase
+      .from('class_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('class_id', classId)
+      .eq('assignment_type', 'student')
+      .eq('is_active', true)
+
+    if (error) {
+      // Only log if it's not a network error (to reduce noise)
+      if (error.code !== 'PGRST116' && !error.message?.includes('fetch')) {
+        console.error('Error fetching student count:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          classId,
+        })
+      }
+      return 0
+    }
+
+    return count || 0
+  } catch (err) {
+    // Handle network/fetch errors gracefully - only log if it's not a fetch error
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    if (!errorMessage.includes('fetch failed') && !errorMessage.includes('TypeError')) {
+      console.error('Error fetching student count (exception):', {
+        error: errorMessage,
+        classId,
+        errorType: err instanceof Error ? err.constructor.name : typeof err,
+      })
+    }
+    // Return 0 instead of throwing to prevent page crashes
     return 0
   }
-
-  return count || 0
 }
 
 export async function getAllClassesWithCounts(churchId?: string) {
@@ -217,6 +246,19 @@ export async function assignUserToClassAction(
   } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
+  // Check permissions: user must have either the general assign_users permission
+  // or the specific permission for the assignment type
+  const { hasPermission, hasAnyPermission } = await import('@/lib/permissions/check')
+  const hasAssignUsers = await hasPermission('classes.assign_users')
+  const specificPermission = assignmentType === 'teacher' 
+    ? 'classes.assign_teachers' 
+    : 'classes.assign_students'
+  const hasSpecificPermission = await hasPermission(specificPermission)
+  
+  if (!hasAssignUsers && !hasSpecificPermission) {
+    throw new Error(`You do not have permission to assign ${assignmentType}s to classes`)
+  }
+
   // Use admin client to bypass RLS for assignment operations
   const { createAdminClient } = await import('@/lib/supabase/admin')
   const adminClient = createAdminClient()
@@ -277,6 +319,35 @@ export async function removeUserFromClassAction(assignmentId: string, classId?: 
   // Use admin client to bypass RLS
   const { createAdminClient } = await import('@/lib/supabase/admin')
   const adminClient = createAdminClient()
+
+  // First, get the assignment to check the assignment type
+  const { data: assignment, error: fetchError } = await adminClient
+    .from('class_assignments')
+    .select('assignment_type')
+    .eq('id', assignmentId)
+    .single()
+
+  if (fetchError) {
+    console.error('Error fetching assignment:', fetchError)
+    throw new Error('Failed to fetch assignment')
+  }
+
+  if (!assignment) {
+    throw new Error('Assignment not found')
+  }
+
+  // Check permissions: user must have either the general assign_users permission
+  // or the specific permission for the assignment type
+  const { hasPermission } = await import('@/lib/permissions/check')
+  const hasAssignUsers = await hasPermission('classes.assign_users')
+  const specificPermission = assignment.assignment_type === 'teacher' 
+    ? 'classes.assign_teachers' 
+    : 'classes.assign_students'
+  const hasSpecificPermission = await hasPermission(specificPermission)
+  
+  if (!hasAssignUsers && !hasSpecificPermission) {
+    throw new Error(`You do not have permission to remove ${assignment.assignment_type}s from classes`)
+  }
 
   const { error } = await adminClient
     .from('class_assignments')

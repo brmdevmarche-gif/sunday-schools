@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/hooks/usePermissions";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -176,6 +178,23 @@ export default function CompetitionsAdminClient({
   const t = useTranslations();
   const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  // Check permissions for tabs
+  const canViewCompetitions = useHasPermission("activities.view_competitions");
+  const canManageParticipants = useHasPermission("activities.manage_participants");
+  const canCreate = useHasPermission("activities.create");
+  const canUpdate = useHasPermission("activities.update");
+  const canDelete = useHasPermission("activities.delete");
+
+  // Determine available tabs and default tab
+  const availableTabs = useMemo(() => {
+    const tabs: string[] = [];
+    if (canViewCompetitions) tabs.push("competitions");
+    if (canManageParticipants) tabs.push("submissions");
+    return tabs;
+  }, [canViewCompetitions, canManageParticipants]);
+
+  const defaultTab = availableTabs[0] || "competitions";
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "draft" | "completed"
@@ -344,10 +363,13 @@ export default function CompetitionsAdminClient({
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <PermissionButton
+          permission="activities.create"
+          onClick={() => setShowCreateDialog(true)}
+        >
           <Plus className="h-4 w-4 mr-2" />
           {t("competitions.admin.createCompetition") || "Create Competition"}
-        </Button>
+        </PermissionButton>
       </div>
 
       {/* Stats */}
@@ -437,22 +459,27 @@ export default function CompetitionsAdminClient({
         </Select>
       </div>
 
-      <Tabs defaultValue="competitions" className="space-y-4">
+      <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="competitions">
-            <Trophy className="h-4 w-4 mr-2" />
-            {t("competitions.title") || "Competitions"} (
-            {filteredCompetitions.length})
-          </TabsTrigger>
-          <TabsTrigger value="submissions">
-            <FileText className="h-4 w-4 mr-2" />
-            {t("competitions.admin.pendingSubmissions") ||
-              "Pending Submissions"}{" "}
-            ({pendingSubmissions.length})
-          </TabsTrigger>
+          {canViewCompetitions && (
+            <TabsTrigger value="competitions">
+              <Trophy className="h-4 w-4 mr-2" />
+              {t("competitions.title") || "Competitions"} (
+              {filteredCompetitions.length})
+            </TabsTrigger>
+          )}
+          {canManageParticipants && (
+            <TabsTrigger value="submissions">
+              <FileText className="h-4 w-4 mr-2" />
+              {t("competitions.admin.pendingSubmissions") ||
+                "Pending Submissions"}{" "}
+              ({pendingSubmissions.length})
+            </TabsTrigger>
+          )}
         </TabsList>
 
-        <TabsContent value="competitions">
+        {canViewCompetitions && (
+          <TabsContent value="competitions">
           <Card>
             <Table>
               <TableHeader>
@@ -519,18 +546,20 @@ export default function CompetitionsAdminClient({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() =>
-                                router.push(
-                                  `/admin/activities/competitions/${comp.id}`
-                                )
-                              }
-                            >
-                              <Eye className="h-4 w-4 me-2" />
-                              {t("common.view") || "View"}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {comp.status === "draft" && (
+                            {canViewCompetitions && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  router.push(
+                                    `/admin/activities/competitions/${comp.id}`
+                                  )
+                                }
+                              >
+                                <Eye className="h-4 w-4 me-2" />
+                                {t("common.view") || "View"}
+                              </DropdownMenuItem>
+                            )}
+                            {(canViewCompetitions && (canUpdate || canDelete)) && <DropdownMenuSeparator />}
+                            {canUpdate && comp.status === "draft" && (
                               <DropdownMenuItem
                                 onClick={() =>
                                   handleStatusChange(comp, "active")
@@ -540,7 +569,7 @@ export default function CompetitionsAdminClient({
                                 {t("competitions.admin.activate") || "Activate"}
                               </DropdownMenuItem>
                             )}
-                            {comp.status === "active" && (
+                            {canUpdate && comp.status === "active" && (
                               <DropdownMenuItem
                                 onClick={() =>
                                   handleStatusChange(comp, "completed")
@@ -551,17 +580,19 @@ export default function CompetitionsAdminClient({
                                   "Mark Complete"}
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => {
-                                setCompetitionToDelete(comp);
-                                setDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 me-2" />
-                              {t("common.delete") || "Delete"}
-                            </DropdownMenuItem>
+                            {(canUpdate && canDelete) && <DropdownMenuSeparator />}
+                            {canDelete && (
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => {
+                                  setCompetitionToDelete(comp);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 me-2" />
+                                {t("common.delete") || "Delete"}
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -571,70 +602,73 @@ export default function CompetitionsAdminClient({
               </TableBody>
             </Table>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
-        <TabsContent value="submissions">
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>
-                    {t("competitions.admin.student") || "Student"}
-                  </TableHead>
-                  <TableHead>
-                    {t("competitions.title") || "Competition"}
-                  </TableHead>
-                  <TableHead>
-                    {t("competitions.admin.submitted") || "Submitted"}
-                  </TableHead>
-                  <TableHead>
-                    {t("competitions.admin.type") || "Type"}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("common.actions") || "Actions"}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingSubmissions.length === 0 ? (
+        {canManageParticipants && (
+          <TabsContent value="submissions">
+            <Card>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      {t("competitions.admin.noPendingSubmissions") ||
-                        "No pending submissions"}
-                    </TableCell>
+                    <TableHead>
+                      {t("competitions.admin.student") || "Student"}
+                    </TableHead>
+                    <TableHead>
+                      {t("competitions.title") || "Competition"}
+                    </TableHead>
+                    <TableHead>
+                      {t("competitions.admin.submitted") || "Submitted"}
+                    </TableHead>
+                    <TableHead>
+                      {t("competitions.admin.type") || "Type"}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("common.actions") || "Actions"}
+                    </TableHead>
                   </TableRow>
-                ) : (
-                  pendingSubmissions.map((sub) => (
-                    <TableRow key={sub.id}>
-                      <TableCell className="font-medium">
-                        {sub.user?.full_name || "Unknown"}
-                      </TableCell>
-                      <TableCell>
-                        {sub.competition?.name || "Unknown"}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(sub.submitted_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="capitalize">
-                        {sub.competition?.submission_type?.replace("_", " ") ||
-                          "-"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          {t("common.review") || "Review"}
-                        </Button>
+                </TableHeader>
+                <TableBody>
+                  {pendingSubmissions.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        {t("competitions.admin.noPendingSubmissions") ||
+                          "No pending submissions"}
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </Card>
-        </TabsContent>
+                  ) : (
+                    pendingSubmissions.map((sub) => (
+                      <TableRow key={sub.id}>
+                        <TableCell className="font-medium">
+                          {sub.user?.full_name || "Unknown"}
+                        </TableCell>
+                        <TableCell>
+                          {sub.competition?.name || "Unknown"}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(sub.submitted_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {sub.competition?.submission_type?.replace("_", " ") ||
+                            "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            {t("common.review") || "Review"}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Create Competition Dialog */}

@@ -55,6 +55,7 @@ import type {
   UserRole,
   AttendanceStatus,
 } from "@/lib/types/sunday-school";
+import type { Role } from "@/lib/types/modules/permissions";
 import {
   updateUserRoleAction,
   activateUserAction,
@@ -130,6 +131,7 @@ interface UserDetailsClientProps {
   currentUserRole: UserRole;
   churches: Church[];
   dioceses: Diocese[];
+  roles?: Role[];
 }
 
 export default function UserDetailsClient({
@@ -141,6 +143,7 @@ export default function UserDetailsClient({
   currentUserRole,
   churches,
   dioceses,
+  roles = [],
 }: UserDetailsClientProps) {
   const router = useRouter();
   const t = useTranslations();
@@ -153,6 +156,7 @@ export default function UserDetailsClient({
     username: user.username || "",
     email: user.email,
     role: user.role,
+    custom_role_id: (user as any).custom_role_id || "",
     diocese_id: user.diocese_id || "",
     church_id: user.church_id || "",
   });
@@ -200,7 +204,8 @@ export default function UserDetailsClient({
         editFormData.diocese_id || null,
         editFormData.church_id || null,
         editFormData.full_name,
-        editFormData.username
+        editFormData.username,
+        editFormData.custom_role_id || null
       );
       toast.success(t("users.userUpdated"));
       setIsEditDialogOpen(false);
@@ -238,6 +243,7 @@ export default function UserDetailsClient({
       username: user.username || "",
       email: user.email,
       role: user.role,
+      custom_role_id: (user as any).custom_role_id || "",
       diocese_id: user.diocese_id || "",
       church_id: user.church_id || "",
     });
@@ -815,7 +821,7 @@ export default function UserDetailsClient({
             </div>
 
             <div className="space-y-2">
-              <Label>{t("users.role")} *</Label>
+              <Label>User Type *</Label>
               <Select
                 value={editFormData.role}
                 onValueChange={(value) =>
@@ -842,6 +848,33 @@ export default function UserDetailsClient({
                 </SelectContent>
               </Select>
             </div>
+
+            {roles.length > 0 && (
+              <div className="space-y-2">
+                <Label>Custom Role</Label>
+                <Select
+                  value={editFormData.custom_role_id || "none"}
+                  onValueChange={(value) =>
+                    setEditFormData({ ...editFormData, custom_role_id: value === "none" ? "" : value })
+                  }
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a custom role (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {roles
+                      .filter((role) => role.is_active && !role.is_system_role)
+                      .map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.title}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {editFormData.role === "diocese_admin" && (
               <div className="space-y-2">

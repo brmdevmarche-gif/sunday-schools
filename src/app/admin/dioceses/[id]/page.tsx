@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DioceseDetailsClient } from './DioceseDetailsClient'
+import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 import type { Diocese } from '@/lib/types/sunday-school'
 
 export default async function DioceseDetailsPage({
@@ -76,14 +77,16 @@ export default async function DioceseDetailsPage({
 
   return (
     <AdminLayout>
-      <DioceseDetailsClient
-        diocese={diocese as Diocese}
-        churches={churches || []}
-        dioceseAdmins={dioceseAdmins || []}
-        users={users}
-        isSuperAdmin={isSuperAdmin}
-        isDioceseAdmin={isDioceseAdmin}
-      />
+      <PageWithPermissions permission="dioceses.view_detail">
+        <DioceseDetailsClient
+          diocese={diocese as Diocese}
+          churches={churches || []}
+          dioceseAdmins={dioceseAdmins || []}
+          users={users}
+          isSuperAdmin={isSuperAdmin}
+          isDioceseAdmin={isDioceseAdmin}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   )
 }

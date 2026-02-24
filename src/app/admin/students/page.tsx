@@ -2,6 +2,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import StudentsClient from "./StudentsClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 import type { ExtendedUser, Diocese, Church, Class } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -116,15 +117,17 @@ export default async function StudentsPage() {
 
   return (
     <AdminLayout>
-      <StudentsClient
-        initialStudents={studentsWithAssignments as any}
-        dioceses={(dioceses as Diocese[]) || []}
-        churches={(churches as Church[]) || []}
-        classes={(classes as Class[]) || []}
-        canCreate={isSuperAdmin || isDioceseAdmin || isChurchAdmin}
-        canEdit={isSuperAdmin || isDioceseAdmin || isChurchAdmin}
-        canDelete={isSuperAdmin}
-      />
+      <PageWithPermissions permission="students.view">
+        <StudentsClient
+          initialStudents={studentsWithAssignments as any}
+          dioceses={(dioceses as Diocese[]) || []}
+          churches={(churches as Church[]) || []}
+          classes={(classes as Class[]) || []}
+          canCreate={isSuperAdmin || isDioceseAdmin || isChurchAdmin}
+          canEdit={isSuperAdmin || isDioceseAdmin || isChurchAdmin}
+          canDelete={isSuperAdmin}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

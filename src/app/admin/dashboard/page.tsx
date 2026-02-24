@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import DashboardClient from "./DashboardClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -115,7 +116,9 @@ export default async function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <DashboardClient userProfile={profile} stats={stats} />
+      <PageWithPermissions permission="dashboard.view">
+        <DashboardClient userProfile={profile} stats={stats} />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

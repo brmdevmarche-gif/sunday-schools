@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import {
   Table,
   TableBody,
@@ -332,13 +333,14 @@ export default function StudentsClient({
           </p>
         </div>
         {canCreate && (
-          <Button
+          <PermissionButton
+            permission="students.create"
             onClick={() => handleOpenDialog()}
             className="w-full sm:w-auto"
           >
             <Plus className="me-2 h-4 w-4" />
             Add Student
-          </Button>
+          </PermissionButton>
         )}
       </div>
 
@@ -493,31 +495,34 @@ export default function StudentsClient({
                         >
                           {canEdit && (
                             <>
-                              <Button
+                              <PermissionButton
+                                permission="classes.assign_students"
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleOpenAssignDialog(student)}
                                 title="Assign to class"
                               >
                                 <UserPlus className="h-4 w-4" />
-                              </Button>
-                              <Button
+                              </PermissionButton>
+                              <PermissionButton
+                                permission="students.update"
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleOpenDialog(student)}
                               >
                                 <Pencil className="h-4 w-4" />
-                              </Button>
+                              </PermissionButton>
                             </>
                           )}
                           {canDelete && (
-                            <Button
+                            <PermissionButton
+                              permission="students.delete"
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(student)}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            </PermissionButton>
                           )}
                         </div>
                       </TableCell>

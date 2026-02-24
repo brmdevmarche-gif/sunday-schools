@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
+import { useHasPermission, usePermissions } from "@/hooks/usePermissions";
 import {
   ResponsiveTable,
   type SortOption,
@@ -106,6 +108,17 @@ export default function ClassesClient({
   const router = useRouter();
   const t = useTranslations();
   const [, startTransition] = useTransition();
+  
+  // Check permissions for assigning users
+  const { hasAnyPermission } = usePermissions();
+  const hasAssignUsers = useHasPermission('classes.assign_users');
+  const hasAssignTeachers = useHasPermission('classes.assign_teachers');
+  const hasAssignStudents = useHasPermission('classes.assign_students');
+  
+  // Helper to check if user can assign students (either general or specific)
+  const canAssignStudents = hasAssignUsers || hasAssignStudents;
+  // Helper to check if user can assign teachers (either general or specific)
+  const canAssignTeachers = hasAssignUsers || hasAssignTeachers;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isRosterDialogOpen, setIsRosterDialogOpen] = useState(false);
@@ -459,10 +472,10 @@ export default function ClassesClient({
           <h1 className="text-3xl font-bold">{t("classes.title")}</h1>
           <p className="text-muted-foreground mt-2">{t("classes.subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+        <PermissionButton permission="classes.create" onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
           <Plus className="me-2 h-4 w-4" />
           {t("classes.addClass")}
-        </Button>
+        </PermissionButton>
       </div>
 
       {/* Filters - Responsive: inline on desktop, sheet on mobile */}
@@ -617,7 +630,8 @@ export default function ClassesClient({
             onRowClick={(cls) => router.push(`/admin/classes/${cls.id}`)}
             renderActions={(cls) => (
               <div className="flex justify-end gap-1 flex-wrap">
-                <Button
+                <PermissionButton
+                  permission="classes.view_detail"
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
@@ -628,34 +642,41 @@ export default function ClassesClient({
                   aria-label={t("classes.viewRoster")}
                 >
                   <Users className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenAssignDialog(cls, "student");
-                  }}
-                  title={t("classes.assignStudent")}
-                  aria-label={t("classes.assignStudent")}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  <UserPlus className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenAssignDialog(cls, "teacher");
-                  }}
-                  title={t("classes.assignTeacher")}
-                  aria-label={t("classes.assignTeacher")}
-                  className="text-green-600 hover:text-green-700 hidden sm:flex"
-                >
-                  <UserIcon className="h-4 w-4" />
-                </Button>
-                <Button
+                </PermissionButton>
+                {canAssignStudents && (
+                  <PermissionButton
+                    permission={hasAssignUsers ? "classes.assign_users" : "classes.assign_students"}
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAssignDialog(cls, "student");
+                    }}
+                    title={t("classes.assignStudent")}
+                    aria-label={t("classes.assignStudent")}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </PermissionButton>
+                )}
+                {canAssignTeachers && (
+                  <PermissionButton
+                    permission={hasAssignUsers ? "classes.assign_users" : "classes.assign_teachers"}
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAssignDialog(cls, "teacher");
+                    }}
+                    title={t("classes.assignTeacher")}
+                    aria-label={t("classes.assignTeacher")}
+                    className="text-green-600 hover:text-green-700 hidden sm:flex"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                  </PermissionButton>
+                )}
+                <PermissionButton
+                  permission="classes.update"
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
@@ -666,8 +687,9 @@ export default function ClassesClient({
                   aria-label={t("common.edit")}
                 >
                   <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
+                </PermissionButton>
+                <PermissionButton
+                  permission="classes.delete"
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
@@ -679,7 +701,7 @@ export default function ClassesClient({
                   className="hidden sm:flex"
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                </PermissionButton>
               </div>
             )}
             emptyState={
@@ -1000,16 +1022,31 @@ export default function ClassesClient({
             >
               {t("common.cancel")}
             </Button>
-            <Button
-              onClick={handleAssignUser}
-              disabled={isSubmitting || selectedUserIds.length === 0}
-            >
-              {isSubmitting
-                ? t("classes.assigning")
-                : selectedUserIds.length > 0
-                ? `${t("classes.assign")} (${selectedUserIds.length})`
-                : t("classes.assign")}
-            </Button>
+            {hasAssignUsers ? (
+              <PermissionButton
+                permission="classes.assign_users"
+                onClick={handleAssignUser}
+                disabled={isSubmitting || selectedUserIds.length === 0}
+              >
+                {isSubmitting
+                  ? t("classes.assigning")
+                  : selectedUserIds.length > 0
+                  ? `${t("classes.assign")} (${selectedUserIds.length})`
+                  : t("classes.assign")}
+              </PermissionButton>
+            ) : (
+              <PermissionButton
+                permission={assignmentType === "teacher" ? "classes.assign_teachers" : "classes.assign_students"}
+                onClick={handleAssignUser}
+                disabled={isSubmitting || selectedUserIds.length === 0}
+              >
+                {isSubmitting
+                  ? t("classes.assigning")
+                  : selectedUserIds.length > 0
+                  ? `${t("classes.assign")} (${selectedUserIds.length})`
+                  : t("classes.assign")}
+              </PermissionButton>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1033,17 +1070,33 @@ export default function ClassesClient({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold">{t("classes.teachers")}</h3>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    selectedClass &&
-                    handleOpenAssignDialog(selectedClass, "teacher")
-                  }
-                >
-                  <Plus className="h-3 w-3 me-1" />
-                  {t("classes.addTeacher")}
-                </Button>
+                {hasAssignUsers ? (
+                  <PermissionButton
+                    permission="classes.assign_users"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      selectedClass &&
+                      handleOpenAssignDialog(selectedClass, "teacher")
+                    }
+                  >
+                    <Plus className="h-3 w-3 me-1" />
+                    {t("classes.addTeacher")}
+                  </PermissionButton>
+                ) : (
+                  <PermissionButton
+                    permission="classes.assign_teachers"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      selectedClass &&
+                      handleOpenAssignDialog(selectedClass, "teacher")
+                    }
+                  >
+                    <Plus className="h-3 w-3 me-1" />
+                    {t("classes.addTeacher")}
+                  </PermissionButton>
+                )}
               </div>
               <div className="border rounded-lg divide-y">
                 {classRoster.filter((r) => r.assignment_type === "teacher")
@@ -1062,15 +1115,29 @@ export default function ClassesClient({
                         <span className="text-sm truncate flex-1">
                           {assignment.user?.full_name || assignment.user?.email}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveUser(assignment.id)}
-                          title={t("common.remove")}
-                          aria-label={t("common.remove")}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {hasAssignUsers ? (
+                          <PermissionButton
+                            permission="classes.assign_users"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveUser(assignment.id)}
+                            title={t("common.remove")}
+                            aria-label={t("common.remove")}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </PermissionButton>
+                        ) : (
+                          <PermissionButton
+                            permission="classes.assign_teachers"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveUser(assignment.id)}
+                            title={t("common.remove")}
+                            aria-label={t("common.remove")}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </PermissionButton>
+                        )}
                       </div>
                     ))
                 )}
@@ -1081,17 +1148,33 @@ export default function ClassesClient({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold">{t("classes.students")}</h3>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    selectedClass &&
-                    handleOpenAssignDialog(selectedClass, "student")
-                  }
-                >
-                  <Plus className="h-3 w-3 me-1" />
-                  {t("classes.addStudent")}
-                </Button>
+                {hasAssignUsers ? (
+                  <PermissionButton
+                    permission="classes.assign_users"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      selectedClass &&
+                      handleOpenAssignDialog(selectedClass, "student")
+                    }
+                  >
+                    <Plus className="h-3 w-3 me-1" />
+                    {t("classes.addStudent")}
+                  </PermissionButton>
+                ) : (
+                  <PermissionButton
+                    permission="classes.assign_students"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      selectedClass &&
+                      handleOpenAssignDialog(selectedClass, "student")
+                    }
+                  >
+                    <Plus className="h-3 w-3 me-1" />
+                    {t("classes.addStudent")}
+                  </PermissionButton>
+                )}
               </div>
               <div className="border rounded-lg max-h-[300px] overflow-y-auto divide-y">
                 {classRoster.filter((r) => r.assignment_type === "student")
@@ -1110,15 +1193,29 @@ export default function ClassesClient({
                         <span className="text-sm truncate flex-1">
                           {assignment.user?.full_name || assignment.user?.email}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveUser(assignment.id)}
-                          title={t("common.remove")}
-                          aria-label={t("common.remove")}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {hasAssignUsers ? (
+                          <PermissionButton
+                            permission="classes.assign_users"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveUser(assignment.id)}
+                            title={t("common.remove")}
+                            aria-label={t("common.remove")}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </PermissionButton>
+                        ) : (
+                          <PermissionButton
+                            permission="classes.assign_students"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveUser(assignment.id)}
+                            title={t("common.remove")}
+                            aria-label={t("common.remove")}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </PermissionButton>
+                        )}
                       </div>
                     ))
                 )}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -740,10 +741,15 @@ export default function EditTripClient({
             )}
 
             {/* Submit */}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <PermissionButton
+              permission="trips.update"
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
               <Save className="mr-2 h-4 w-4" />
               {isLoading ? "Updating..." : "Update Trip"}
-            </Button>
+            </PermissionButton>
           </div>
         </div>
       </form>

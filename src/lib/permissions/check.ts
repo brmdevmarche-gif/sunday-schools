@@ -4,42 +4,60 @@
 // Utilities for checking permissions in page components
 // =====================================================
 
-import { createClient } from '../supabase/client'
+import { createClient } from '../supabase/server'
+import { cache } from 'react'
 import type { Permission } from '../types/modules/permissions'
+
+// Cache user permissions per request to avoid multiple database calls
+const getCachedUserPermissions = cache(async (userId: string): Promise<string[]> => {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase.rpc('get_user_permissions', {
+    user_id_param: userId,
+  })
+
+  if (error) {
+    console.error('Error fetching user permissions:', error)
+    return []
+  }
+
+  // Return just the permission codes for fast lookup
+  return (data || []).map((p: any) => p.permission_code) as string[]
+})
+
+/**
+ * Get current user ID (cached per request)
+ */
+const getCurrentUserId = cache(async (): Promise<string | null> => {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return user?.id || null
+})
 
 /**
  * Check if current user has a specific permission (server-side)
+ * Optimized to fetch all permissions once and cache them per request
  */
 export async function hasPermission(
   permissionCode: string,
   userId?: string
 ): Promise<boolean> {
-  const supabase = createClient()
-
-  let targetUserId = userId
+  let targetUserId: string | null | undefined = userId
   if (!targetUserId) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return false
-    targetUserId = user.id
+    targetUserId = await getCurrentUserId()
+    if (!targetUserId) return false
   }
 
-  const { data, error } = await supabase.rpc('user_has_permission', {
-    user_id_param: targetUserId,
-    permission_code_param: permissionCode,
-  })
-
-  if (error) {
-    console.error('Error checking permission:', error)
-    return false
-  }
-
-  return data as boolean
+  // Get cached permissions for this user (only fetched once per request)
+  const permissions = await getCachedUserPermissions(targetUserId)
+  return permissions.includes(permissionCode)
 }
 
 /**
  * Check if current user has any of the specified permissions (server-side)
+ * Optimized to check against cached permissions
  */
 export async function hasAnyPermission(
   permissionCodes: string[],
@@ -47,17 +65,22 @@ export async function hasAnyPermission(
 ): Promise<boolean> {
   if (permissionCodes.length === 0) return false
 
-  for (const code of permissionCodes) {
-    if (await hasPermission(code, userId)) {
-      return true
-    }
+  let targetUserId: string | null | undefined = userId
+  if (!targetUserId) {
+    targetUserId = await getCurrentUserId()
+    if (!targetUserId) return false
   }
 
-  return false
+  // Get cached permissions once
+  const permissions = await getCachedUserPermissions(targetUserId)
+  
+  // Check if any permission code is in the cached list
+  return permissionCodes.some(code => permissions.includes(code))
 }
 
 /**
  * Check if current user has all of the specified permissions (server-side)
+ * Optimized to check against cached permissions
  */
 export async function hasAllPermissions(
   permissionCodes: string[],
@@ -65,32 +88,33 @@ export async function hasAllPermissions(
 ): Promise<boolean> {
   if (permissionCodes.length === 0) return true
 
-  for (const code of permissionCodes) {
-    if (!(await hasPermission(code, userId))) {
-      return false
-    }
+  let targetUserId: string | null | undefined = userId
+  if (!targetUserId) {
+    targetUserId = await getCurrentUserId()
+    if (!targetUserId) return false
   }
 
-  return true
+  // Get cached permissions once
+  const permissions = await getCachedUserPermissions(targetUserId)
+  
+  // Check if all permission codes are in the cached list
+  return permissionCodes.every(code => permissions.includes(code))
 }
 
 /**
  * Get all permissions for a user (server-side)
+ * Uses cached permissions to avoid duplicate database calls
  */
 export async function getUserPermissions(
   userId?: string
 ): Promise<Permission[]> {
-  const supabase = createClient()
-
-  let targetUserId = userId
+  let targetUserId: string | null | undefined = userId
   if (!targetUserId) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return []
-    targetUserId = user.id
+    targetUserId = await getCurrentUserId()
+    if (!targetUserId) return []
   }
 
+  const supabase = await createClient()
   const { data, error } = await supabase.rpc('get_user_permissions', {
     user_id_param: targetUserId,
   })

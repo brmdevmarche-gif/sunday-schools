@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getTripByIdAction, getChurchesForTrips, getDiocesesForTrips } from "../../actions";
 import AdminLayout from "@/components/admin/AdminLayout";
 import EditTripClient from "../EditTripClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function EditTripPage({
   params,
@@ -17,11 +18,7 @@ export default async function EditTripPage({
     redirect("/login");
   }
 
-  // Check if user has permission
-  const allowedRoles = ["super_admin", "diocese_admin", "church_admin", "teacher"];
-  if (!allowedRoles.includes(profile.role)) {
-    redirect("/admin/dashboard");
-  }
+  // Permission check will be done by PageWithPermissions
 
   // Fetch trip
   const result = await getTripByIdAction(id);
@@ -37,7 +34,9 @@ export default async function EditTripPage({
 
   return (
     <AdminLayout>
-      <EditTripClient trip={result.data} userProfile={profile} churches={churches} dioceses={dioceses} />
+      <PageWithPermissions permission="trips.update">
+        <EditTripClient trip={result.data} userProfile={profile} churches={churches} dioceses={dioceses} />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

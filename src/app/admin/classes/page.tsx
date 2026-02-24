@@ -6,6 +6,7 @@ import {
   getDiocesesData,
   getCurrentUserProfile,
 } from './actions'
+import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,12 +21,14 @@ export default async function ClassesPage() {
 
   return (
     <AdminLayout>
-      <ClassesClient
-        initialClasses={classes}
-        churches={churches}
-        dioceses={dioceses}
-        userProfile={userProfile}
-      />
+      <PageWithPermissions permission="classes.view">
+        <ClassesClient
+          initialClasses={classes}
+          churches={churches}
+          dioceses={dioceses}
+          userProfile={userProfile}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   )
 }

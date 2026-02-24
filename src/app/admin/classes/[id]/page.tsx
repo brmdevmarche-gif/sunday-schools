@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import ClassDetailsClient from "./ClassDetailsClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -88,12 +89,14 @@ export default async function ClassDetailsPage({ params }: PageProps) {
 
   return (
     <AdminLayout>
-      <ClassDetailsClient
-        classData={classData}
-        rosterData={rosterData || []}
-        activitiesData={activitiesData || []}
-        userProfile={profile}
-      />
+      <PageWithPermissions permission="classes.view_detail">
+        <ClassDetailsClient
+          classData={classData}
+          rosterData={rosterData || []}
+          activitiesData={activitiesData || []}
+          userProfile={profile}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

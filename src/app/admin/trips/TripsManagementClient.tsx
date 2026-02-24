@@ -5,6 +5,8 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
+import { useHasPermission } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -56,6 +58,9 @@ export default function TripsManagementClient({
   const t = useTranslations();
   const router = useRouter();
   const locale = useLocale();
+  const canUpdate = useHasPermission("trips.update");
+  const canDelete = useHasPermission("trips.delete");
+  const canViewDetail = useHasPermission("trips.view_detail");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Get currency symbol based on locale
@@ -179,13 +184,14 @@ export default function TripsManagementClient({
             Manage and organize trips for your church
           </p>
         </div>
-        <Button
+        <PermissionButton
+          permission="trips.create"
           onClick={() => router.push("/admin/trips/create")}
           className="w-full sm:w-auto"
         >
           <Plus className="me-2 h-4 w-4" />
           Create Trip
-        </Button>
+        </PermissionButton>
       </div>
 
       {/* Filters - Responsive: inline on desktop, sheet on mobile */}
@@ -335,19 +341,23 @@ export default function TripsManagementClient({
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => router.push(`/admin/trips/${trip.id}`)}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(trip.id)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
+                      {canUpdate && (
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/admin/trips/${trip.id}`)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                      )}
+                      {canDelete && (
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(trip.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -418,13 +428,14 @@ export default function TripsManagementClient({
                   </div>
                 </div>
 
-                <Button
+                <PermissionButton
+                  permission="trips.view_detail"
                   variant="outline"
                   className="w-full mt-auto"
                   onClick={() => router.push(`/admin/trips/${trip.id}`)}
                 >
                   View Details & Manage
-                </Button>
+                </PermissionButton>
               </CardContent>
             </Card>
           ))}

@@ -92,9 +92,9 @@ export default function LoginPage() {
       }
 
       toast.success(t("auth.loginSuccess"));
-      router.refresh();
 
       // Fetch user's role to determine redirect
+      let redirectPath = "/dashboard";
       if (user?.id) {
         const { data: profile } = await supabase
           .from("users")
@@ -108,23 +108,22 @@ export default function LoginPage() {
             case "super_admin":
             case "diocese_admin":
             case "church_admin":
-              router.push("/admin");
+              redirectPath = "/admin";
               break;
             case "teacher":
-              router.push("/dashboard/teacher");
+              redirectPath = "/dashboard/teacher";
               break;
             case "parent":
-              router.push("/dashboard/parents");
+              redirectPath = "/dashboard/parents";
               break;
             default:
-              router.push("/dashboard");
+              redirectPath = "/dashboard";
           }
-        } else {
-          router.push("/dashboard");
         }
-      } else {
-        router.push("/dashboard");
       }
+
+      // Use window.location for a hard redirect to ensure session is established
+      window.location.href = redirectPath;
     } catch (error) {
       // Log failed login attempt
       const errorMessage =

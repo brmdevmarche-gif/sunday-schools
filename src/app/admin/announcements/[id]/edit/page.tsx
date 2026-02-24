@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Class, Church, Diocese } from '@/lib/types'
 import { getAnnouncementByIdAdminAction } from '../../actions'
 import AnnouncementForm from '../../AnnouncementForm'
+import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,9 +34,7 @@ export default async function AdminEditAnnouncementPage(props: { params: Promise
     .single()
 
   if (!profile) redirect('/login')
-  if (!['super_admin', 'diocese_admin', 'church_admin', 'teacher'].includes(profile.role)) {
-    redirect('/dashboard')
-  }
+  // Permission check will be done by PageWithPermissions
 
   const isSuperAdmin = profile.role === 'super_admin'
   const isDioceseAdmin = profile.role === 'diocese_admin'
@@ -78,32 +77,34 @@ export default async function AdminEditAnnouncementPage(props: { params: Promise
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Edit announcement</h1>
-          <p className="text-sm text-muted-foreground">Update announcement details, targeting and scope.</p>
+      <PageWithPermissions permission="announcements.update">
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold">Edit announcement</h1>
+            <p className="text-sm text-muted-foreground">Update announcement details, targeting and scope.</p>
+          </div>
+          <AnnouncementForm
+            mode="edit"
+            initial={{
+              id: announcement.id,
+              title: announcement.title || '',
+              description: announcement.description || '',
+              types: announcement.types || [],
+              target_roles: announcement.target_roles || [],
+              publish_from: isoToDateTimeLocal(announcement.publish_from),
+              publish_to: announcement.publish_to ? isoToDateTimeLocal(announcement.publish_to) : '',
+              diocese_ids: announcement.diocese_ids || [],
+              church_ids: announcement.church_ids || [],
+              class_ids: announcement.class_ids || [],
+            }}
+            dioceses={(dioceses as Diocese[]) || []}
+            churches={(churches as Church[]) || []}
+            classes={(classes as Class[]) || []}
+            canScope={isSuperAdmin || isDioceseAdmin || isChurchAdmin || profile.role === 'teacher'}
+            successRedirectHref="/admin/announcements"
+          />
         </div>
-        <AnnouncementForm
-          mode="edit"
-          initial={{
-            id: announcement.id,
-            title: announcement.title || '',
-            description: announcement.description || '',
-            types: announcement.types || [],
-            target_roles: announcement.target_roles || [],
-            publish_from: isoToDateTimeLocal(announcement.publish_from),
-            publish_to: announcement.publish_to ? isoToDateTimeLocal(announcement.publish_to) : '',
-            diocese_ids: announcement.diocese_ids || [],
-            church_ids: announcement.church_ids || [],
-            class_ids: announcement.class_ids || [],
-          }}
-          dioceses={(dioceses as Diocese[]) || []}
-          churches={(churches as Church[]) || []}
-          classes={(classes as Class[]) || []}
-          canScope={isSuperAdmin || isDioceseAdmin || isChurchAdmin || profile.role === 'teacher'}
-          successRedirectHref="/admin/announcements"
-        />
-      </div>
+      </PageWithPermissions>
     </AdminLayout>
   )
 }

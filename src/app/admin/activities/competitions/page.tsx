@@ -6,21 +6,13 @@ import {
 } from "@/app/activities/competitions/actions";
 import CompetitionsAdminClient from "./CompetitionsAdminClient";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function CompetitionsAdminPage() {
   const profile = await getCurrentUserProfile();
 
   if (!profile) {
     redirect("/login");
-  }
-
-  // Check if user is admin
-  if (
-    !["super_admin", "diocese_admin", "church_admin", "teacher"].includes(
-      profile.role
-    )
-  ) {
-    redirect("/activities/competitions");
   }
 
   const [competitionsResult, submissionsResult] = await Promise.all([
@@ -30,11 +22,13 @@ export default async function CompetitionsAdminPage() {
 
   return (
     <AdminLayout>
-      <CompetitionsAdminClient
-        competitions={competitionsResult.data || []}
-        pendingSubmissions={submissionsResult.data || []}
-        userProfile={profile}
-      />
+      <PageWithPermissions permission={["activities.view_competitions", "activities.manage_participants"]}>
+        <CompetitionsAdminClient
+          competitions={competitionsResult.data || []}
+          pendingSubmissions={submissionsResult.data || []}
+          userProfile={profile}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

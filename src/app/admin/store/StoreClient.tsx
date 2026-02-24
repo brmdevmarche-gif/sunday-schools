@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PermissionButton } from "@/components/admin/PermissionButton";
+import { useHasPermission } from "@/hooks/usePermissions";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -94,6 +96,7 @@ export default function StoreClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations();
+  const canManageInventory = useHasPermission("store.manage_inventory");
   const [items, setItems] = useState<StoreItem[]>(initialItems);
   const [searchQuery, setSearchQuery] = useState("");
   const [fromLocal, setFromLocal] = useState<string>(() =>
@@ -478,7 +481,8 @@ export default function StoreClient({
           <p className="text-muted-foreground mt-1">{t("store.subtitle")}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button
+          <PermissionButton
+            permission="store.manage_inventory"
             variant="outline"
             onClick={loadDemandStats}
             disabled={isLoadingDemand}
@@ -486,27 +490,29 @@ export default function StoreClient({
           >
             <BarChart3 className="me-2 h-4 w-4" />
             {isLoadingDemand ? "Loading..." : t("store.itemDemand")}
-          </Button>
-          <Button
+          </PermissionButton>
+          <PermissionButton
+            permission="store.orders_view"
             variant="outline"
             onClick={() => router.push("/admin/store/orders")}
             className="w-full sm:w-auto"
           >
             <ShoppingCart className="me-2 h-4 w-4" />
             {t("store.ordersManagement")}
-          </Button>
-          <Button
+          </PermissionButton>
+          <PermissionButton
+            permission="store.create"
             onClick={() => router.push("/admin/store/create")}
             className="w-full sm:w-auto"
           >
             <Plus className="me-2 h-4 w-4" />
             {t("store.addItem")}
-          </Button>
+          </PermissionButton>
         </div>
       </div>
 
       {/* Demand View */}
-      {showDemandView ? (
+      {showDemandView && canManageInventory ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -604,14 +610,15 @@ export default function StoreClient({
               >
                 {t("store.currentMonth")}
               </Button>
-              <Button
+              <PermissionButton
+                permission="store.manage_inventory"
                 onClick={exportDemandToExcel}
                 variant="outline"
                 disabled={demandGroups.length === 0}
               >
                 <Download className="mr-2 h-4 w-4" />
                 {t("store.exportExcel")}
-              </Button>
+              </PermissionButton>
             </div>
           </div>
 
@@ -975,14 +982,16 @@ export default function StoreClient({
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button
+                              <PermissionButton
+                                permission="store.view_detail"
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => openViewDialog(item)}
                               >
                                 <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
+                              </PermissionButton>
+                              <PermissionButton
+                                permission="store.update"
                                 variant="ghost"
                                 size="sm"
                                 onClick={() =>
@@ -990,25 +999,25 @@ export default function StoreClient({
                                 }
                               >
                                 <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
+                              </PermissionButton>
+                              <PermissionButton
+                                permission="store.manage_inventory"
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleToggleStatus(item)}
                                 disabled={isLoading}
                               >
                                 {item.is_active ? "Deactivate" : "Activate"}
-                              </Button>
-                              {userRole === "super_admin" && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDelete(item)}
-                                  disabled={isLoading}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              )}
+                              </PermissionButton>
+                              <PermissionButton
+                                permission="store.delete"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(item)}
+                                disabled={isLoading}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </PermissionButton>
                             </div>
                           </TableCell>
                         </TableRow>

@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import {
   Table,
   TableBody,
@@ -244,10 +245,10 @@ export default function ChurchesClient({
           <h1 className="text-3xl font-bold">{t("churches.title")}</h1>
           <p className="text-muted-foreground mt-2">{t("churches.subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+        <PermissionButton permission="churches.create" onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
           <Plus className="me-2 h-4 w-4" />
           {t("churches.addChurch")}
-        </Button>
+        </PermissionButton>
       </div>
 
       {/* Filter - Responsive: inline on desktop, sheet on mobile */}
@@ -379,7 +380,8 @@ export default function ChurchesClient({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
-                        <Button
+                        <PermissionButton
+                          permission="churches.update"
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
@@ -389,8 +391,9 @@ export default function ChurchesClient({
                           aria-label={t("common.edit")}
                         >
                           <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
+                        </PermissionButton>
+                        <PermissionButton
+                          permission="churches.delete"
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
@@ -400,8 +403,9 @@ export default function ChurchesClient({
                           aria-label={t("common.delete")}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                        <Button
+                        </PermissionButton>
+                        <PermissionButton
+                          permission="churches.view_detail"
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
@@ -411,7 +415,7 @@ export default function ChurchesClient({
                           aria-label={t("common.viewDetails")}
                         >
                           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
-                        </Button>
+                        </PermissionButton>
                       </div>
                     </TableCell>
                   </TableRow>

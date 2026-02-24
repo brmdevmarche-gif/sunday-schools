@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getActivityByIdAction } from "../actions";
 import AdminLayout from "@/components/admin/AdminLayout";
 import EditActivityClient from "./EditActivityClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function EditActivityPage({
   params,
@@ -17,12 +18,6 @@ export default async function EditActivityPage({
     redirect("/login");
   }
 
-  // Check if user has permission
-  const allowedRoles = ["super_admin", "diocese_admin", "church_admin", "teacher"];
-  if (!allowedRoles.includes(profile.role)) {
-    redirect("/admin/dashboard");
-  }
-
   // Fetch activity
   const result = await getActivityByIdAction(id);
 
@@ -32,7 +27,9 @@ export default async function EditActivityPage({
 
   return (
     <AdminLayout>
-      <EditActivityClient activity={result.data} userProfile={profile} />
+      <PageWithPermissions permission={["activities.view_detail", "activities.update"]}>
+        <EditActivityClient activity={result.data} userProfile={profile} />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

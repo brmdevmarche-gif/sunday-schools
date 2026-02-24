@@ -1,6 +1,7 @@
 import AdminLayout from '@/components/admin/AdminLayout'
 import ChurchesClient from './ChurchesClient'
 import { getAllChurchesWithClassCounts, getDiocesesData } from './actions'
+import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +14,9 @@ export default async function ChurchesPage() {
 
   return (
     <AdminLayout>
-      <ChurchesClient initialChurches={churches} dioceses={dioceses} />
+      <PageWithPermissions permission="churches.view">
+        <ChurchesClient initialChurches={churches} dioceses={dioceses} />
+      </PageWithPermissions>
     </AdminLayout>
   )
 }

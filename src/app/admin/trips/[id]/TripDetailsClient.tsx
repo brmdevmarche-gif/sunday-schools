@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
+import { useHasPermission } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -107,6 +109,12 @@ export default function TripDetailsClient({
 }: TripDetailsClientProps) {
   const locale = useLocale();
   const t = useTranslations();
+
+  // Permission checks
+  const canManageParticipants = useHasPermission("trips.manage_participants");
+  const canViewParticipants = useHasPermission("trips.view_detail") || canManageParticipants;
+  const canManageOrganizersPermission = useHasPermission("trips.update");
+  const canTakeAttendancePermission = useHasPermission("trips.manage_participants");
 
   // Get currency symbol based on locale
   const getCurrencySymbol = () => {
@@ -542,8 +550,9 @@ export default function TripDetailsClient({
     }
   }
 
-  // Check if user can manage organizers (admins only)
+  // Check if user can manage organizers (admins only or has permission)
   const canManageOrganizers =
+    canManageOrganizersPermission ||
     userProfile.role === "super_admin" ||
     userProfile.role === "diocese_admin" ||
     userProfile.role === "church_admin";
@@ -746,15 +755,15 @@ export default function TripDetailsClient({
         </div>
         <div className="flex items-center gap-2">
           {canTakeAttendance && isTripStartDate() && (
-            <Button onClick={initializeAttendance} variant="default">
+            <PermissionButton permission="trips.manage_participants" onClick={initializeAttendance} variant="default">
               <ClipboardCheck className="mr-2 h-4 w-4" />
               Attendance
-            </Button>
+            </PermissionButton>
           )}
-          <Button onClick={() => router.push(`/admin/trips/${trip.id}/edit`)}>
+          <PermissionButton permission="trips.update" onClick={() => router.push(`/admin/trips/${trip.id}/edit`)}>
             <Edit className="mr-2 h-4 w-4" />
             {t("trips.editTrip")}
-          </Button>
+          </PermissionButton>
         </div>
       </div>
 
@@ -782,10 +791,12 @@ export default function TripDetailsClient({
             <ClipboardCheck className="h-4 w-4 mr-2" />
             Attendance
           </TabsTrigger>
-          <TabsTrigger value="organizers">
-            <UserCog className="h-4 w-4 mr-2" />
-            Organizers ({organizers.length})
-          </TabsTrigger>
+          {canManageOrganizersPermission && (
+            <TabsTrigger value="organizers">
+              <UserCog className="h-4 w-4 mr-2" />
+              Organizers ({organizers.length})
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Trip Details Tab */}
@@ -1036,7 +1047,8 @@ export default function TripDetailsClient({
         </TabsContent>
 
         {/* Participants Tab */}
-        <TabsContent value="participants">
+        {canViewParticipants && (
+          <TabsContent value="participants">
           <Card>
             <CardHeader>
               <div className="flex flex-col gap-4">
@@ -1050,7 +1062,8 @@ export default function TripDetailsClient({
                           count: selectedParticipants.size,
                         })}
                       </span>
-                      <Button
+                      <PermissionButton
+                        permission="trips.approve_registrations"
                         size="sm"
                         onClick={() =>
                           handleBulkUpdate({ approval_status: "approved" })
@@ -1059,8 +1072,9 @@ export default function TripDetailsClient({
                       >
                         <CheckCircle2 className="h-4 w-4 mr-2" />
                         {t("trips.actions.approveSelected")}
-                      </Button>
-                      <Button
+                      </PermissionButton>
+                      <PermissionButton
+                        permission="trips.approve_registrations"
                         size="sm"
                         variant="destructive"
                         onClick={() =>
@@ -1070,7 +1084,7 @@ export default function TripDetailsClient({
                       >
                         <XCircle className="h-4 w-4 mr-2" />
                         {t("trips.actions.rejectSelected")}
-                      </Button>
+                      </PermissionButton>
                       <Button
                         size="sm"
                         variant="outline"
@@ -1082,10 +1096,10 @@ export default function TripDetailsClient({
                     </>
                   )}
                   {canAddParticipants && (
-                    <Button onClick={handleOpenAddParticipants}>
+                    <PermissionButton permission="trips.manage_participants" onClick={handleOpenAddParticipants}>
                       <Plus className="h-4 w-4 mr-2" />
                       {t("trips.addStudents")}
-                    </Button>
+                    </PermissionButton>
                   )}
                 </div>
                 </div>
@@ -1336,7 +1350,8 @@ export default function TripDetailsClient({
                             {participant.approval_status === "approved" ? (
                               <>
                                 {participant.payment_status !== "paid" && (
-                                  <Button
+                                  <PermissionButton
+                                    permission="trips.manage_participants"
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => {
@@ -1369,9 +1384,10 @@ export default function TripDetailsClient({
                                   >
                                     <DollarSign className="h-4 w-4 mr-1" />
                                     {t("trips.actions.pay")}
-                                  </Button>
+                                  </PermissionButton>
                                 )}
-                                <Button
+                                <PermissionButton
+                                  permission="trips.approve_registrations"
                                   size="sm"
                                   variant="ghost"
                                   onClick={() =>
@@ -1384,12 +1400,13 @@ export default function TripDetailsClient({
                                 >
                                   <XCircle className="h-4 w-4 mr-1" />
                                   {t("trips.actions.reject")}
-                                </Button>
+                                </PermissionButton>
                               </>
                             ) : (
                               <>
                                 {participant.approval_status !== "approved" && participant.payment_status !== "paid" && (
-                                  <Button
+                                  <PermissionButton
+                                    permission="trips.approve_registrations"
                                     size="sm"
                                     variant="ghost"
                                     onClick={() =>
@@ -1401,10 +1418,11 @@ export default function TripDetailsClient({
                                   >
                                     <CheckCircle2 className="h-4 w-4 mr-1" />
                                     {t("trips.actions.approve")}
-                                  </Button>
+                                  </PermissionButton>
                                 )}
                                 {participant.approval_status !== "rejected" && (
-                                  <Button
+                                  <PermissionButton
+                                    permission="trips.approve_registrations"
                                     size="sm"
                                     variant="ghost"
                                     onClick={() =>
@@ -1417,7 +1435,7 @@ export default function TripDetailsClient({
                                   >
                                     <XCircle className="h-4 w-4 mr-1" />
                                     {t("trips.actions.reject")}
-                                  </Button>
+                                  </PermissionButton>
                                 )}
                               </>
                             )}
@@ -1431,10 +1449,12 @@ export default function TripDetailsClient({
               })()}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* Attendance Tab */}
-        <TabsContent value="attendance">
+        {canTakeAttendancePermission && (
+          <TabsContent value="attendance">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between gap-4">
@@ -1444,7 +1464,8 @@ export default function TripDetailsClient({
                     {t("trips.tripAttendance.description")}
                   </p>
                 </div>
-                <Button
+                <PermissionButton
+                  permission="trips.manage_participants"
                   onClick={handleSaveAttendance}
                   disabled={isSavingAttendance || participants.length === 0}
                   className="gap-2"
@@ -1460,7 +1481,7 @@ export default function TripDetailsClient({
                       {t("trips.tripAttendance.saveAttendance")}
                     </>
                   )}
-                </Button>
+                </PermissionButton>
               </div>
             </CardHeader>
             <CardContent>
@@ -1569,19 +1590,21 @@ export default function TripDetailsClient({
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* Organizers Tab */}
-        <TabsContent value="organizers">
+        {canManageOrganizersPermission && (
+          <TabsContent value="organizers">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>{t("trips.organizers.title")}</CardTitle>
                 {canManageOrganizers && (
-                  <Button onClick={handleOpenAddOrganizer}>
+                  <PermissionButton permission="trips.update" onClick={handleOpenAddOrganizer}>
                     <Plus className="h-4 w-4 mr-2" />
                     {t("trips.organizers.addOrganizer")}
-                  </Button>
+                  </PermissionButton>
                 )}
               </div>
             </CardHeader>
@@ -1639,13 +1662,14 @@ export default function TripDetailsClient({
                           </div>
                         </div>
                         {canManageOrganizers && (
-                          <Button
+                          <PermissionButton
+                            permission="trips.update"
                             variant="ghost"
                             size="icon"
                             onClick={() => handleRemoveOrganizer(organizer.id)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          </PermissionButton>
                         )}
                       </div>
 
@@ -1841,7 +1865,8 @@ export default function TripDetailsClient({
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Add Organizer Dialog */}
@@ -2107,7 +2132,8 @@ export default function TripDetailsClient({
                         </p>
                       </div>
                     </div>
-                    <Button
+                    <PermissionButton
+                      permission="trips.manage_participants"
                       size="sm"
                       onClick={() => handleSubscribeStudent(student.id)}
                       disabled={subscribingStudentId === student.id}
@@ -2123,7 +2149,7 @@ export default function TripDetailsClient({
                           {t("trips.add")}
                         </>
                       )}
-                    </Button>
+                    </PermissionButton>
                   </div>
                 ))}
               </div>
@@ -2266,7 +2292,8 @@ export default function TripDetailsClient({
             >
               {t("common.cancel")}
             </Button>
-            <Button
+            <PermissionButton
+              permission="trips.manage_participants"
               onClick={async () => {
                 if (!selectedParticipantForPayment) return;
                 setIsProcessingPayment(true);
@@ -2333,7 +2360,7 @@ export default function TripDetailsClient({
               }
             >
               {isProcessingPayment ? t("common.processing") : t("trips.actions.markAsPaid")}
-            </Button>
+            </PermissionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -48,6 +48,7 @@ VALUES
   ('classes.view_detail', 'View Class Details', 'View individual class details', 'classes', 'classes', 'view_detail', 'view', true),
   ('classes.assign_teachers', 'Assign Teachers to Class', 'Assign teachers to classes', 'classes', 'classes', 'assign_teachers', 'action', true),
   ('classes.assign_students', 'Assign Students to Class', 'Assign students to classes', 'classes', 'classes', 'assign_students', 'action', true),
+  ('classes.assign_users', 'Assign Teachers and Students', 'Assign both teachers and students to classes in the same action', 'classes', 'classes', 'assign_users', 'action', true),
   ('classes.view_birthdays', 'View Class Birthdays', 'View class birthdays', 'classes', 'classes', 'view_birthdays', 'view', true),
   ('classes.view_trips', 'View Class Trips', 'View trips for a class', 'classes', 'classes', 'view_trips', 'view', true)
 ON CONFLICT (code) DO NOTHING;
@@ -130,6 +131,7 @@ VALUES
   ('announcements.create', 'Create Announcement', 'Create new announcement', 'announcements', 'announcements', 'create', 'action', true),
   ('announcements.update', 'Update Announcement', 'Edit existing announcement', 'announcements', 'announcements', 'update', 'action', true),
   ('announcements.delete', 'Delete Announcement', 'Delete announcement', 'announcements', 'announcements', 'delete', 'action', true),
+  ('announcements.republish', 'Republish Announcement', 'Republish deactivated or expired announcement', 'announcements', 'announcements', 'republish', 'action', true),
   ('announcements.view_inbox', 'View Announcements Inbox', 'View announcements inbox', 'announcements', 'announcements', 'view_inbox', 'view', true)
 ON CONFLICT (code) DO NOTHING;
 
@@ -206,7 +208,7 @@ WHERE r.title = 'Diocese Admin'
     'attendance.view', 'attendance.mark', 'attendance.view_stats', 'attendance.view_history',
     'activities.view', 'activities.create', 'activities.update', 'activities.view_detail',
     'trips.view', 'trips.create', 'trips.update', 'trips.view_detail',
-    'announcements.view', 'announcements.create', 'announcements.update', 'announcements.view_inbox'
+    'announcements.view', 'announcements.create', 'announcements.update', 'announcements.republish', 'announcements.view_inbox'
   )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -221,14 +223,14 @@ WHERE r.title = 'Church Admin'
   AND p.code IN (
     'dashboard.view',
     'classes.view', 'classes.create', 'classes.update', 'classes.view_detail',
-    'classes.assign_teachers', 'classes.assign_students',
+    'classes.assign_teachers', 'classes.assign_students', 'classes.assign_users',
     'users.view', 'users.create', 'users.update', 'users.view_detail',
     'students.view', 'students.create', 'students.update', 'students.view_detail',
     'attendance.view', 'attendance.mark', 'attendance.view_stats', 'attendance.view_history',
     'activities.view', 'activities.create', 'activities.update', 'activities.view_detail',
     'trips.view', 'trips.create', 'trips.update', 'trips.view_detail',
     'store.view', 'store.create', 'store.update', 'store.view_detail', 'store.orders_view',
-    'announcements.view', 'announcements.create', 'announcements.update', 'announcements.view_inbox'
+    'announcements.view', 'announcements.create', 'announcements.update', 'announcements.republish', 'announcements.view_inbox'
   )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 

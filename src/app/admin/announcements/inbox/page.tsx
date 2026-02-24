@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { createClient } from '@/lib/supabase/server'
 import AnnouncementsWidget from '@/components/announcements/AnnouncementsWidget'
+import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,19 +21,19 @@ export default async function AdminAnnouncementsInboxPage() {
     .single()
 
   if (!profile) redirect('/login')
-  if (!['super_admin', 'diocese_admin', 'church_admin', 'teacher'].includes(profile.role)) {
-    redirect('/dashboard')
-  }
+  // Permission check will be done by PageWithPermissions
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">{t('announcements.inboxTitle')}</h1>
-          <p className="text-sm text-muted-foreground">{t('announcements.inboxSubtitle')}</p>
+      <PageWithPermissions permission="announcements.view_inbox">
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold">{t('announcements.inboxTitle')}</h1>
+            <p className="text-sm text-muted-foreground">{t('announcements.inboxSubtitle')}</p>
+          </div>
+          <AnnouncementsWidget />
         </div>
-        <AnnouncementsWidget />
-      </div>
+      </PageWithPermissions>
     </AdminLayout>
   )
 }

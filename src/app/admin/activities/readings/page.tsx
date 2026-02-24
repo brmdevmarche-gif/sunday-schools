@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getReadingSchedulesAction } from "@/app/activities/readings/actions";
 import ReadingsAdminClient from "./ReadingsAdminClient";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function ReadingsAdminPage() {
   const profile = await getCurrentUserProfile();
@@ -11,23 +12,16 @@ export default async function ReadingsAdminPage() {
     redirect("/login");
   }
 
-  // Check if user is admin
-  if (
-    !["super_admin", "diocese_admin", "church_admin", "teacher"].includes(
-      profile.role
-    )
-  ) {
-    redirect("/activities/readings");
-  }
-
   const schedulesResult = await getReadingSchedulesAction();
 
   return (
     <AdminLayout>
-      <ReadingsAdminClient
-        schedules={schedulesResult.data || []}
-        userProfile={profile}
-      />
+      <PageWithPermissions permission="activities.view_readings">
+        <ReadingsAdminClient
+          schedules={schedulesResult.data || []}
+          userProfile={profile}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -130,10 +131,13 @@ export function DioceseDetailsClient({
           </div>
         </div>
         {canEdit && !isEditing && (
-          <Button onClick={() => setIsEditing(true)}>
+          <PermissionButton
+            permission="dioceses.update"
+            onClick={() => setIsEditing(true)}
+          >
             <Edit className="h-4 w-4 mr-2" />
             {t("common.edit")}
-          </Button>
+          </PermissionButton>
         )}
         {isEditing && (
           <div className="flex gap-2">

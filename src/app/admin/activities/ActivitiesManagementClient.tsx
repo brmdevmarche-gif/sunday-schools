@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PermissionButton } from "@/components/admin/PermissionButton";
+import { useHasPermission } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -51,6 +53,12 @@ export default function ActivitiesManagementClient({
 }: ActivitiesManagementClientProps) {
   const t = useTranslations();
   const router = useRouter();
+  const canUpdate = useHasPermission("activities.update");
+  const canDelete = useHasPermission("activities.delete");
+  const canViewDetail = useHasPermission("activities.view_detail");
+  const canViewCompetitions = useHasPermission("activities.view_competitions");
+  const canViewSpiritualNotes = useHasPermission("activities.view_spiritual_notes");
+  const canViewReadings = useHasPermission("activities.view_readings");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | "all">(
     "all"
@@ -120,18 +128,19 @@ export default function ActivitiesManagementClient({
             {t("activities.subtitle")}
           </p>
         </div>
-        <Button onClick={() => router.push("/admin/activities/create")}>
+        <PermissionButton permission="activities.create" onClick={() => router.push("/admin/activities/create")}>
           <Plus className="mr-2 h-4 w-4" />
           {t("activities.createActivity")}
-        </Button>
+        </PermissionButton>
       </div>
 
       {/* Enhanced Activities Navigation */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
-          onClick={() => router.push("/admin/activities/spiritual-notes")}
-        >
+        {canViewSpiritualNotes && (
+          <Card
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => router.push("/admin/activities/spiritual-notes")}
+          >
           <CardContent className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-500/10">
@@ -145,11 +154,13 @@ export default function ActivitiesManagementClient({
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </CardContent>
         </Card>
+        )}
 
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
-          onClick={() => router.push("/admin/activities/competitions")}
-        >
+        {canViewCompetitions && (
+          <Card
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => router.push("/admin/activities/competitions")}
+          >
           <CardContent className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-amber-500/10">
@@ -163,11 +174,13 @@ export default function ActivitiesManagementClient({
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </CardContent>
         </Card>
+        )}
 
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
-          onClick={() => router.push("/admin/activities/readings")}
-        >
+        {canViewReadings && (
+          <Card
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => router.push("/admin/activities/readings")}
+          >
           <CardContent className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-green-500/10">
@@ -181,6 +194,7 @@ export default function ActivitiesManagementClient({
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </CardContent>
         </Card>
+        )}
       </div>
 
       {/* Filters */}
@@ -270,21 +284,25 @@ export default function ActivitiesManagementClient({
                         {t("common.actions")}
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() =>
-                          router.push(`/admin/activities/${activity.id}`)
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        {t("common.edit")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(activity.id)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {t("common.delete")}
-                      </DropdownMenuItem>
+                      {canUpdate && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(`/admin/activities/${activity.id}`)
+                          }
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          {t("common.edit")}
+                        </DropdownMenuItem>
+                      )}
+                      {canDelete && (
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(activity.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {t("common.delete")}
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -337,15 +355,17 @@ export default function ActivitiesManagementClient({
                   </div>
                 )}
 
-                <Button
-                  variant="outline"
-                  className="w-full mt-auto"
-                  onClick={() =>
-                    router.push(`/admin/activities/${activity.id}`)
-                  }
-                >
-                  {t("activities.viewDetails")}
-                </Button>
+                {canViewDetail && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-auto"
+                    onClick={() =>
+                      router.push(`/admin/activities/${activity.id}`)
+                    }
+                  >
+                    {t("activities.viewDetails")}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}

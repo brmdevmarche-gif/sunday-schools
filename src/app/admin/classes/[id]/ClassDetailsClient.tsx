@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PermissionButton } from "@/components/admin/PermissionButton";
 import {
   Card,
   CardContent,
@@ -474,7 +475,8 @@ export default function ClassDetailsClient({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          <Button
+          <PermissionButton
+            permission="classes.view_detail"
             variant="outline"
             size="sm"
             onClick={() => router.push(`/admin/classes/${classData.id}/birthdays`)}
@@ -482,8 +484,9 @@ export default function ClassDetailsClient({
           >
             <Cake className="h-4 w-4" />
             {t("birthdays.title")}
-          </Button>
-          <Button
+          </PermissionButton>
+          <PermissionButton
+            permission="classes.assign_students"
             variant="outline"
             size="sm"
             onClick={() => handleOpenAssignDialog("student")}
@@ -491,8 +494,9 @@ export default function ClassDetailsClient({
           >
             <UserPlus className="h-4 w-4" />
             {t("classes.assignStudent")}
-          </Button>
-          <Button
+          </PermissionButton>
+          <PermissionButton
+            permission="classes.assign_teachers"
             variant="outline"
             size="sm"
             onClick={() => handleOpenAssignDialog("teacher")}
@@ -500,8 +504,9 @@ export default function ClassDetailsClient({
           >
             <Users className="h-4 w-4" />
             {t("classes.assignTeacher")}
-          </Button>
-          <Button
+          </PermissionButton>
+          <PermissionButton
+            permission="classes.update"
             variant="outline"
             size="sm"
             onClick={() => router.push(`/admin/classes?edit=${classData.id}`)}
@@ -509,8 +514,9 @@ export default function ClassDetailsClient({
           >
             <Pencil className="h-4 w-4" />
             {t("common.edit")}
-          </Button>
-          <Button
+          </PermissionButton>
+          <PermissionButton
+            permission="classes.delete"
             variant="destructive"
             size="sm"
             onClick={() => setIsDeleteDialogOpen(true)}
@@ -518,7 +524,7 @@ export default function ClassDetailsClient({
           >
             <Trash2 className="h-4 w-4" />
             {t("common.delete")}
-          </Button>
+          </PermissionButton>
         </div>
       </div>
 
@@ -676,13 +682,14 @@ export default function ClassDetailsClient({
                           )}
                         </div>
                       </div>
-                      <Button
+                      <PermissionButton
+                        permission="classes.assign_teachers"
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveUser(assignment.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      </PermissionButton>
                     </div>
                   ))}
                 </div>
@@ -742,13 +749,14 @@ export default function ClassDetailsClient({
                           )}
                         </div>
                       </div>
-                      <Button
+                      <PermissionButton
+                        permission="classes.assign_students"
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveUser(assignment.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      </PermissionButton>
                     </div>
                   ))}
                 </div>

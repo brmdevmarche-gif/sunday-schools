@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { createClient } from "@/lib/supabase/server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import CreateOrderForStudentClient from "./CreateOrderForStudentClient";
+import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 
 export default async function CreateOrderForStudentPage() {
   const profile = await getCurrentUserProfile();
@@ -11,14 +12,7 @@ export default async function CreateOrderForStudentPage() {
     redirect("/login");
   }
 
-  // Check if user is admin
-  if (
-    !["super_admin", "diocese_admin", "church_admin", "store_manager"].includes(
-      profile.role
-    )
-  ) {
-    redirect("/");
-  }
+  // Permission check will be done by PageWithPermissions
 
   const supabase = await createClient();
 
@@ -33,10 +27,12 @@ export default async function CreateOrderForStudentPage() {
 
   return (
     <AdminLayout>
-      <CreateOrderForStudentClient
-        storeItems={storeItems || []}
-        userProfile={profile}
-      />
+      <PageWithPermissions permission="store.orders_create">
+        <CreateOrderForStudentClient
+          storeItems={storeItems || []}
+          userProfile={profile}
+        />
+      </PageWithPermissions>
     </AdminLayout>
   );
 }

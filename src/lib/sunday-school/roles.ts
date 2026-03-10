@@ -7,6 +7,7 @@ import type {
   CreateRoleInput,
   UpdateRoleInput,
 } from '../types/modules/permissions'
+import { FORBIDDEN_PERMISSION_CODES } from '@/lib/permissions/forbidden'
 
 /**
  * Get all roles
@@ -297,9 +298,28 @@ export async function createRole(input: CreateRoleInput): Promise<RoleWithPermis
 
   if (roleError) throw roleError
 
-  // Then, assign permissions
+  // Then, assign permissions (with forbidden-permission guard)
   if (input.permission_ids.length > 0) {
-    const rolePermissions = input.permission_ids.map((permission_id) => ({
+    const { data: perms, error: permsError } = await supabase
+      .from('permissions')
+      .select('id, code')
+      .in('id', input.permission_ids)
+
+    if (permsError) throw permsError
+
+    const forbiddenSelected = (perms || []).filter((p: any) =>
+      FORBIDDEN_PERMISSION_CODES.includes(String(p.code) as any)
+    )
+
+    if (forbiddenSelected.length > 0) {
+      // Rollback: delete the role if forbidden permissions were provided
+      await supabase.from('roles').delete().eq('id', role.id)
+      throw new Error('Forbidden permissions cannot be assigned via role creation.')
+    }
+
+    const allowedIds = (perms || []).map((p: any) => String(p.id))
+
+    const rolePermissions = allowedIds.map((permission_id) => ({
       role_id: role.id,
       permission_id,
     }))
@@ -345,6 +365,23 @@ export async function updateRole(
 
   // Update permissions if provided
   if (input.permission_ids !== undefined) {
+    if (input.permission_ids.length > 0) {
+      const { data: perms, error: permsError } = await supabase
+        .from('permissions')
+        .select('id, code')
+        .in('id', input.permission_ids)
+
+      if (permsError) throw permsError
+
+      const forbiddenSelected = (perms || []).filter((p: any) =>
+        FORBIDDEN_PERMISSION_CODES.includes(String(p.code) as any)
+      )
+
+      if (forbiddenSelected.length > 0) {
+        throw new Error('Forbidden permissions cannot be assigned via role update.')
+      }
+    }
+
     // Delete existing permissions
     const { error: deleteError } = await supabase
       .from('role_permissions')
@@ -355,7 +392,14 @@ export async function updateRole(
 
     // Insert new permissions
     if (input.permission_ids.length > 0) {
-      const rolePermissions = input.permission_ids.map((permission_id) => ({
+      const { data: perms } = await supabase
+        .from('permissions')
+        .select('id')
+        .in('id', input.permission_ids)
+
+      const allowedIds = (perms || []).map((p: any) => String(p.id))
+
+      const rolePermissions = allowedIds.map((permission_id) => ({
         role_id: id,
         permission_id,
       }))

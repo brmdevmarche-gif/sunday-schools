@@ -7,6 +7,7 @@
 import { createClient } from '../supabase/server'
 import { cache } from 'react'
 import type { Permission } from '../types/modules/permissions'
+import { hasForbiddenPermission } from '@/lib/permissions/forbidden'
 
 // Cache user permissions per request to avoid multiple database calls
 const getCachedUserPermissions = cache(async (userId: string): Promise<string[]> => {
@@ -22,7 +23,13 @@ const getCachedUserPermissions = cache(async (userId: string): Promise<string[]>
   }
 
   // Return just the permission codes for fast lookup
-  return (data || []).map((p: any) => p.permission_code) as string[]
+  const codes = (data || []).map((p: any) => p.permission_code) as string[]
+
+  // If user has the forbidden permission, treat as "no permissions" server-side.
+  // This prevents admin pages/actions from rendering before client-side hydration.
+  if (hasForbiddenPermission(codes)) return []
+
+  return codes
 })
 
 /**

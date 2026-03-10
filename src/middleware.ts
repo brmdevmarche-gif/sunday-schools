@@ -22,8 +22,21 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Handle Supabase session
-  const response = await updateSession(request);
+  // Avoid hitting Supabase on public pages like /login.
+  // This prevents noisy retries and long delays when Supabase is unreachable/misconfigured.
+  const shouldHandleSupabaseSession =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/attendance") ||
+    pathname.startsWith("/store") ||
+    pathname.startsWith("/trips") ||
+    pathname.startsWith("/activities") ||
+    pathname.startsWith("/announcements") ||
+    pathname.startsWith("/gamification");
+
+  const response = shouldHandleSupabaseSession
+    ? await updateSession(request)
+    : NextResponse.next({ request });
 
   // Set locale header from cookie or default to 'en'
   const locale = request.cookies.get('NEXT_LOCALE')?.value || 'en';

@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { PermissionSelector } from './PermissionSelector'
+import { isForbiddenPermissionCode } from '@/lib/permissions/forbidden'
 import type {
   RoleWithPermissions,
   Permission,
@@ -38,6 +39,10 @@ export function RoleForm({ role, permissions }: RoleFormProps) {
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  const forbiddenIds = new Set(
+    permissions.filter((p) => isForbiddenPermissionCode(p.code)).map((p) => p.id)
+  )
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
 
@@ -55,6 +60,11 @@ export function RoleForm({ role, permissions }: RoleFormProps) {
 
     if (selectedPermissionIds.length === 0) {
       newErrors.permissions = 'At least one permission must be selected'
+    }
+
+    if (selectedPermissionIds.some((id) => forbiddenIds.has(id))) {
+      newErrors.permissions =
+        'Forbidden permissions cannot be assigned via role creation. Remove restricted permissions and try again.'
     }
 
     setErrors(newErrors)

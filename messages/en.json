@@ -1618,6 +1618,7 @@
     "logIn": "Log in",
     "loginSuccess": "Logged in successfully!",
     "loginFailed": "Failed to log in",
+    "connectionError": "Unable to connect. Check your internet connection. If using Supabase, your project may be paused — go to Supabase Dashboard → Project Settings → Restore project.",
     "invalidUserCode": "Invalid user code",
     "noAccount": "Don't have an account?",
     "signUp": "Sign up",

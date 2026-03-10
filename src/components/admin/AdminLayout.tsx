@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import AdminSidebar from "./AdminSidebar";
 import { getCurrentUserProfileClient } from "@/lib/sunday-school/users";
-import { getUserPermissionCodes } from "@/lib/sunday-school/roles.client";
 import { NAVIGATION_ITEMS, filterNavigationByPermissions } from "@/lib/permissions/navigation";
 import { signOut } from "@/lib/auth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/usePermissions";
+import { hasForbiddenPermission } from "@/lib/permissions/forbidden";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -32,12 +34,15 @@ interface UserProfile {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations();
-  const [navItems, setNavItems] = useState<NavItem[]>([]);
+  const { permissionCodes, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const lastDeniedPathRef = useRef<string | null>(null);
+  const lastForbiddenToastRef = useRef(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -65,161 +70,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
 
         setUserProfile(profile);
-
-        // Try to get user permissions (new system)
-        // Fallback to role-based navigation if permissions not available
-        try {
-          const permissionCodes = await getUserPermissionCodes();
-          
-          // Filter navigation items based on permissions
-          const filteredNav = filterNavigationByPermissions(
-            NAVIGATION_ITEMS,
-            permissionCodes
-          );
-
-          // Map to NavItem format with translations
-          const items: NavItem[] = filteredNav.map((item) => {
-            // Map icon names to translation keys
-            const translationKey = item.name.toLowerCase().replace(/\s+/g, '_');
-            // Try to get translation, fallback to original name if not found
-            let translatedName: string;
-            try {
-              translatedName = t(`nav.${translationKey}`);
-            } catch {
-              translatedName = item.name;
-            }
-            return {
-              name: translatedName,
-              href: item.href,
-              icon: item.icon,
-            };
-          });
-
-          // Add Quick Attendance for teachers (legacy support)
-          if (
-            (profile.role === "teacher" || profile.role === "super_admin") &&
-            permissionCodes.includes("attendance.view")
-          ) {
-            items.splice(1, 0, {
-              name: t("attendance.quickAttendance"),
-              href: "/attendance",
-              icon: "check",
-            });
-          }
-
-          setNavItems(items);
-        } catch (error) {
-          // Fallback to role-based navigation if permissions fail
-          console.warn("Failed to load permissions, using role-based navigation:", error);
-          
-          // Build navigation items based on role (backward compatibility)
-          const items: NavItem[] = [];
-
-          // Dashboard - available to all admin users
-          items.push({
-            name: t("nav.dashboard"),
-            href: "/admin",
-            icon: "dashboard",
-          });
-
-          // Quick Attendance - for teachers and super admins
-          if (profile.role === "teacher" || profile.role === "super_admin") {
-            items.push({
-              name: t("attendance.quickAttendance"),
-              href: "/attendance",
-              icon: "check",
-            });
-          }
-
-          // Diocese Management - super admin only
-          if (profile.role === "super_admin") {
-            items.push({
-              name: t("nav.dioceses"),
-              href: "/admin/dioceses",
-              icon: "building",
-            });
-          }
-
-          // Church Management - super admin and diocese admin
-          if (
-            profile.role === "super_admin" ||
-            profile.role === "diocese_admin"
-          ) {
-            items.push({
-              name: t("nav.churches"),
-              href: "/admin/churches",
-              icon: "church",
-            });
-          }
-
-          // Class Management - all admins and teachers
-          items.push({
-            name: t("nav.classes"),
-            href: "/admin/classes",
-            icon: "school",
-          });
-
-          // Attendance - all admins and teachers
-          items.push({
-            name: t("attendance.title"),
-            href: "/admin/attendance",
-            icon: "check",
-          });
-
-          // Student Management - all admins
-          if (
-            ["super_admin", "diocese_admin", "church_admin"].includes(
-              profile.role
-            )
-          ) {
-            items.push({
-              name: "Students",
-              href: "/admin/students",
-              icon: "student",
-            });
-          }
-
-          // User Management - all admins
-          if (
-            ["super_admin", "diocese_admin", "church_admin"].includes(
-              profile.role
-            )
-          ) {
-            items.push({
-              name: t("nav.users"),
-              href: "/admin/users",
-              icon: "users",
-            });
-          }
-
-          // Store Management - super admin and church admin
-          if (["super_admin", "church_admin"].includes(profile.role)) {
-            items.push({ name: "Store", href: "/admin/store", icon: "store" });
-          }
-
-          // Activities Management - all admins and teachers
-          items.push({
-            name: t("activities.title"),
-            href: "/admin/activities",
-            icon: "trophy",
-          });
-
-          // Trips Management - all admins and teachers
-          items.push({
-            name: "Trips",
-            href: "/admin/trips",
-            icon: "trip",
-          });
-
-          // Announcements Management - all admins and teachers
-          items.push({
-            name: t("nav.announcements"),
-            href: "/admin/announcements",
-            icon: "announcement",
-          });
-
-          setNavItems(items);
-        }
       } catch (error) {
         console.error("Error loading admin layout:", error);
         toast.error(t("errors.serverError"));
@@ -231,6 +81,194 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     loadProfile();
   }, [router, t]);
+
+  const navItems: NavItem[] = useMemo(() => {
+    if (!userProfile) return [];
+
+    const roleBasedFallback = (): NavItem[] => {
+      const items: NavItem[] = [];
+
+      items.push({
+        name: t("nav.dashboard"),
+        href: "/admin",
+        icon: "dashboard",
+      });
+
+      if (userProfile.role === "teacher" || userProfile.role === "super_admin") {
+        items.push({
+          name: t("attendance.quickAttendance"),
+          href: "/attendance",
+          icon: "check",
+        });
+      }
+
+      if (userProfile.role === "super_admin") {
+        items.push({
+          name: t("nav.dioceses"),
+          href: "/admin/dioceses",
+          icon: "building",
+        });
+      }
+
+      if (userProfile.role === "super_admin" || userProfile.role === "diocese_admin") {
+        items.push({
+          name: t("nav.churches"),
+          href: "/admin/churches",
+          icon: "church",
+        });
+      }
+
+      items.push({
+        name: t("nav.classes"),
+        href: "/admin/classes",
+        icon: "school",
+      });
+
+      items.push({
+        name: t("attendance.title"),
+        href: "/admin/attendance",
+        icon: "check",
+      });
+
+      if (["super_admin", "diocese_admin", "church_admin"].includes(userProfile.role)) {
+        items.push({
+          name: "Students",
+          href: "/admin/students",
+          icon: "student",
+        });
+      }
+
+      if (["super_admin", "diocese_admin", "church_admin"].includes(userProfile.role)) {
+        items.push({
+          name: t("nav.users"),
+          href: "/admin/users",
+          icon: "users",
+        });
+      }
+
+      if (["super_admin", "church_admin"].includes(userProfile.role)) {
+        items.push({ name: "Store", href: "/admin/store", icon: "store" });
+      }
+
+      items.push({
+        name: t("activities.title"),
+        href: "/admin/activities",
+        icon: "trophy",
+      });
+
+      items.push({
+        name: "Trips",
+        href: "/admin/trips",
+        icon: "trip",
+      });
+
+      items.push({
+        name: t("nav.announcements"),
+        href: "/admin/announcements",
+        icon: "announcement",
+      });
+
+      return items;
+    };
+
+    // While loading or when permissions are failing, keep a reasonable fallback menu.
+    if (permissionsLoading || permissionsError) {
+      return roleBasedFallback();
+    }
+
+    const filteredNav = filterNavigationByPermissions(NAVIGATION_ITEMS, permissionCodes);
+
+    const items: NavItem[] = filteredNav.map((item) => {
+      const translationKey = item.name.toLowerCase().replace(/\s+/g, "_");
+      let translatedName: string;
+      try {
+        translatedName = t(`nav.${translationKey}`);
+      } catch {
+        translatedName = item.name;
+      }
+
+      return {
+        name: translatedName,
+        href: item.href,
+        icon: item.icon,
+      };
+    });
+
+    // Keep the old "Quick Attendance" shortcut (outside /admin) when allowed.
+    if (
+      (userProfile.role === "teacher" || userProfile.role === "super_admin") &&
+      permissionCodes.includes("attendance.view")
+    ) {
+      const alreadyPresent = items.some((i) => i.href === "/attendance");
+      if (!alreadyPresent) {
+        items.splice(1, 0, {
+          name: t("attendance.quickAttendance"),
+          href: "/attendance",
+          icon: "check",
+        });
+      }
+    }
+
+    return items;
+  }, [permissionCodes, permissionsError, permissionsLoading, t, userProfile]);
+
+  const isForbiddenAdmin = useMemo(() => {
+    if (permissionsLoading || permissionsError) return false;
+    return hasForbiddenPermission(permissionCodes);
+  }, [permissionCodes, permissionsError, permissionsLoading]);
+
+  // Forbidden permission gate: block all admin actions and force the user to /admin.
+  useEffect(() => {
+    if (!userProfile) return;
+    if (permissionsLoading || permissionsError) return;
+    if (!isForbiddenAdmin) return;
+
+    if (pathname !== "/admin") {
+      router.replace("/admin");
+    }
+
+    if (!lastForbiddenToastRef.current) {
+      lastForbiddenToastRef.current = true;
+      toast.error(
+        "You are not eligible to do any actions in this admin app."
+      );
+    }
+  }, [isForbiddenAdmin, pathname, permissionsError, permissionsLoading, router, userProfile]);
+
+  // If permissions change and the current route is no longer allowed, redirect away.
+  useEffect(() => {
+    if (!userProfile) return;
+    if (permissionsLoading || permissionsError) return;
+    if (isForbiddenAdmin) return;
+
+    const path = pathname || "";
+
+    // Handle the legacy non-admin quick route.
+    if (path.startsWith("/attendance") && !permissionCodes.includes("attendance.view")) {
+      if (lastDeniedPathRef.current !== path) {
+        lastDeniedPathRef.current = path;
+        toast.error(t("errors.notAuthorized"));
+      }
+      router.replace("/admin");
+      return;
+    }
+
+    if (!path.startsWith("/admin")) return;
+
+    const match = NAVIGATION_ITEMS
+      .filter((item) => path === item.href || path.startsWith(item.href + "/"))
+      .sort((a, b) => b.href.length - a.href.length)[0];
+
+    if (!match?.permission) return;
+
+    if (!permissionCodes.includes(match.permission)) {
+      if (lastDeniedPathRef.current !== path) {
+        lastDeniedPathRef.current = path;
+        toast.error(t("errors.notAuthorized"));
+      }
+      router.replace("/admin");
+    }
+  }, [pathname, permissionCodes, permissionsError, permissionsLoading, router, t, userProfile]);
 
   // Close mobile sidebar when clicking outside
   useEffect(() => {
@@ -261,6 +299,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
           <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
         </div>
+      </div>
+    );
+  }
+
+  if (isForbiddenAdmin) {
+    return (
+      <div className="flex h-screen items-center justify-center p-4">
+        <Card className="max-w-xl w-full">
+          <CardHeader>
+            <CardTitle>Not eligible</CardTitle>
+            <CardDescription>
+              You are not eligible to do any actions in this admin app.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/dashboard")}
+            >
+              Go to Dashboard
+            </Button>
+            <Button onClick={handleLogout}>Sign out</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

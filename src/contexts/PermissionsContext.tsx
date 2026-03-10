@@ -1,6 +1,8 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
+import { connectPermissionsStream } from '@/lib/sunday-school/permissions-sse.client'
 import {
   getUserPermissionCodes,
   getCurrentUserPermissions,
@@ -15,48 +17,73 @@ interface PermissionsContextValue {
   hasAllPermissions: (codes: string[]) => boolean
   isLoading: boolean
   error: Error | null
-  refetch: () => Promise<void>
+  refetch: () => void
 }
 
 export const PermissionsContext = createContext<PermissionsContextValue | undefined>(undefined)
 
 export function PermissionsProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [permissionCodes, setPermissionCodes] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const loadPermissions = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      const [codes, perms] = await Promise.all([
-        getUserPermissionCodes(),
-        getCurrentUserPermissions(),
-      ])
-
-      setPermissionCodes(codes)
-      setPermissions(perms)
-      
-      // Log for debugging
-      if (codes.length === 0) {
-        console.warn('No permissions found for current user')
-      } else {
-        console.log('Loaded permissions:', codes.length, 'permissions')
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to load permissions')
-      setError(error)
-      console.error('Error loading permissions:', error)
-      // Don't clear permissions on error - keep last known state
-    } finally {
+  const loadPermissions = useCallback(() => {
+    // Skip permissions fetch on login page - avoids auth requests before session exists
+    if (pathname?.startsWith('/login')) {
+      setPermissionCodes([])
+      setPermissions([])
       setIsLoading(false)
+      return () => {}
     }
-  }, [])
+
+    setIsLoading(true)
+    setError(null)
+
+    const fallbackToDirectFetch = async () => {
+      try {
+        const [codes, perms] = await Promise.all([
+          getUserPermissionCodes(),
+          getCurrentUserPermissions(),
+        ])
+        setPermissionCodes(codes)
+        setPermissions(perms)
+      } catch (err) {
+        const message =
+          err instanceof Error && err.message.toLowerCase().includes('fetch')
+            ? 'Unable to reach Supabase. Check your connection and ensure your project is not paused (Supabase Dashboard → Project Settings).'
+            : err instanceof Error
+              ? err.message
+              : 'Failed to load permissions'
+        setError(new Error(message))
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    const cleanup = connectPermissionsStream({
+      onPermissions: ({ permissionCodes: codes, permissions: perms }) => {
+        setPermissionCodes(codes)
+        setPermissions(perms)
+        if (codes.length === 0) {
+          console.warn('No permissions found for current user')
+        } else {
+          console.log('Loaded permissions:', codes.length, 'permissions')
+        }
+        setIsLoading(false)
+      },
+      onError: () => {
+        fallbackToDirectFetch()
+      },
+    })
+
+    return cleanup
+  }, [pathname])
 
   useEffect(() => {
-    loadPermissions()
+    const cleanup = loadPermissions()
+    return () => cleanup?.()
   }, [loadPermissions])
 
   const hasPermission = useCallback((code: string): boolean => {

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { logLoginAttempt } from "@/lib/login-history";
-import { createClient } from "@/lib/supabase/client";
+import { loginAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft, Sun, Moon, Monitor, Globe } from "lucide-react";
-import { getEmailByUserCode } from "./actions";
 
 const languages = [
   { code: "en", name: "English", nativeName: "English" },
@@ -61,75 +60,33 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const supabase = createClient();
-      let email = identifier;
+      // Use server action - auth request goes from server to Supabase
+      // (bypasses browser "Failed to fetch" in some network setups)
+      const result = await loginAction(identifier, password);
 
-      // Check if input is a user_code (numeric, 6 digits) instead of email
-      if (/^\d{6}$/.test(identifier)) {
-        // Look up the email by user_code using server action
-        const userEmail = await getEmailByUserCode(identifier);
-
-        if (!userEmail) {
-          throw new Error(t("auth.invalidUserCode"));
-        }
-
-        email = userEmail;
+      if (result.success) {
+        toast.success(t("auth.loginSuccess"));
+        await new Promise((r) => setTimeout(r, 100));
+        window.location.href = result.redirectPath;
+        return;
       }
 
-      // Sign in with email and password
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      const user = data.user;
-
-      // Log successful login
-      if (user?.id) {
-        await logLoginAttempt(user.id, true);
+      // Map error codes to user-friendly messages
+      let errorMessage = t("auth.loginFailed");
+      if (result.error === "invalid_user_code") {
+        errorMessage = t("auth.invalidUserCode");
+      } else if (result.error === "connection_error") {
+        errorMessage = t("auth.connectionError");
+      } else if (result.error && !result.error.includes("fetch")) {
+        errorMessage = result.error;
       }
 
-      toast.success(t("auth.loginSuccess"));
-
-      // Fetch user's role to determine redirect
-      let redirectPath = "/dashboard";
-      if (user?.id) {
-        const { data: profile } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-
-        // Redirect based on role
-        if (profile?.role) {
-          switch (profile.role) {
-            case "super_admin":
-            case "diocese_admin":
-            case "church_admin":
-              redirectPath = "/admin";
-              break;
-            case "teacher":
-              redirectPath = "/dashboard/teacher";
-              break;
-            case "parent":
-              redirectPath = "/dashboard/parents";
-              break;
-            default:
-              redirectPath = "/dashboard";
-          }
-        }
-      }
-
-      // Use window.location for a hard redirect to ensure session is established
-      window.location.href = redirectPath;
+      await logLoginAttempt(null, false, errorMessage);
+      toast.error(errorMessage);
     } catch (error) {
-      // Log failed login attempt
       const errorMessage =
         error instanceof Error ? error.message : t("auth.loginFailed");
       await logLoginAttempt(null, false, errorMessage);
-
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

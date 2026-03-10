@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { ChevronDown, ChevronRight, Search, X } from 'lucide-react'
 import type { Permission } from '@/lib/types/modules/permissions'
+import { isForbiddenPermissionCode } from '@/lib/permissions/forbidden'
 
 interface PermissionSelectorProps {
   permissions: Permission[]
@@ -49,6 +50,14 @@ export function PermissionSelector({
       return expanded
     }
   )
+
+  const forbiddenPermissionIds = useMemo(() => {
+    const set = new Set<string>()
+    for (const p of permissions) {
+      if (isForbiddenPermissionCode(p.code)) set.add(p.id)
+    }
+    return set
+  }, [permissions])
 
   const selectedSet = useMemo(() => new Set(selectedPermissionIds), [selectedPermissionIds])
   const allPermissionIdsSet = useMemo(
@@ -125,28 +134,30 @@ export function PermissionSelector({
 
   const setPermissionSelected = useCallback(
     (permissionId: string, selected: boolean) => {
+      if (forbiddenPermissionIds.has(permissionId)) return
       onSelectionChange((prev) => {
         const has = prev.includes(permissionId)
         if (selected) return has ? prev : [...prev, permissionId]
         return has ? prev.filter((id) => id !== permissionId) : prev
       })
     },
-    [onSelectionChange]
+    [forbiddenPermissionIds, onSelectionChange]
   )
 
   const setManySelected = useCallback(
     (permissionIds: string[], selected: boolean) => {
+      const allowedIds = permissionIds.filter((id) => !forbiddenPermissionIds.has(id))
       onSelectionChange((prev) => {
         const set = new Set(prev)
         if (selected) {
-          for (const id of permissionIds) set.add(id)
+          for (const id of allowedIds) set.add(id)
         } else {
-          for (const id of permissionIds) set.delete(id)
+          for (const id of allowedIds) set.delete(id)
         }
         return Array.from(set)
       })
     },
-    [onSelectionChange]
+    [forbiddenPermissionIds, onSelectionChange]
   )
 
   const toggleAllVisible = useCallback(() => {
@@ -165,6 +176,9 @@ export function PermissionSelector({
           <p className="text-sm text-muted-foreground">
             Selected: {selectedCount} of {totalCount}
             {searchQuery ? ` • Showing ${visibleCount}` : ''}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Some system permissions are restricted and cannot be assigned here.
           </p>
         </div>
       </div>
@@ -280,13 +294,15 @@ export function PermissionSelector({
                       <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
                         {modulePermissions.map((permission) => {
                           const isSelected = selectedSet.has(permission.id)
+                          const isForbidden = forbiddenPermissionIds.has(permission.id)
                           return (
                             <div
                               key={permission.id}
                               className={cn(
                                 'rounded-lg border px-3 py-2 transition-colors',
                                 'hover:bg-muted/50',
-                                isSelected && 'border-primary/60 bg-primary/5'
+                                isSelected && 'border-primary/60 bg-primary/5',
+                                isForbidden && 'opacity-60'
                               )}
                             >
                               <div className="flex items-start gap-2">
@@ -296,6 +312,7 @@ export function PermissionSelector({
                                   onCheckedChange={(checked) =>
                                     setPermissionSelected(permission.id, checked === true)
                                   }
+                                  disabled={isForbidden}
                                 />
                                 <div className="min-w-0 flex-1">
                                   <Label
@@ -303,6 +320,11 @@ export function PermissionSelector({
                                     className="text-sm font-medium leading-tight cursor-pointer"
                                   >
                                     {permission.name}
+                                    {isForbidden ? (
+                                      <span className="ml-2 text-[11px] text-muted-foreground">
+                                        (restricted)
+                                      </span>
+                                    ) : null}
                                   </Label>
                                   <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
                                     {permission.code}

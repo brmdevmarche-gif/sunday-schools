@@ -17,7 +17,7 @@ interface UsePermissionsResult {
   hasAllPermissions: (codes: string[]) => boolean
   isLoading: boolean
   error: Error | null
-  refetch: () => Promise<void>
+  refetch: () => void
 }
 
 /**

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import StreakDisplay, { SingleStreakWidget } from "./StreakDisplay";
+import StreakDisplay from "./StreakDisplay";
 import BadgeCollection, { BadgeShowcase } from "./BadgeCollection";
 import Leaderboard from "./Leaderboard";
 import { cn } from "@/lib/utils";
@@ -202,7 +202,6 @@ export default function GamificationDashboard({
 // Compact version for embedding in other pages
 function CompactDashboard({
   profile,
-  classId,
   className,
 }: {
   profile: GamificationProfile;

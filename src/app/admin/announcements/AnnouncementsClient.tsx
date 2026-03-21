@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PermissionButton } from '@/components/admin/PermissionButton'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -162,21 +162,6 @@ export default function AnnouncementsClient(props: {
 
     loadTypeSuggestions()
   }, [open])
-
-  const openEdit = (a: AnnouncementRow) => {
-    setEditing(a)
-    setTitle(a.title || '')
-    setDescription(a.description || '')
-    setTypes(a.types || [])
-    setTypeInput('')
-    setTargetRoles((a.target_roles || []) as AnnouncementTargetRole[])
-    setPublishFrom(isoToDateTimeLocal(a.publish_from))
-    setPublishTo(a.publish_to ? isoToDateTimeLocal(a.publish_to) : '')
-    setDioceseIds(a.diocese_ids || [])
-    setChurchIds(a.church_ids || [])
-    setClassIds(a.class_ids || [])
-    setOpen(true)
-  }
 
   const toggleId = (list: string[], id: string) =>
     list.includes(id) ? list.filter(x => x !== id) : [...list, id]

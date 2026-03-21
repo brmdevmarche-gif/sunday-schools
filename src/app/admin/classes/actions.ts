@@ -248,7 +248,7 @@ export async function assignUserToClassAction(
 
   // Check permissions: user must have either the general assign_users permission
   // or the specific permission for the assignment type
-  const { hasPermission, hasAnyPermission } = await import('@/lib/permissions/check')
+  const { hasPermission } = await import('@/lib/permissions/check')
   const hasAssignUsers = await hasPermission('classes.assign_users')
   const specificPermission = assignmentType === 'teacher' 
     ? 'classes.assign_teachers' 
@@ -862,7 +862,7 @@ export async function markTripParticipantAsPaidAction(participantId: string) {
 /**
  * Get student price tier (for now defaults to normal, but can be extended to check user profile)
  */
-export async function getStudentPriceTier(userId: string): Promise<'normal' | 'mastor' | 'botl'> {
+export async function getStudentPriceTier(_userId: string): Promise<'normal' | 'mastor' | 'botl'> {
   // TODO: Check user profile for price tier field
   // For now, defaulting to normal
   // In the future, this could check a user.price_tier field or relationship

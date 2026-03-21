@@ -84,7 +84,7 @@ export default function ImageUpload({
       const filePath = `${folder}/${fileName}`
 
       // Upload file
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from(bucket)
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -133,7 +133,7 @@ export default function ImageUpload({
       setPreviewUrl(imageUrl)
       onImageUploaded(imageUrl)
       toast.success('Image URL set successfully')
-    } catch (error) {
+    } catch (_error) {
       toast.error('Invalid URL format')
     }
   }

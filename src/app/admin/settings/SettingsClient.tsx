@@ -30,13 +30,11 @@ import {
   Globe,
   Palette,
   Calendar,
-  Clock,
   Bell,
   Database,
   Download,
   AlertCircle,
   CheckCircle2,
-  Coins
 } from 'lucide-react'
 import { updateUserSettings, createBackupLog, type UserSettings, type BackupLog } from './actions'
 import ChurchPointsConfig from '@/components/ChurchPointsConfig'

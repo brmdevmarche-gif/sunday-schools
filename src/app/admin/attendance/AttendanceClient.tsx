@@ -31,7 +31,6 @@ import { Check, X, AlertCircle, Clock, Save, Calendar, ChevronsUpDown } from "lu
 import { cn } from "@/lib/utils";
 import type { AttendanceStatus } from "@/lib/types";
 import {
-  markAttendanceAction,
   getClassAttendanceAction,
   bulkMarkAttendanceAction,
   getClassStudentsAction,
@@ -65,7 +64,7 @@ interface AttendanceRecord {
 
 export default function AttendanceClient({
   classes,
-  userRole,
+  userRole: _userRole,
 }: AttendanceClientProps) {
   const t = useTranslations();
   const [selectedClassId, setSelectedClassId] = useState<string>("");

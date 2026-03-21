@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
-import type { CreateAttendanceInput, UpdateAttendanceInput } from '@/lib/types/sunday-school'
+import type { CreateAttendanceInput } from '@/lib/types/sunday-school'
 import { awardAttendancePointsAction } from '@/app/admin/points/actions'
 
 /**
@@ -107,8 +107,6 @@ export async function bulkMarkAttendanceAction(records: CreateAttendanceInput[])
   if (!user) {
     throw new Error('Not authenticated')
   }
-
-  const adminClient = createAdminClient()
 
   // Process each record
   for (const record of records) {

@@ -5,12 +5,10 @@ import { useTranslations } from "next-intl";
 import { Calendar, CheckCircle, AlertCircle, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
-  AttendanceStatusButton,
   AttendanceStudentRow,
   type AttendanceStatus,
 } from "@/components/teacher";

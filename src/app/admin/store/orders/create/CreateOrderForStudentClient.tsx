@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ArrowLeft, Package, Search, Plus, Minus, Trash2, AlertTriangle, Coins } from "lucide-react";
@@ -59,7 +58,7 @@ interface CreateOrderForStudentClientProps {
 
 export default function CreateOrderForStudentClient({
   storeItems,
-  userProfile,
+  userProfile: _userProfile,
 }: CreateOrderForStudentClientProps) {
   const t = useTranslations();
   const router = useRouter();

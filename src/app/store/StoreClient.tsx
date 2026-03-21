@@ -36,7 +36,6 @@ import {
 } from "lucide-react";
 import type { StoreItem, PriceTier, ParentChild } from "@/lib/types";
 import { createOrderAction } from "../admin/store/orders/actions";
-import { ChildContextBanner } from "@/components/parents";
 import { clientLogger } from '@/lib/client-logger'
 
 interface CartItem {
@@ -335,11 +334,6 @@ export default function StoreClient({
       item.description?.toLowerCase().includes(query)
     );
   });
-
-  // Handle child switching
-  const handleChildChange = (childId: string) => {
-    router.push(`/store?for=${childId}`);
-  };
 
   // Handle checkout button click - prompt for child selection if parent without child context
   function handleCheckoutClick() {

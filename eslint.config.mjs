@@ -20,6 +20,7 @@ const eslintConfig = defineConfig([
   // - React compiler rule `set-state-in-effect` is noisy for legitimate "mounted" flags; warn only.
   {
     rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
       "react/no-unescaped-entities": "warn",
       "prefer-const": "warn",

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Megaphone, Filter } from "lucide-react";
 
@@ -11,7 +10,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import {
   AnnouncementCard,
   AnnouncementDetail,
-  type AnnouncementType,
 } from "@/components/teacher";
 import {
   type TeacherAnnouncement,
@@ -26,7 +24,6 @@ interface AnnouncementsClientProps {
 
 export function AnnouncementsClient({ announcements }: AnnouncementsClientProps) {
   const t = useTranslations("teacher.announcements");
-  const router = useRouter();
   const [filter, setFilter] = React.useState<FilterType>("all");
   const [selectedAnnouncement, setSelectedAnnouncement] =
     React.useState<TeacherAnnouncement | null>(null);

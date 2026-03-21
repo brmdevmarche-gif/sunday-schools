@@ -31,8 +31,6 @@ import {
 import type {
   TripWithDetails,
   UpdateTripInput,
-  TripType,
-  TripStatus,
   Church,
   ExtendedUser,
 } from "@/lib/types";

@@ -45,7 +45,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -207,14 +206,6 @@ export default function TripDetailsClient({
       }
       return newSet;
     });
-  }
-
-  function toggleAll() {
-    if (selectedParticipants.size === participants.length) {
-      setSelectedParticipants(new Set());
-    } else {
-      setSelectedParticipants(new Set(participants.map((p) => p.id)));
-    }
   }
 
   async function handleBulkUpdate(updates: {

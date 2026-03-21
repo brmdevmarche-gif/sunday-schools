@@ -288,7 +288,7 @@ export default function ReadingScheduleDetailClient({
                               </p>
                               {day.my_reading.favorite_verse_text && (
                                 <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-                                  "{day.my_reading.favorite_verse_text}"
+                                  &ldquo;{day.my_reading.favorite_verse_text}&rdquo;
                                 </p>
                               )}
                             </div>

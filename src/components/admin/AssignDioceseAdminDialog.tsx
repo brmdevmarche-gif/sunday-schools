@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -188,10 +189,13 @@ export function AssignDioceseAdminDialog({
                       <SelectItem key={user.id} value={user.id}>
                         <div className="flex items-center gap-2">
                           {user.avatar_url ? (
-                            <img
+                            <Image
                               src={user.avatar_url}
                               alt={user.full_name || ""}
+                              width={24}
+                              height={24}
                               className="h-6 w-6 rounded-full"
+                              unoptimized
                             />
                           ) : (
                             <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
@@ -222,10 +226,13 @@ export function AssignDioceseAdminDialog({
               <div className="rounded-lg border p-3 bg-muted/50">
                 <div className="flex items-center gap-3">
                   {selectedUser.avatar_url ? (
-                    <img
+                    <Image
                       src={selectedUser.avatar_url}
                       alt={selectedUser.full_name || ""}
+                      width={40}
+                      height={40}
                       className="h-10 w-10 rounded-full"
+                      unoptimized
                     />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">

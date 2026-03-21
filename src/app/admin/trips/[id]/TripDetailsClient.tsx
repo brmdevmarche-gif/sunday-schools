@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -1510,13 +1511,16 @@ export default function TripDetailsClient({
                           <TableCell className="whitespace-normal">
                             <div className="flex items-center gap-3 min-w-[220px]">
                               {(participant.user as any)?.avatar_url ? (
-                                <img
+                                <Image
                                   src={(participant.user as any).avatar_url}
                                   alt={
                                     participant.user?.full_name ||
                                     participant.user?.email
                                   }
+                                  width={36}
+                                  height={36}
                                   className="h-9 w-9 rounded-full"
+                                  unoptimized
                                 />
                               ) : (
                                 <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
@@ -1623,10 +1627,13 @@ export default function TripDetailsClient({
                         <div className="flex items-start gap-4 flex-1">
                           <div className="flex-shrink-0">
                             {organizer.user?.avatar_url ? (
-                              <img
+                              <Image
                                 src={organizer.user.avatar_url}
                                 alt={organizer.user.full_name || ""}
+                                width={48}
+                                height={48}
                                 className="w-12 h-12 rounded-full"
+                                unoptimized
                               />
                             ) : (
                               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -2101,10 +2108,13 @@ export default function TripDetailsClient({
                   >
                     <div className="flex items-center gap-3 flex-1">
                       {student.avatar_url ? (
-                        <img
+                        <Image
                           src={student.avatar_url}
                           alt={student.full_name || student.email}
+                          width={40}
+                          height={40}
                           className="h-10 w-10 rounded-full"
+                          unoptimized
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">

@@ -55,6 +55,7 @@ export default function ClassPointsOverview({ classId }: ClassPointsOverviewProp
 
   useEffect(() => {
     fetchPoints();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchPoints is stable for a given classId
   }, [classId]);
 
   const getRankIcon = (rank: number) => {

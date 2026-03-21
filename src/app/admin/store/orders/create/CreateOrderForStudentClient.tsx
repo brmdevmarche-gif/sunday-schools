@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -389,10 +390,13 @@ export default function CreateOrderForStudentClient({
                           onClick={() => addItemToOrder(item)}
                         >
                           {item.image_url ? (
-                            <img
+                            <Image
                               src={item.image_url}
                               alt={item.name}
+                              width={48}
+                              height={48}
                               className="w-12 h-12 rounded object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
@@ -451,10 +455,13 @@ export default function CreateOrderForStudentClient({
                           className="flex items-center gap-3 p-2 border rounded-lg"
                         >
                           {item.image_url ? (
-                            <img
+                            <Image
                               src={item.image_url}
                               alt={item.name}
+                              width={40}
+                              height={40}
                               className="w-10 h-10 rounded object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">

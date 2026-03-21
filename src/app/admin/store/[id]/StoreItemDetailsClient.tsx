@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -169,10 +170,13 @@ export default function StoreItemDetailsClient({
             </Button>
             <div className="flex-1 flex items-center gap-4">
               {item.image_url && (
-                <img
+                <Image
                   src={item.image_url}
                   alt={item.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-lg object-cover"
+                  unoptimized
                 />
               )}
               <div>

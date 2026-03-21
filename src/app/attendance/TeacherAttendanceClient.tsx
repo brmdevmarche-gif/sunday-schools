@@ -110,6 +110,7 @@ export default function TeacherAttendanceClient({
       setStudents([]);
       setAttendance(new Map());
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only re-run on selectedClassId/selectedDate change
   }, [selectedClassId, selectedDate]);
 
   async function loadStudents(classId: string) {

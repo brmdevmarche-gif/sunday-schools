@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -695,10 +696,13 @@ export default function StoreClient({
                                   <TableCell>
                                     <div className="flex items-center gap-3">
                                       {stat.item_image_url ? (
-                                        <img
+                                        <Image
                                           src={stat.item_image_url}
                                           alt={stat.item_name}
+                                          width={40}
+                                          height={40}
                                           className="h-10 w-10 rounded object-cover"
+                                          unoptimized
                                         />
                                       ) : (
                                         <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
@@ -935,10 +939,13 @@ export default function StoreClient({
                           <TableCell>
                             <div className="flex items-center gap-3">
                               {item.image_url ? (
-                                <img
+                                <Image
                                   src={item.image_url}
                                   alt={item.name}
+                                  width={40}
+                                  height={40}
                                   className="h-10 w-10 rounded object-cover"
+                                  unoptimized
                                 />
                               ) : (
                                 <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">

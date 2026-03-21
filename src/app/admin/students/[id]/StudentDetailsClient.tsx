@@ -644,10 +644,13 @@ export default function StudentDetailsClient({
                             >
                               <div className="flex items-center gap-2">
                                 {item.store_items?.image_url && (
-                                  <img
+                                  <Image
                                     src={item.store_items.image_url}
                                     alt={item.item_name}
+                                    width={32}
+                                    height={32}
                                     className="w-8 h-8 rounded object-cover"
+                                    unoptimized
                                   />
                                 )}
                                 <span>
@@ -753,10 +756,13 @@ export default function StudentDetailsClient({
                             >
                               <div className="flex items-center gap-2">
                                 {item.store_items?.image_url && (
-                                  <img
+                                  <Image
                                     src={item.store_items.image_url}
                                     alt={item.item_name}
+                                    width={32}
+                                    height={32}
                                     className="w-8 h-8 rounded object-cover"
+                                    unoptimized
                                   />
                                 )}
                                 <span>

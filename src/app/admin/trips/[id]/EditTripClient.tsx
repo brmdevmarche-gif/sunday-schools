@@ -441,7 +441,7 @@ export default function EditTripClient({
               <CardContent className="space-y-4">
                 {destinations.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No destinations added. Click "Add Destination" to add one.
+                    No destinations added. Click &ldquo;Add Destination&rdquo; to add one.
                   </p>
                 ) : (
                   destinations.map((dest, index) => (

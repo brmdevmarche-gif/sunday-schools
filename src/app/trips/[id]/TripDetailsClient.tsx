@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -222,13 +223,16 @@ export default function TripDetailsClient({
             {/* Trip Image */}
             {trip.image_url && (
               <Card className="overflow-hidden">
-                <img
+                <Image
                   role="presentation"
                   src={trip.image_url}
                   alt={trip.title}
+                  width={800}
+                  height={384}
                   className="w-full h-96 object-cover"
+                  unoptimized
                   onError={(e) => {
-                    e.currentTarget.style.display = "none";
+                    (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
               </Card>

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -301,13 +302,16 @@ export default function TripsClient({
                 <Card key={trip.id} className="flex flex-col overflow-hidden">
                   {trip.image_url && (
                     <div className="w-full h-48 overflow-hidden">
-                      <img
+                      <Image
                         role="presentation"
                         src={trip.image_url}
                         alt={trip.title}
+                        width={400}
+                        height={192}
                         className="w-full h-full object-cover"
+                        unoptimized
                         onError={(e) => {
-                          e.currentTarget.style.display = "none";
+                          (e.target as HTMLImageElement).style.display = "none";
                         }}
                       />
                     </div>

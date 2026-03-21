@@ -269,7 +269,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       }
       router.replace("/admin");
     }
-  }, [pathname, permissionCodes, permissionsError, permissionsLoading, router, t, userProfile]);
+  }, [pathname, permissionCodes, permissionsError, permissionsLoading, router, t, userProfile, isForbiddenAdmin]);
 
   // Close mobile sidebar when clicking outside
   useEffect(() => {

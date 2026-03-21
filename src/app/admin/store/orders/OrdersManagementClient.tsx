@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { PermissionButton } from "@/components/admin/PermissionButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -871,10 +872,13 @@ export default function OrdersManagementClient({
                                       className="flex items-center gap-2 bg-muted px-3 py-1 rounded-md text-sm"
                                     >
                                       {item.store_items?.image_url && (
-                                        <img
+                                        <Image
                                           src={item.store_items.image_url}
                                           alt={item.item_name}
+                                          width={24}
+                                          height={24}
                                           className="w-6 h-6 rounded object-cover"
+                                          unoptimized
                                         />
                                       )}
                                       <span>
@@ -980,10 +984,13 @@ export default function OrdersManagementClient({
                         className="flex items-center gap-4 p-3 border rounded-lg"
                       >
                         {item.store_items?.image_url && (
-                          <img
+                          <Image
                             src={item.store_items.image_url}
                             alt={item.item_name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 object-cover rounded"
+                            unoptimized
                           />
                         )}
                         <div className="flex-1">

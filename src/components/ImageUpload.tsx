@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, ChangeEvent } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -203,10 +204,13 @@ export default function ImageUpload({
                 aspectRatio ? `aspect-${aspectRatio}` : 'w-32 h-32'
               }`}
             >
-              <img
+              <Image
                 src={previewUrl}
                 alt="Preview"
+                width={128}
+                height={128}
                 className="w-full h-full object-cover"
+                unoptimized
               />
             </div>
             <Button

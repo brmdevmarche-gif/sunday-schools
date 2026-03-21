@@ -85,6 +85,7 @@ export async function getStudentPointsBalanceAction(
   const supabase = createAdminClient();
 
   // First try to get existing balance
+  // eslint-disable-next-line prefer-const -- data is reassigned below
   let { data, error } = await supabase
     .from("student_points_balance")
     .select("*")

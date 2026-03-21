@@ -80,6 +80,7 @@ export default function Leaderboard({
 
   useEffect(() => {
     fetchLeaderboard();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLeaderboard is stable for given params
   }, [scope, period, scopeId, limit]);
 
   const getRankDisplay = (rank: number) => {

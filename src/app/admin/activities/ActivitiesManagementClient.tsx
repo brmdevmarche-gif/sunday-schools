@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionButton } from "@/components/admin/PermissionButton";
@@ -254,10 +255,13 @@ export default function ActivitiesManagementClient({
             <Card key={activity.id} className="flex flex-col">
               {activity.image_url && (
                 <div className="aspect-video overflow-hidden rounded-t-lg bg-muted">
-                  <img
+                  <Image
                     src={activity.image_url}
                     alt={activity.name}
+                    width={400}
+                    height={225}
                     className="h-full w-full object-cover"
+                    unoptimized
                   />
                 </div>
               )}

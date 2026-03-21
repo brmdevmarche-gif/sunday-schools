@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -500,10 +501,13 @@ export default function StoreClient({
                 <Card key={item.id} className="flex flex-col pt-0">
                   {item.image_url && (
                     <div className="aspect-square overflow-hidden rounded-t-lg bg-muted">
-                      <img
+                      <Image
                         src={item.image_url}
                         alt={item.name}
+                        width={400}
+                        height={400}
                         className="h-full w-full object-cover"
+                        unoptimized
                       />
                     </div>
                   )}
@@ -722,10 +726,13 @@ export default function StoreClient({
                     >
                       <div className="flex justify-between w-full items-start gap-4">
                         {cartItem.item.image_url && (
-                          <img
+                          <Image
                             src={cartItem.item.image_url}
                             alt={cartItem.item.name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 object-cover rounded"
+                            unoptimized
                           />
                         )}
                         <div className="flex-1 min-w-0">

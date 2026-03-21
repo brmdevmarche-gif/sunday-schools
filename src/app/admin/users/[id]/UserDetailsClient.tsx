@@ -714,8 +714,9 @@ export default function UserDetailsClient({
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            relatedUser &&
+                            if (relatedUser) {
                               router.push(`/admin/users/${relatedUser.id}`);
+                            }
                           }
                         }}
                       >

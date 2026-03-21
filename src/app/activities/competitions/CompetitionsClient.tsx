@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -329,11 +330,14 @@ function CompetitionCard({
       {/* Image or Placeholder */}
       <div className="aspect-video bg-muted overflow-hidden">
         {competition.image_url && !imageError ? (
-          <img
+          <Image
             role="presentation"
             src={competition.image_url}
             alt={competition.name}
+            width={400}
+            height={225}
             className="h-full w-full object-cover"
+            unoptimized
             onError={() => setImageError(true)}
           />
         ) : (

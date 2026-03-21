@@ -64,7 +64,7 @@ export default function ProfileEditPage() {
     }
 
     loadProfile();
-  }, [router]);
+  }, [router, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

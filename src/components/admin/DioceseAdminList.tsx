@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -179,10 +180,13 @@ export function DioceseAdminList({
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {admin.user.avatar_url ? (
-                        <img
+                        <Image
                           src={admin.user.avatar_url}
                           alt={admin.user.full_name || ""}
+                          width={32}
+                          height={32}
                           className="h-8 w-8 rounded-full"
+                          unoptimized
                         />
                       ) : (
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { clientLogger } from '@/lib/client-logger'
 
 type Announcement = {
   id: string
@@ -133,7 +134,7 @@ export default function AnnouncementsWidget() {
           }
         }
       } catch (e: any) {
-        console.error(e)
+        clientLogger.error('Failed to load announcements', e)
         toast.error(e?.message || 'Failed to load announcements')
       } finally {
         setLoading(false)
@@ -176,7 +177,7 @@ export default function AnnouncementsWidget() {
         e?.message ||
         (typeof e === 'string' ? e : '') ||
         (e ? JSON.stringify(e) : '')
-      console.error('markViewed failed:', msg, e)
+      clientLogger.error('markViewed failed', { msg, e })
       toast.error(msg || 'Failed to mark as viewed')
     }
   }

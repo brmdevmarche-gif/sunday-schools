@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Coins, Plus, Minus, Loader2 } from "lucide-react";
 import { teacherAdjustPointsAction } from "@/app/admin/points/actions";
 import { normalizeNonNegativeIntInput } from "@/lib/utils";
+import { clientLogger } from '@/lib/client-logger'
 
 interface PointsAdjustmentDialogProps {
   studentId: string;
@@ -69,7 +70,7 @@ export default function PointsAdjustmentDialog({
       setAdjustmentType("add");
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to adjust points:", error);
+      clientLogger.error("Failed to adjust points", error);
       if (error instanceof Error) {
         if (error.message.includes("maximum limit")) {
           toast.error(t("maxAdjustmentExceeded"));

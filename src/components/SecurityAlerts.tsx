@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { detectSuspiciousActivity, getLastSuccessfulLogin, type LoginHistoryEntry } from '@/lib/login-history'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { clientLogger } from '@/lib/client-logger'
 
 export default function SecurityAlerts() {
   const [hasSuspiciousActivity, setHasSuspiciousActivity] = useState(false)
@@ -20,7 +21,7 @@ export default function SecurityAlerts() {
         const previousLogin = await getLastSuccessfulLogin()
         setLastLogin(previousLogin)
       } catch (error) {
-        console.error('Error checking security:', error)
+        clientLogger.error('Error checking security', error)
       } finally {
         setIsLoading(false)
       }

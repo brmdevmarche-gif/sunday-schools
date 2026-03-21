@@ -29,6 +29,7 @@ import type {
   UpdateActivityInput,
   ExtendedUser,
 } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface EditActivityClientProps {
   activity: Activity;
@@ -102,7 +103,7 @@ export default function EditActivityClient({
       );
       router.push("/admin/activities");
     } catch (error) {
-      console.error("Error updating activity:", error);
+      clientLogger.error("Error updating activity", error);
       toast.error(
         error instanceof Error ? error.message : t("activities.updateFailed")
       );

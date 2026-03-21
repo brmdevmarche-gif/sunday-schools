@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getLoginHistory, type LoginHistoryEntry } from '@/lib/login-history'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { clientLogger } from '@/lib/client-logger'
 
 interface LoginHistoryProps {
   limit?: number
@@ -18,7 +19,7 @@ export default function LoginHistory({ limit = 10 }: LoginHistoryProps) {
         const data = await getLoginHistory(limit)
         setHistory(data)
       } catch (error) {
-        console.error('Error loading login history:', error)
+        clientLogger.error('Error loading login history', error)
       } finally {
         setIsLoading(false)
       }

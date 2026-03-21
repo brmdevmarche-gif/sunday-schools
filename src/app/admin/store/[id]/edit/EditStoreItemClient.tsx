@@ -16,6 +16,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { updateStoreItemAction } from "../../actions";
 import type { ExtendedUser, StoreItem } from "@/lib/types";
 import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
+import { clientLogger } from '@/lib/client-logger'
 
 interface Church {
   id: string;
@@ -397,7 +398,7 @@ export default function EditStoreItemClient({
       toast.success(t("store.itemUpdated"));
       router.push("/admin/store");
     } catch (error: unknown) {
-      console.error("Error updating store item:", error);
+      clientLogger.error("Error updating store item", error);
       toast.error(
         error instanceof Error ? error.message : t("store.updateFailed")
       );

@@ -58,6 +58,7 @@ import {
   updateChurchAction,
   deleteChurchAction,
 } from "./actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ChurchWithCount extends Church {
   classCount: number;
@@ -169,7 +170,7 @@ export default function ChurchesClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error saving church:", error);
+      clientLogger.error("Error saving church", error);
       toast.error(
         editingChurch ? t("churches.updateFailed") : t("churches.createFailed")
       );
@@ -196,7 +197,7 @@ export default function ChurchesClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error deleting church:", error);
+      clientLogger.error("Error deleting church", error);
       toast.error(t("churches.deleteFailed"));
     } finally {
       setIsDeleting(false);

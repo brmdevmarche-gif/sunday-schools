@@ -28,6 +28,7 @@ import type {
   ExtendedUser,
 } from "@/lib/types";
 import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
+import { clientLogger } from '@/lib/client-logger'
 
 interface CreateActivityClientProps {
   userProfile: ExtendedUser;
@@ -87,7 +88,7 @@ export default function CreateActivityClient({
       );
       router.push("/admin/activities");
     } catch (error) {
-      console.error("Error creating activity:", error);
+      clientLogger.error("Error creating activity", error);
       toast.error(
         error instanceof Error ? error.message : t("activities.createFailed")
       );

@@ -37,6 +37,7 @@ import {
   withdrawFromActivityAction,
 } from "./actions";
 import type { ActivityWithDetails } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ActivityCompletion {
   id: string;
@@ -113,7 +114,7 @@ export default function ActivitiesClient({
       toast.success(t("activities.participationRequested"));
       router.refresh();
     } catch (error) {
-      console.error("Error participating:", error);
+      clientLogger.error("Error participating", error);
       toast.error(
         error instanceof Error
           ? error.message
@@ -131,7 +132,7 @@ export default function ActivitiesClient({
       toast.success(t("activities.completionSubmitted"));
       router.refresh();
     } catch (error) {
-      console.error("Error completing:", error);
+      clientLogger.error("Error completing", error);
       toast.error(
         error instanceof Error
           ? error.message
@@ -153,7 +154,7 @@ export default function ActivitiesClient({
       toast.success(t("activities.withdrawnSuccess"));
       router.refresh();
     } catch (error) {
-      console.error("Error withdrawing:", error);
+      clientLogger.error("Error withdrawing", error);
       toast.error(
         error instanceof Error ? error.message : t("activities.withdrawFailed")
       );

@@ -32,6 +32,7 @@ import { Calendar, Download, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { getClassAttendanceAction } from "../actions";
 import type { AttendanceStatus } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ClassInfo {
   id: string;
@@ -107,7 +108,7 @@ export default function AttendanceHistoryClient({
 
       setRecords(allRecords);
     } catch (error) {
-      console.error("Error loading attendance history:", error);
+      clientLogger.error("Error loading attendance history", error);
       toast.error(t("attendance.failedToLoadHistory"));
     } finally {
       setIsLoading(false);

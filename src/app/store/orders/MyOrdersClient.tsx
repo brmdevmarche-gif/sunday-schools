@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Package, X, Clock, History } from "lucide-react";
 import { cancelOrderAction } from "@/app/admin/store/orders/actions";
 import type { Order, OrderItem } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface OrderWithItems extends Order {
   order_items: Array<
@@ -102,7 +103,7 @@ export default function MyOrdersClient({
       router.refresh();
       setSelectedOrder(null);
     } catch (error) {
-      console.error("Error cancelling order:", error);
+      clientLogger.error("Error cancelling order", error);
       toast.error(
         error instanceof Error ? error.message : t("store.cancelFailed")
       );

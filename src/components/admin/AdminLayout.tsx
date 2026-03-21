@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { hasForbiddenPermission } from "@/lib/permissions/forbidden";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { clientLogger } from '@/lib/client-logger'
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -71,7 +72,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         setUserProfile(profile);
       } catch (error) {
-        console.error("Error loading admin layout:", error);
+        clientLogger.error("Error loading admin layout", error);
         toast.error(t("errors.serverError"));
         router.push("/dashboard");
       } finally {

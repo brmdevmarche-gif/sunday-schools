@@ -69,6 +69,7 @@ import {
   getAvailableTeachersData,
   getAvailableStudentsData,
 } from "./actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ClassWithCount extends Class {
   studentCount: number;
@@ -257,7 +258,7 @@ export default function ClassesClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error saving class:", error);
+      clientLogger.error("Error saving class", error);
       toast.error(
         editingClass ? t("classes.updateFailed") : t("classes.createFailed")
       );
@@ -295,7 +296,7 @@ export default function ClassesClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error assigning user:", error);
+      clientLogger.error("Error assigning user", error);
       toast.error(t("classes.assignFailed"));
     } finally {
       setIsSubmitting(false);
@@ -343,7 +344,7 @@ export default function ClassesClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error deleting class:", error);
+      clientLogger.error("Error deleting class", error);
       toast.error(t("classes.deleteFailed"));
     }
   }

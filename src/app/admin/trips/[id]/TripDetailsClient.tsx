@@ -84,6 +84,7 @@ import type {
   ExtendedUser,
 } from "@/lib/types";
 import { ParentActionBadge } from "@/components/ui/parent-action-badge";
+import { clientLogger } from '@/lib/client-logger'
 
 interface TripDetailsClientProps {
   trip: TripWithDetails;
@@ -303,7 +304,7 @@ export default function TripDetailsClient({
         })
       );
     } catch (error) {
-      console.error("Error updating participants:", error);
+      clientLogger.error("Error updating participants", error);
       toast.error(
         error instanceof Error
           ? error.message
@@ -392,7 +393,7 @@ export default function TripDetailsClient({
 
       toast.success(t("trips.messages.participantUpdated"));
     } catch (error) {
-      console.error("Error updating participant:", error);
+      clientLogger.error("Error updating participant", error);
       let errorMessage = t("trips.messages.participantUpdateError");
       if (error instanceof Error) {
         if (error.message === "INVALID_PAYMENT_STATUS") {
@@ -425,7 +426,7 @@ export default function TripDetailsClient({
         setAvailableTeachers(available);
       }
     } catch (error) {
-      console.error("Error loading teachers:", error);
+      clientLogger.error("Error loading teachers", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to load teachers"
       );
@@ -486,7 +487,7 @@ export default function TripDetailsClient({
         });
       }
     } catch (error) {
-      console.error("Error adding organizer:", error);
+      clientLogger.error("Error adding organizer", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to add organizer"
       );
@@ -507,7 +508,7 @@ export default function TripDetailsClient({
         toast.success("Organizer removed successfully");
       }
     } catch (error) {
-      console.error("Error removing organizer:", error);
+      clientLogger.error("Error removing organizer", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to remove organizer"
       );
@@ -541,7 +542,7 @@ export default function TripDetailsClient({
         toast.success("Organizer roles updated successfully");
       }
     } catch (error) {
-      console.error("Error updating organizer:", error);
+      clientLogger.error("Error updating organizer", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to update organizer"
       );
@@ -595,7 +596,7 @@ export default function TripDetailsClient({
         setAvailableStudents(result.data);
       }
     } catch (error) {
-      console.error("Error loading students:", error);
+      clientLogger.error("Error loading students", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to load students"
       );
@@ -641,7 +642,7 @@ export default function TripDetailsClient({
         toast.success("Student subscribed successfully");
       }
     } catch (error) {
-      console.error("Error subscribing student:", error);
+      clientLogger.error("Error subscribing student", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to subscribe student"
       );
@@ -729,7 +730,7 @@ export default function TripDetailsClient({
 
       toast.success("Attendance saved successfully");
     } catch (error) {
-      console.error("Error saving attendance:", error);
+      clientLogger.error("Error saving attendance", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to save attendance"
       );
@@ -2331,7 +2332,7 @@ export default function TripDetailsClient({
                   setPaymentAmount("");
                   setFulfillAllAmount(false);
                 } catch (error) {
-                  console.error("Error processing payment:", error);
+                  clientLogger.error("Error processing payment", error);
                   let errorMessage = t("trips.paymentError");
                   if (error instanceof Error) {
                     if (error.message === "INVALID_PAYMENT_STATUS") {

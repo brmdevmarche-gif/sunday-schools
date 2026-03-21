@@ -54,6 +54,7 @@ import {
   getItemDemandStatsByMonthAction,
   type MonthlyItemDemandStats,
 } from "./actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface Church {
   id: string;
@@ -377,7 +378,7 @@ export default function StoreClient({
       setDemandGroups(groups);
       setShowDemandView(true);
     } catch (error) {
-      console.error("Failed to load demand stats:", error);
+      clientLogger.error("Failed to load demand stats", error);
       toast.error("Failed to load demand statistics");
     } finally {
       setIsLoadingDemand(false);

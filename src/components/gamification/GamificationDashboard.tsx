@@ -15,6 +15,7 @@ import {
   getBadgeDefinitionsAction,
 } from "@/app/gamification/actions";
 import type { GamificationProfile, BadgeDefinition, UserStreak } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface GamificationDashboardProps {
   userId?: string;
@@ -50,7 +51,7 @@ export default function GamificationDashboard({
           setAllBadges(badgesResult.data);
         }
       } catch (error) {
-        console.error("Failed to fetch gamification data:", error);
+        clientLogger.error("Failed to fetch gamification data", error);
       } finally {
         setLoading(false);
       }

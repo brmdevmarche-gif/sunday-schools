@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
 
 /**
  * Look up a user's email by their user_code
@@ -36,6 +37,16 @@ export async function loginAction(
   identifier: string,
   password: string
 ): Promise<LoginResult> {
+  // Rate limit: 5 attempts per minute per IP
+  const rateLimitKey = await getRateLimitKey("login");
+  const rl = await rateLimit(rateLimitKey, 5, 60_000);
+  if (!rl.success) {
+    return {
+      success: false,
+      error: "Too many login attempts. Please wait a minute and try again.",
+    };
+  }
+
   let email = identifier;
 
   if (/^\d{6}$/.test(identifier)) {

@@ -40,6 +40,7 @@ import {
 } from "./actions";
 import { DioceseAdminList } from "@/components/admin/DioceseAdminList";
 import { AssignDioceseAdminDialog } from "@/components/admin/AssignDioceseAdminDialog";
+import { clientLogger } from '@/lib/client-logger'
 
 interface DioceseWithCount extends Diocese {
   churchCount: number;
@@ -175,7 +176,7 @@ export default function DiocesesClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error saving diocese:", error);
+      clientLogger.error("Error saving diocese", error);
       toast.error(
         editingDiocese ? t("dioceses.updateFailed") : t("dioceses.createFailed")
       );
@@ -202,7 +203,7 @@ export default function DiocesesClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error deleting diocese:", error);
+      clientLogger.error("Error deleting diocese", error);
       toast.error(t("dioceses.deleteFailed"));
     } finally {
       setIsDeleting(false);

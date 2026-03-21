@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { clientLogger } from '@/lib/client-logger'
 
 export type ApprovalType = "trip" | "competition" | "activity";
 
@@ -128,7 +129,7 @@ function ApprovalCard({
       await onApprove();
       setActionResult("approved");
     } catch (error) {
-      console.error("Error approving:", error);
+      clientLogger.error("Error approving", error);
     } finally {
       setIsApproving(false);
     }
@@ -140,7 +141,7 @@ function ApprovalCard({
       await onReject();
       setActionResult("rejected");
     } catch (error) {
-      console.error("Error rejecting:", error);
+      clientLogger.error("Error rejecting", error);
     } finally {
       setIsRejecting(false);
     }

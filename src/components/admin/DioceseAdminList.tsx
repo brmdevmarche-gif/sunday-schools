@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { UserPlus, Trash2, Shield } from "lucide-react";
+import { clientLogger } from '@/lib/client-logger'
 
 interface DioceseAdmin {
   id: string;
@@ -66,7 +67,7 @@ export function DioceseAdminList({
       const { data } = await response.json();
       setAdmins(data || []);
     } catch (error) {
-      console.error("Error fetching admins:", error);
+      clientLogger.error("Error fetching admins", error);
       toast.error(error instanceof Error ? error.message : "Failed to load diocese admins");
     } finally {
       setLoading(false);
@@ -100,7 +101,7 @@ export function DioceseAdminList({
       toast.success("Admin access revoked successfully");
       fetchAdmins();
     } catch (error) {
-      console.error("Error revoking admin:", error);
+      clientLogger.error("Error revoking admin", error);
       toast.error("Failed to revoke admin access");
     } finally {
       setRevoking(null);

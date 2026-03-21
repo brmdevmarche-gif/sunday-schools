@@ -40,6 +40,7 @@ import {
 } from 'lucide-react'
 import { updateUserSettings, createBackupLog, type UserSettings, type BackupLog } from './actions'
 import ChurchPointsConfig from '@/components/ChurchPointsConfig'
+import { clientLogger } from '@/lib/client-logger'
 
 interface SettingsClientProps {
   initialSettings: UserSettings | null
@@ -99,7 +100,7 @@ export default function SettingsClient({
         router.refresh()
       })
     } catch (error) {
-      console.error('Error saving settings:', error)
+      clientLogger.error('Error saving settings', error)
       toast.error(t('settings.saveFailed'))
     }
   }
@@ -113,7 +114,7 @@ export default function SettingsClient({
     try {
       await updateUserSettings({ language: newLocale as UserSettings['language'] })
     } catch (error) {
-      console.error('Error saving language setting:', error)
+      clientLogger.error('Error saving language setting', error)
     }
   }
 
@@ -129,7 +130,7 @@ export default function SettingsClient({
       await updateUserSettings({ theme: newTheme })
       toast.success(t('settings.settingsSaved'))
     } catch (error) {
-      console.error('Error saving theme setting:', error)
+      clientLogger.error('Error saving theme setting', error)
       toast.error(t('settings.saveFailed'))
     }
   }
@@ -143,7 +144,7 @@ export default function SettingsClient({
         router.refresh()
       })
     } catch (error) {
-      console.error('Error creating backup:', error)
+      clientLogger.error('Error creating backup', error)
       toast.error(t('settings.backupFailed'))
     } finally {
       setIsCreatingBackup(false)

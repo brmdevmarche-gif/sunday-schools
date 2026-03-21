@@ -35,6 +35,7 @@ import {
   type ClassSearchResult,
   type TripSearchResult,
 } from "@/app/dashboard/teacher/search/actions";
+import { clientLogger } from '@/lib/client-logger'
 
 // =====================================================
 // TYPES
@@ -124,7 +125,7 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
         const searchResults = await searchAll(query);
         setResults(searchResults);
       } catch (error) {
-        console.error("Search error:", error);
+        clientLogger.error("Search error", error);
         setResults({ students: [], classes: [], trips: [], totalCount: 0 });
       } finally {
         setIsLoading(false);

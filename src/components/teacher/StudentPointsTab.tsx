@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { clientLogger } from '@/lib/client-logger'
 
 interface PointTransaction {
   id: string;
@@ -56,7 +57,7 @@ function StudentPointsTab({ studentId, className }: StudentPointsTabProps) {
           setPointsData(data);
         }
       } catch (error) {
-        console.error("Error fetching points:", error);
+        clientLogger.error("Error fetching points", error);
       } finally {
         setLoading(false);
       }

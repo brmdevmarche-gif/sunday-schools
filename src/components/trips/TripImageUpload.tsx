@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Upload, Link, HardDrive, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { clientLogger } from '@/lib/client-logger'
 
 interface TripImageUploadProps {
   value?: string;
@@ -81,7 +82,7 @@ export default function TripImageUpload({
       onChange(publicUrl);
       toast.success("Image uploaded successfully!");
     } catch (error: unknown) {
-      console.error("Error uploading image:", error);
+      clientLogger.error("Error uploading image", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to upload image"
       );

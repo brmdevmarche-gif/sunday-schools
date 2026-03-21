@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Search, Loader2 } from "lucide-react";
+import { clientLogger } from '@/lib/client-logger'
 
 interface User {
   id: string;
@@ -67,7 +68,7 @@ export function AssignDioceseAdminDialog({
       const { data } = await response.json();
       setUsers(data || []);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      clientLogger.error("Error fetching users", error);
       toast.error("Failed to load users");
     } finally {
       setSearching(false);
@@ -124,7 +125,7 @@ export function AssignDioceseAdminDialog({
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      console.error("Error assigning admin:", error);
+      clientLogger.error("Error assigning admin", error);
       toast.error(
         error instanceof Error
           ? error.message

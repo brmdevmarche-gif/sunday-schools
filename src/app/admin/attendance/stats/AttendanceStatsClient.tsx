@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart, TrendingUp, Users, Calendar, PieChart } from "lucide-react";
 import { toast } from "sonner";
 import { getClassAttendanceAction } from "../actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ClassInfo {
   id: string;
@@ -130,7 +131,7 @@ export default function AttendanceStatsClient({
 
       setStudentStats(statsArray);
     } catch (error) {
-      console.error("Error loading statistics:", error);
+      clientLogger.error("Error loading statistics", error);
       toast.error(t("attendance.failedToLoadStats"));
     } finally {
       setIsLoading(false);

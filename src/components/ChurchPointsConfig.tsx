@@ -22,6 +22,7 @@ import {
   upsertChurchPointsConfigAction,
 } from "@/app/admin/points/actions";
 import type { ChurchPointsConfig, ChurchPointsConfigFormData } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ChurchPointsConfigProps {
   churchId: string;
@@ -65,7 +66,7 @@ export default function ChurchPointsConfigComponent({
           });
         }
       } catch (error) {
-        console.error("Failed to fetch config:", error);
+        clientLogger.error("Failed to fetch config", error);
       } finally {
         setLoading(false);
       }
@@ -80,7 +81,7 @@ export default function ChurchPointsConfigComponent({
       await upsertChurchPointsConfigAction(churchId, config);
       toast.success(t("configSaved"));
     } catch (error) {
-      console.error("Failed to save config:", error);
+      clientLogger.error("Failed to save config", error);
       toast.error(t("configSaveFailed"));
     } finally {
       setSaving(false);

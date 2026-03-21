@@ -15,6 +15,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { createStoreItemAction } from "../actions";
 import type { ExtendedUser } from "@/lib/types";
 import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
+import { clientLogger } from '@/lib/client-logger'
 
 interface Church {
   id: string;
@@ -361,7 +362,7 @@ export default function CreateStoreItemClient({
       toast.success(t("createStoreItem.messages.createSuccess"));
       router.push("/admin/store");
     } catch (error: unknown) {
-      console.error("Error creating store item:", error);
+      clientLogger.error("Error creating store item", error);
       toast.error(
         error instanceof Error ? error.message : t("createStoreItem.messages.createError")
       );

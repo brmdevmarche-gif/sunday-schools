@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import type { StudentDetails } from "@/components/teacher/StudentDrawer";
+import { clientLogger } from '@/lib/client-logger'
 
 interface UseStudentDrawerReturn {
   /** Currently selected student */
@@ -52,11 +53,11 @@ export function useStudentDrawer(): UseStudentDrawerReturn {
         const data = await response.json();
         setStudent(data);
       } else {
-        console.error("Failed to fetch student data");
+        clientLogger.error("Failed to fetch student data");
         setStudent(null);
       }
     } catch (error) {
-      console.error("Error fetching student:", error);
+      clientLogger.error("Error fetching student", error);
       setStudent(null);
     } finally {
       setIsLoading(false);

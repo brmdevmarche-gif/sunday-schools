@@ -51,6 +51,7 @@ import type {
   StudentOrder,
 } from "./actions";
 import type { OrderStatus } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface StudentDetailsClientProps {
   student: StudentDetails;
@@ -92,7 +93,7 @@ export default function StudentDetailsClient({
       toast.success(t("store.orderStatusUpdated"));
       router.refresh();
     } catch (error) {
-      console.error("Error updating order:", error);
+      clientLogger.error("Error updating order", error);
       toast.error(error instanceof Error ? error.message : t("store.updateFailed"));
     } finally {
       setIsProcessingOrder(false);

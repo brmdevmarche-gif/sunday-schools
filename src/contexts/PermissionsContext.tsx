@@ -8,6 +8,7 @@ import {
   getCurrentUserPermissions,
 } from '@/lib/sunday-school/roles.client'
 import type { Permission } from '@/lib/types/modules/permissions'
+import { clientLogger } from '@/lib/client-logger'
 
 interface PermissionsContextValue {
   permissions: Permission[]
@@ -67,9 +68,9 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
         setPermissionCodes(codes)
         setPermissions(perms)
         if (codes.length === 0) {
-          console.warn('No permissions found for current user')
+          clientLogger.warn('No permissions found for current user')
         } else {
-          console.log('Loaded permissions:', codes.length, 'permissions')
+          clientLogger.info('Loaded permissions', { count: codes.length })
         }
         setIsLoading(false)
       },

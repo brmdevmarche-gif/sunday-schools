@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import type { CreateAnnouncementInput, UpdateAnnouncementInput } from '@/lib/types'
+import { sanitizeContentForStorage } from '@/lib/sanitize'
 
 function computeRepublishTo(nowIso: string, oldFrom?: string | null, oldTo?: string | null) {
   if (!oldTo) return null
@@ -169,6 +170,11 @@ export async function createAnnouncementAction(input: CreateAnnouncementInput) {
 
   const { diocese_ids, church_ids, class_ids, ...announcementData } = input
 
+  // Sanitize HTML content before storage to prevent XSS
+  if (announcementData.description) {
+    announcementData.description = sanitizeContentForStorage(announcementData.description)
+  }
+
   const { data, error } = await adminClient
     .from('announcements')
     .insert({
@@ -191,6 +197,11 @@ export async function updateAnnouncementAction(input: UpdateAnnouncementInput) {
   const adminClient = createAdminClient()
 
   const { id, diocese_ids, church_ids, class_ids, ...updateData } = input
+
+  // Sanitize HTML content before storage to prevent XSS
+  if (updateData.description) {
+    updateData.description = sanitizeContentForStorage(updateData.description)
+  }
 
   const { data, error } = await adminClient
     .from('announcements')

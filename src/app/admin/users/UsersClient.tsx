@@ -64,6 +64,7 @@ import {
   linkParentToStudentAction,
   createUserAction,
 } from "./actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface UsersClientProps {
   initialUsers: ExtendedUser[];
@@ -151,7 +152,7 @@ export default function UsersClient({
         customRoleId = userRoles[0].role_id || "";
       }
     } catch (error) {
-      console.error("Error fetching user custom role:", error);
+      clientLogger.error("Error fetching user custom role", error);
     }
     
     setRoleFormData({
@@ -189,7 +190,7 @@ export default function UsersClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error updating user role:", error);
+      clientLogger.error("Error updating user role", error);
       toast.error(t("users.updateFailed"));
     } finally {
       setIsSubmitting(false);
@@ -211,7 +212,7 @@ export default function UsersClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error linking parent to student:", error);
+      clientLogger.error("Error linking parent to student", error);
       toast.error(t("users.linkFailed"));
     } finally {
       setIsSubmitting(false);
@@ -240,7 +241,7 @@ export default function UsersClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error linking children to parent:", error);
+      clientLogger.error("Error linking children to parent", error);
       toast.error(t("users.linkFailed"));
     } finally {
       setIsSubmitting(false);
@@ -336,7 +337,7 @@ export default function UsersClient({
         });
       }
     } catch (error) {
-      console.error("Error creating user:", error);
+      clientLogger.error("Error creating user", error);
       toast.error(
         error instanceof Error ? error.message : t("users.createFailed")
       );

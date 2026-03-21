@@ -36,6 +36,7 @@ import {
   bulkMarkAttendanceAction,
   getClassStudentsAction,
 } from "./actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ClassInfo {
   id: string;
@@ -101,7 +102,7 @@ export default function AttendanceClient({
         setStudents([]);
       }
     } catch (error) {
-      console.error("Error loading students:", error);
+      clientLogger.error("Error loading students", error);
       toast.error(t("attendance.failedToLoadStudents"));
       setStudents([]);
     } finally {
@@ -133,7 +134,7 @@ export default function AttendanceClient({
         setAttendance(attendanceMap);
       }
     } catch (error) {
-      console.error("Error loading attendance:", error);
+      clientLogger.error("Error loading attendance", error);
     }
   }
 
@@ -183,7 +184,7 @@ export default function AttendanceClient({
       await bulkMarkAttendanceAction(records);
       toast.success(t("attendance.savedSuccessfully"));
     } catch (error) {
-      console.error("Error saving attendance:", error);
+      clientLogger.error("Error saving attendance", error);
       toast.error(t("attendance.saveFailed"));
     } finally {
       setIsSaving(false);

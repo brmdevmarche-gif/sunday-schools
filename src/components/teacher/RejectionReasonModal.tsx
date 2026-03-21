@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { clientLogger } from '@/lib/client-logger'
 
 export interface RejectionReasonModalProps {
   /** Whether the modal is open */
@@ -69,7 +70,7 @@ function RejectionReasonModal({
       setCustomReason("");
       onOpenChange(false);
     } catch (error) {
-      console.error("Error confirming rejection:", error);
+      clientLogger.error("Error confirming rejection", error);
     } finally {
       setIsSubmitting(false);
     }

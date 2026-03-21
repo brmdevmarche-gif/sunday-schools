@@ -56,6 +56,7 @@ import {
 } from "./actions";
 import type { OrderStatus } from "@/lib/types";
 import { ParentActionBadge } from "@/components/ui/parent-action-badge";
+import { clientLogger } from '@/lib/client-logger'
 
 interface Diocese {
   id: string;
@@ -418,7 +419,7 @@ export default function OrdersManagementClient({
       setSelectedOrder(null);
       setAdminNotes("");
     } catch (error) {
-      console.error("Error updating order status:", error);
+      clientLogger.error("Error updating order status", error);
       toast.error(
         error instanceof Error ? error.message : t("store.updateFailed")
       );
@@ -461,7 +462,7 @@ export default function OrdersManagementClient({
       router.refresh();
       deselectAll();
     } catch (error) {
-      console.error("Error bulk updating orders:", error);
+      clientLogger.error("Error bulk updating orders", error);
       toast.error(
         error instanceof Error ? error.message : t("store.bulkUpdateFailed")
       );

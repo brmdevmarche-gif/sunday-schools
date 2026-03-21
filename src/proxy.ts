@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "./lib/supabase/middleware";
+import crypto from "node:crypto";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Handle locale-prefixed URLs (redirect to base URL with cookie)
@@ -45,6 +46,26 @@ export async function middleware(request: NextRequest) {
   const finalResponse = response || NextResponse.next();
   finalResponse.headers.set('x-next-intl-locale', locale);
 
+  // Generate nonce for Content-Security-Policy
+  const nonce = crypto.randomBytes(16).toString('base64');
+  finalResponse.headers.set('x-nonce', nonce);
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const csp = [
+    `default-src 'self'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `style-src 'self' 'unsafe-inline'`, // Tailwind injects styles; nonce for styles requires build changes
+    `img-src 'self' data: blob: https:`,
+    `connect-src 'self' ${supabaseUrl} wss://*.supabase.co`,
+    `font-src 'self'`,
+    `frame-ancestors 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
+  ].join('; ');
+
+  // Enforce CSP — switch back to 'Content-Security-Policy-Report-Only' if violations occur
+  finalResponse.headers.set('Content-Security-Policy', csp);
+
   return finalResponse;
 }
 
@@ -56,7 +77,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - api (API routes)
-     * Feel free to modify this pattern to include more paths.
      */
     "/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

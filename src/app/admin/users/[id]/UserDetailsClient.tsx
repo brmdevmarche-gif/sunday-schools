@@ -62,6 +62,7 @@ import {
   deactivateUserAction,
   changeUserPasswordAction,
 } from "../actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ClassAssignment {
   id: string;
@@ -211,7 +212,7 @@ export default function UserDetailsClient({
       setIsEditDialogOpen(false);
       router.refresh();
     } catch (error) {
-      console.error("Error updating user:", error);
+      clientLogger.error("Error updating user", error);
       toast.error(t("users.updateFailed"));
     } finally {
       setIsSubmitting(false);
@@ -230,7 +231,7 @@ export default function UserDetailsClient({
       }
       router.refresh();
     } catch (error) {
-      console.error("Error toggling user status:", error);
+      clientLogger.error("Error toggling user status", error);
       toast.error(t("users.updateFailed"));
     } finally {
       setIsSubmitting(false);
@@ -288,7 +289,7 @@ export default function UserDetailsClient({
         toast.error(result.error || t("users.passwordChangeFailed"));
       }
     } catch (error) {
-      console.error("Error changing password:", error);
+      clientLogger.error("Error changing password", error);
       toast.error(t("users.passwordChangeFailed"));
     } finally {
       setIsSubmitting(false);

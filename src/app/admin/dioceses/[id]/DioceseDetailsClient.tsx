@@ -43,6 +43,7 @@ import ImageUpload from "@/components/ImageUpload";
 import ColorPicker from "@/components/ColorPicker";
 import { updateDiocese } from "../actions";
 import { toast } from "sonner";
+import { clientLogger } from '@/lib/client-logger'
 
 interface DioceseDetailsClientProps {
   diocese: Diocese;
@@ -96,7 +97,7 @@ export function DioceseDetailsClient({
       setIsEditing(false);
       router.refresh();
     } catch (error) {
-      console.error("Error updating diocese:", error);
+      clientLogger.error("Error updating diocese", error);
       toast.error(t("dioceses.updateFailed"));
     } finally {
       setIsSaving(false);

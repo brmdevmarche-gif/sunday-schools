@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { deleteActivityAction } from "./actions";
 import type { Activity, ActivityStatus, ExtendedUser } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ActivitiesManagementClientProps {
   activities: Activity[];
@@ -113,7 +114,7 @@ export default function ActivitiesManagementClient({
       setActivities(activities.filter((a) => a.id !== activityId));
       toast.success(t("activities.activityDeleted"));
     } catch (error) {
-      console.error("Error deleting activity:", error);
+      clientLogger.error("Error deleting activity", error);
       toast.error(error instanceof Error ? error.message : t("activities.deleteFailed"));
     }
   }

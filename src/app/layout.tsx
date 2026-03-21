@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { Toaster } from "@/components/ui/sonner";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
@@ -7,18 +8,12 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { NavigationProvider } from "@/components/NavigationProvider";
 import NavigationLoader from "@/components/NavigationLoader";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
+import { OfflineDetector } from "@/components/OfflineDetector";
 import { Suspense } from "react";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = GeistSans;
+const geistMono = GeistMono;
 
 export const metadata: Metadata = {
   title: "Knesty",
@@ -30,6 +25,19 @@ export const metadata: Metadata = {
       { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
+  },
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    noimageindex: true,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      noimageindex: true,
+    },
   },
 };
 
@@ -66,6 +74,7 @@ export default async function RootLayout({
                 <PermissionsProvider>
                   {children}
                   <Toaster />
+                  <OfflineDetector />
                 </PermissionsProvider>
               </NextIntlClientProvider>
             </NavigationProvider>

@@ -45,6 +45,7 @@ import type {
   TripType,
   ExtendedUser,
 } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface TripsManagementClientProps {
   trips: TripWithDetails[];
@@ -161,7 +162,7 @@ export default function TripsManagementClient({
       setTrips(trips.filter((t) => t.id !== tripId));
       toast.success("Trip deleted successfully");
     } catch (error) {
-      console.error("Error deleting trip:", error);
+      clientLogger.error("Error deleting trip", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to delete trip"
       );

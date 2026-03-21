@@ -21,6 +21,7 @@ import {
   createOrderForStudentAction,
 } from "../actions";
 import { getStudentPointsBalanceAction } from "@/app/admin/points/actions";
+import { clientLogger } from '@/lib/client-logger'
 
 interface StudentSearchResult {
   id: string;
@@ -95,7 +96,7 @@ export default function CreateOrderForStudentClient({
       const result = await searchStudentsForOrderAction(query);
       setStudentSearchResults(result.data);
     } catch (error) {
-      console.error("Error searching students:", error);
+      clientLogger.error("Error searching students", error);
       toast.error(t("store.searchStudentsFailed"));
     } finally {
       setIsSearchingStudents(false);
@@ -109,7 +110,7 @@ export default function CreateOrderForStudentClient({
       const balance = await getStudentPointsBalanceAction(studentId);
       setStudentBalance(balance?.available_points ?? 0);
     } catch (error) {
-      console.error("Error fetching student balance:", error);
+      clientLogger.error("Error fetching student balance", error);
       setStudentBalance(0);
     } finally {
       setIsLoadingBalance(false);
@@ -223,7 +224,7 @@ export default function CreateOrderForStudentClient({
       );
       router.push("/admin/store/orders");
     } catch (error) {
-      console.error("Error creating order for student:", error);
+      clientLogger.error("Error creating order for student", error);
       toast.error(error instanceof Error ? error.message : t("store.createOrderFailed"));
     } finally {
       setIsProcessing(false);

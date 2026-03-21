@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { getStudentPointsSummaryAction } from "@/app/admin/points/actions";
 import type { StudentPointsSummary, PointsTransaction } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface PointsDashboardProps {
   userId: string;
@@ -41,7 +42,7 @@ export default function PointsDashboard({ userId }: PointsDashboardProps) {
         const data = await getStudentPointsSummaryAction(userId);
         setSummary(data);
       } catch (err) {
-        console.error("Failed to fetch points:", err);
+        clientLogger.error("Failed to fetch points", err);
         setError("Failed to load points");
       } finally {
         setLoading(false);

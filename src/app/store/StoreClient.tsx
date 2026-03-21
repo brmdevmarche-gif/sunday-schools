@@ -37,6 +37,7 @@ import {
 import type { StoreItem, PriceTier, ParentChild } from "@/lib/types";
 import { createOrderAction } from "../admin/store/orders/actions";
 import { ChildContextBanner } from "@/components/parents";
+import { clientLogger } from '@/lib/client-logger'
 
 interface CartItem {
   item: StoreItem;
@@ -308,7 +309,7 @@ export default function StoreClient({
         router.push("/store/orders");
       }
     } catch (error) {
-      console.error("Error creating order:", error);
+      clientLogger.error("Error creating order", error);
       const errorMessage =
         error instanceof Error ? error.message : t("store.orderFailed");
 

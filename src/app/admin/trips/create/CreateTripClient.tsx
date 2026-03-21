@@ -34,6 +34,7 @@ import type {
   Church,
   ExtendedUser,
 } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface CreateTripClientProps {
   userProfile: ExtendedUser;
@@ -94,7 +95,7 @@ export default function CreateTripClient({
           prev.filter((id) => classes.some((c) => c.id === id))
         );
       } catch (error) {
-        console.error("Error fetching classes:", error);
+        clientLogger.error("Error fetching classes", error);
         toast.error("Failed to fetch classes");
       } finally {
         setIsLoadingClasses(false);
@@ -289,7 +290,7 @@ export default function CreateTripClient({
       toast.success("Trip created successfully");
       router.push("/admin/trips");
     } catch (error: unknown) {
-      console.error("Error creating trip:", error);
+      clientLogger.error("Error creating trip", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to create trip"
       );

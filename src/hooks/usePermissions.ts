@@ -8,6 +8,7 @@ import {
 } from '@/lib/sunday-school/roles.client'
 import { PermissionsContext } from '@/contexts/PermissionsContext'
 import type { Permission } from '@/lib/types/modules/permissions'
+import { clientLogger } from '@/lib/client-logger'
 
 interface UsePermissionsResult {
   permissions: Permission[]
@@ -66,7 +67,7 @@ export function usePermissions(): UsePermissionsResult {
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to load permissions')
       setError(error)
-      console.error('Error loading permissions:', error)
+      clientLogger.error('Error loading permissions', error)
     } finally {
       setIsLoading(false)
     }

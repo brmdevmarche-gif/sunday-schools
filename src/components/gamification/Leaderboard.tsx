@@ -31,6 +31,7 @@ import type {
   LeaderboardScope,
   LeaderboardResponse,
 } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface LeaderboardProps {
   initialScope?: LeaderboardScope;
@@ -71,7 +72,7 @@ export default function Leaderboard({
         setData(result.data);
       }
     } catch (error) {
-      console.error("Failed to fetch leaderboard:", error);
+      clientLogger.error("Failed to fetch leaderboard", error);
     } finally {
       setLoading(false);
     }

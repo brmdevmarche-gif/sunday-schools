@@ -1641,7 +1641,16 @@
     "notAuthorized": "You don't have permission to perform this action",
     "serverError": "An error occurred. Please try again",
     "invalidInput": "Please check your input and try again",
-    "networkError": "Network error. Please check your connection"
+    "networkError": "Network error. Please check your connection",
+    "connectionRestored": "Connection restored.",
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundDescription": "The page you are looking for does not exist or has been moved.",
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "criticalError": "A critical error occurred. Please try refreshing the page.",
+    "tryAgain": "Try Again",
+    "goHome": "Go Home",
+    "errorId": "Error ID: {digest}"
   },
   "adminDashboard": {
     "title": "Dashboard",

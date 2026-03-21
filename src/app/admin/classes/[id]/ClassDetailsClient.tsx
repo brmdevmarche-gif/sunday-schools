@@ -82,6 +82,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ClassDetailsClientProps {
   classData: any;
@@ -250,7 +251,7 @@ export default function ClassDetailsClient({
       const tripsData = await getAllTripsAction(classData.id);
       setTrips(tripsData);
     } catch (error) {
-      console.error("Error loading trips:", error);
+      clientLogger.error("Error loading trips", error);
       toast.error(t("trips.classDetails.failedToLoadTrips"));
     } finally {
       setIsLoadingTrips(false);
@@ -265,7 +266,7 @@ export default function ClassDetailsClient({
       const details = await getTripDetailsForClassAction(tripId, classData.id);
       setTripDetails(details);
     } catch (error) {
-      console.error("Error loading trip details:", error);
+      clientLogger.error("Error loading trip details", error);
       toast.error(t("trips.classDetails.failedToLoadTripDetails"));
     } finally {
       setIsLoadingTripDetails(false);
@@ -380,7 +381,7 @@ export default function ClassDetailsClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error subscribing student:", error);
+      clientLogger.error("Error subscribing student", error);
       toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToSubscribeStudent"));
     } finally {
       setSubscribingStudentId(null);
@@ -400,7 +401,7 @@ export default function ClassDetailsClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error approving participant:", error);
+      clientLogger.error("Error approving participant", error);
       toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToApprove"));
     } finally {
       setApprovingParticipantId(null);
@@ -420,7 +421,7 @@ export default function ClassDetailsClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error marking as paid:", error);
+      clientLogger.error("Error marking as paid", error);
       toast.error(error instanceof Error ? error.message : t("trips.classDetails.failedToMarkAsPaid"));
     } finally {
       setMarkingPaidParticipantId(null);

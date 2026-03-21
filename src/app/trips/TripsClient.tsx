@@ -42,6 +42,7 @@ import {
 import { subscribeToTripAction } from "./actions";
 import type { TripWithDetails, TripType, ParentChild } from "@/lib/types";
 import { ChildContextBanner } from "@/components/parents";
+import { clientLogger } from '@/lib/client-logger'
 
 interface UserProfile {
   id: string;
@@ -194,7 +195,7 @@ export default function TripsClient({
         router.refresh();
       }
     } catch (error) {
-      console.error("Error subscribing to trip:", error);
+      clientLogger.error("Error subscribing to trip", error);
       toast.error(
         error instanceof Error
           ? error.message

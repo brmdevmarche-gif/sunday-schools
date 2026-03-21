@@ -36,6 +36,7 @@ import type {
   Church,
   ExtendedUser,
 } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface EditTripClientProps {
   trip: TripWithDetails;
@@ -258,7 +259,7 @@ export default function EditTripClient({
       toast.success("Trip updated successfully");
       router.push("/admin/trips");
     } catch (error) {
-      console.error("Error updating trip:", error);
+      clientLogger.error("Error updating trip", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to update trip"
       );

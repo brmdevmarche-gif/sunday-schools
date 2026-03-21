@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { clientLogger } from '@/lib/client-logger'
 
 interface AttendanceRecord {
   id: string;
@@ -89,7 +90,7 @@ function StudentAttendanceTab({
           setAttendanceData(data);
         }
       } catch (error) {
-        console.error("Error fetching attendance:", error);
+        clientLogger.error("Error fetching attendance", error);
       } finally {
         setLoading(false);
       }

@@ -38,6 +38,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { clientLogger } from "@/lib/client-logger";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, UserPlus, X, Search } from "lucide-react";
 import { ResponsiveFilters } from "@/components/ui/filter-sheet";
@@ -171,7 +173,7 @@ export default function StudentsClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error saving student:", error);
+      clientLogger.error("Error saving student", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to save student"
       );
@@ -180,23 +182,30 @@ export default function StudentsClient({
     }
   }
 
-  async function handleDelete(student: UserWithClassAssignments) {
-    if (
-      !confirm(
-        `Are you sure you want to delete ${student.full_name}? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteStudent, setPendingDeleteStudent] =
+    useState<UserWithClassAssignments | null>(null);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
+  const [pendingRemove, setPendingRemove] = useState<{
+    student: UserWithClassAssignments;
+    classId: string;
+  } | null>(null);
 
+  function handleDelete(student: UserWithClassAssignments) {
+    setPendingDeleteStudent(student);
+    setDeleteConfirmOpen(true);
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteStudent) return;
     try {
-      await deleteStudentAction(student.id);
+      await deleteStudentAction(pendingDeleteStudent.id);
       toast.success("Student deleted successfully");
       startTransition(() => {
         router.refresh();
       });
     } catch (error) {
-      console.error("Error deleting student:", error);
+      clientLogger.error("Error deleting student", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to delete student"
       );
@@ -221,7 +230,7 @@ export default function StudentsClient({
         router.refresh();
       });
     } catch (error) {
-      console.error("Error assigning student to class:", error);
+      clientLogger.error("Error assigning student to class", error);
       toast.error(
         error instanceof Error
           ? error.message
@@ -232,24 +241,24 @@ export default function StudentsClient({
     }
   }
 
-  async function handleRemoveFromClass(
+  function handleRemoveFromClass(
     student: UserWithClassAssignments,
     classId: string
   ) {
-    if (
-      !confirm("Are you sure you want to remove this student from the class?")
-    ) {
-      return;
-    }
+    setPendingRemove({ student, classId });
+    setRemoveConfirmOpen(true);
+  }
 
+  async function confirmRemoveFromClass() {
+    if (!pendingRemove) return;
     try {
-      await removeFromClassAction(student.id, classId);
+      await removeFromClassAction(pendingRemove.student.id, pendingRemove.classId);
       toast.success("Student removed from class successfully");
       startTransition(() => {
         router.refresh();
       });
     } catch (error) {
-      console.error("Error removing student from class:", error);
+      clientLogger.error("Error removing student from class", error);
       toast.error(
         error instanceof Error
           ? error.message
@@ -812,6 +821,26 @@ export default function StudentsClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Student"
+        description={`Are you sure you want to delete ${pendingDeleteStudent?.full_name ?? "this student"}? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
+
+      <ConfirmDialog
+        open={removeConfirmOpen}
+        onOpenChange={setRemoveConfirmOpen}
+        title="Remove from Class"
+        description="Are you sure you want to remove this student from the class?"
+        confirmText="Remove"
+        variant="warning"
+        onConfirm={confirmRemoveFromClass}
+      />
     </div>
   );
 }

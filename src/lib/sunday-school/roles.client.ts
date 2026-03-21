@@ -1,5 +1,6 @@
 import { createClient } from '../supabase/client'
 import type { Permission } from '../types/modules/permissions'
+import { clientLogger } from '@/lib/client-logger'
 
 /**
  * Get all permission codes for the current user (client-side)
@@ -18,7 +19,7 @@ export async function getUserPermissionCodes(): Promise<string[]> {
   })
 
   if (error) {
-    console.error('Error fetching user permissions:', error)
+    clientLogger.error('Error fetching user permissions', error)
     return []
   }
 
@@ -59,7 +60,7 @@ export async function getCurrentUserPermissions(): Promise<Permission[]> {
     .eq('is_active', true)
 
   if (error) {
-    console.error('Error fetching permission details:', error)
+    clientLogger.error('Error fetching permission details', error)
     return []
   }
 

@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { subscribeToTripAction } from "../actions";
 import type { TripWithDetails, ExtendedUser, ParentChild } from "@/lib/types";
+import { clientLogger } from '@/lib/client-logger'
 
 interface TripDetailsClientProps {
   trip: TripWithDetails;
@@ -171,7 +172,7 @@ export default function TripDetailsClient({
         router.refresh();
       }
     } catch (error) {
-      console.error("Error subscribing to trip:", error);
+      clientLogger.error("Error subscribing to trip", error);
       toast.error(
         error instanceof Error
           ? error.message

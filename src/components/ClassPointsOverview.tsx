@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Coins, Trophy, Medal, Award } from "lucide-react";
 import { getClassPointsOverviewAction } from "@/app/admin/points/actions";
 import PointsAdjustmentDialog from "./PointsAdjustmentDialog";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ClassPointsOverviewProps {
   classId: string;
@@ -46,7 +47,7 @@ export default function ClassPointsOverview({ classId }: ClassPointsOverviewProp
       const sorted = data.sort((a, b) => b.totalEarned - a.totalEarned);
       setStudents(sorted);
     } catch (error) {
-      console.error("Failed to fetch class points:", error);
+      clientLogger.error("Failed to fetch class points", error);
     } finally {
       setLoading(false);
     }

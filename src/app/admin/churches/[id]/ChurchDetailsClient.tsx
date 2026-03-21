@@ -46,6 +46,7 @@ import type {
 import ImageUpload from "@/components/ImageUpload";
 import { updateChurchAction } from "../actions";
 import { toast } from "sonner";
+import { clientLogger } from '@/lib/client-logger'
 
 interface ChurchDetailsClientProps {
   church: Church;
@@ -90,7 +91,7 @@ export function ChurchDetailsClient({
       setIsEditing(false);
       router.refresh();
     } catch (error) {
-      console.error("Error updating church:", error);
+      clientLogger.error("Error updating church", error);
       toast.error(t("churches.updateFailed"));
     } finally {
       setIsSaving(false);

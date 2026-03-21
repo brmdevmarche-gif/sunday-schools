@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Upload, X, Image as ImageIcon, Link2, Cloud } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { clientLogger } from '@/lib/client-logger'
 
 type UploadMethod = 'file' | 'url' | 'google'
 
@@ -102,7 +103,7 @@ export default function ImageUpload({
       onImageUploaded(publicUrl)
       toast.success('Image uploaded successfully')
     } catch (error) {
-      console.error('Error uploading image:', error)
+      clientLogger.error('Error uploading image', error)
       toast.error('Failed to upload image')
       setPreviewUrl(currentImageUrl || null)
     } finally {

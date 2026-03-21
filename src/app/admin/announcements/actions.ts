@@ -316,7 +316,8 @@ export async function republishAnnouncementAction(announcementId: string, withEd
 
   if (withEdit) {
     // do not allow overriding id
-    const { id: _ignore, ...rest } = withEdit as any
+    const rest = { ...withEdit } as any
+    delete rest.id
     Object.assign(updatePayload, rest)
   }
 

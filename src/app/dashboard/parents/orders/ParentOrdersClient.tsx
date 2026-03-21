@@ -138,8 +138,8 @@ export function ParentOrdersClient({ orders }: ParentOrdersClientProps) {
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link href="/dashboard/parents">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="ghost" size="icon" aria-label={t("common.back")}>
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </Button>
         </Link>
         <div className="flex-1">

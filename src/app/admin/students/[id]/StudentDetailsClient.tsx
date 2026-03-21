@@ -218,7 +218,7 @@ export default function StudentDetailsClient({
     <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Back">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label={t("common.back")}>
           <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
         </Button>
         <div>

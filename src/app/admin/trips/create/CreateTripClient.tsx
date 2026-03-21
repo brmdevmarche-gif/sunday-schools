@@ -302,8 +302,8 @@ export default function CreateTripClient({
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
+        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Back">
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Create Trip</h1>

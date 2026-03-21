@@ -369,7 +369,7 @@ export default function StoreClient({
                 onClick={() => router.back()}
                 aria-label={t("common.back") || "Back"}
               >
-                <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
+                <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">{t("store.title")}</h1>
@@ -559,8 +559,9 @@ export default function StoreClient({
                             onClick={() =>
                               updateQuantity(item.id, cartQuantity - 1)
                             }
+                            aria-label="Decrease quantity"
                           >
-                            <Minus className="h-4 w-4" />
+                            <Minus className="h-4 w-4" aria-hidden="true" />
                           </Button>
                           <span className="flex-1 text-center font-medium">
                             {cartQuantity}
@@ -576,15 +577,17 @@ export default function StoreClient({
                                 cartQuantity >= item.stock_quantity) ||
                               !canAfford
                             }
+                            aria-label="Increase quantity"
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-4 w-4" aria-hidden="true" />
                           </Button>
                           <Button
                             size="icon"
                             variant="destructive"
                             onClick={() => removeFromCart(item.id)}
+                            aria-label="Remove from cart"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
                         {!canAfford && (
@@ -764,8 +767,9 @@ export default function StoreClient({
                                 cartItem.quantity - 1
                               )
                             }
+                            aria-label="Decrease quantity"
                           >
-                            <Minus className="h-3 w-3" />
+                            <Minus className="h-3 w-3" aria-hidden="true" />
                           </Button>
                           <span className="w-8 text-center font-medium">
                             {cartItem.quantity}
@@ -793,16 +797,18 @@ export default function StoreClient({
                                   })
                                 : undefined
                             }
+                            aria-label="Increase quantity"
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-3 w-3" aria-hidden="true" />
                           </Button>
                           <Button
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={() => removeFromCart(cartItem.item.id)}
+                            aria-label="Remove from cart"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
                         <p className="font-bold text-end min-w-[80px]">

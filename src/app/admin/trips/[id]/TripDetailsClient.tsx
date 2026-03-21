@@ -744,8 +744,8 @@ export default function TripDetailsClient({
       {/* Header */}
       <div className="flex items-end sm:items-center justify-between flex-col sm:flex-row gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
+          <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label={t("common.back")}>
+            <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold">{trip.title}</h1>

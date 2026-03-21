@@ -482,8 +482,8 @@ export default function OrdersManagementClient({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
+              <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label={t("common.back")}>
+                <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">
@@ -836,8 +836,9 @@ export default function OrdersManagementClient({
                                           <Button
                                             variant="ghost"
                                             size="icon"
+                                            aria-label={t("common.actions")}
                                           >
-                                            <MoreVertical className="h-4 w-4" />
+                                            <MoreVertical className="h-4 w-4" aria-hidden="true" />
                                           </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">

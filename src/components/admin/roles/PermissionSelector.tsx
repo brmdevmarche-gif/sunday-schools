@@ -251,9 +251,9 @@ export function PermissionSelector({
                           aria-label={isExpanded ? `Collapse ${module}` : `Expand ${module}`}
                         >
                           {isExpanded ? (
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-4 w-4" aria-hidden="true" />
                           ) : (
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-4 w-4" aria-hidden="true" />
                           )}
                         </Button>
 

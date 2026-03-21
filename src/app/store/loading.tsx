@@ -11,8 +11,8 @@ export default function StoreLoading() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" disabled>
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="ghost" size="icon" disabled aria-label="Back">
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
               </Button>
               <Skeleton className="h-8 w-24" />
             </div>

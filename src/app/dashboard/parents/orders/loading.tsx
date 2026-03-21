@@ -8,8 +8,8 @@ export default function ParentOrdersLoading() {
     <div className="container mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" disabled>
-          <ArrowLeft className="h-5 w-5" />
+        <Button variant="ghost" size="icon" disabled aria-label="Back">
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </Button>
         <div>
           <Skeleton className="h-7 w-48 mb-1" />

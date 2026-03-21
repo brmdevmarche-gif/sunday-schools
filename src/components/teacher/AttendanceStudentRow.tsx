@@ -160,9 +160,9 @@ function AttendanceStudentRow({
             aria-expanded={isNotesOpen}
           >
             {isNotesOpen ? (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <MessageSquare className="h-4 w-4" />
+              <MessageSquare className="h-4 w-4" aria-hidden="true" />
             )}
           </Button>
         </div>

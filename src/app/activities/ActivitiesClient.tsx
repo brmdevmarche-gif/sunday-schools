@@ -237,7 +237,7 @@ export default function ActivitiesClient({
               onClick={() => router.push("/dashboard")}
               aria-label={t("common.back")}
             >
-              <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
+              <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
             </Button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{t("activities.title")}</h1>

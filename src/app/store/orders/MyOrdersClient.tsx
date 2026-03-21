@@ -118,8 +118,8 @@ export default function MyOrdersClient({
       <div className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
+            <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label={t("common.back")}>
+              <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
             </Button>
             <div>
               <h1 className="text-2xl font-bold">{t("store.myOrders")}</h1>

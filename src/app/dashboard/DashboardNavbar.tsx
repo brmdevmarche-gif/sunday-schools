@@ -183,6 +183,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
               >
                 <Bell
                   className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
+                  aria-hidden="true"
                 />
                 {role !== "parent" && announcementsCount > 0 && (
                   <span className="absolute -top-1 -end-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] leading-5 text-center">
@@ -209,6 +210,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                 >
                   <Menu
                     className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
+                    aria-hidden="true"
                   />
                   <span className="sr-only">{t("studentHome.menu")}</span>
                 </Button>

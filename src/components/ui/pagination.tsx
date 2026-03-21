@@ -183,7 +183,7 @@ export function Pagination({
           aria-label={previous}
           className="h-10 w-10 sm:h-9 sm:w-9"
         >
-          <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+          <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
         </Button>
 
         {/* Mobile: Simple page indicator */}
@@ -226,7 +226,7 @@ export function Pagination({
           aria-label={next}
           className="h-10 w-10 sm:h-9 sm:w-9"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
         </Button>
       </div>
     </div>

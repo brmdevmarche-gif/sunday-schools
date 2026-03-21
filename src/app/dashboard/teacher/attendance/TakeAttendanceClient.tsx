@@ -63,17 +63,6 @@ export function TakeAttendanceClient({ initialData }: TakeAttendanceClientProps)
   const [showExitConfirm, setShowExitConfirm] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
 
-  // Track if there are unsaved changes
-  const hasChanges = React.useMemo(() => {
-    for (const record of initialData.records) {
-      const current = attendanceState[record.studentId];
-      if (current?.status !== record.status || current?.notes !== record.notes) {
-        return true;
-      }
-    }
-    return false;
-  }, [attendanceState, initialData.records]);
-
   // Calculate stats
   const stats: AttendanceStats = React.useMemo(() => {
     let marked = 0;

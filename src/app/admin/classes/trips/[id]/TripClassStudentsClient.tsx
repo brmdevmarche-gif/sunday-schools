@@ -12,14 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { OptimizedAvatar, getInitials } from "@/components/ui/optimized-avatar";
 import {
   Select,
@@ -32,12 +24,8 @@ import {
   ArrowLeft,
   MapPin,
   Calendar,
-  Clock,
-  DollarSign,
-  Users,
   CheckCircle2,
   XCircle,
-  Filter,
   Building,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -68,7 +56,6 @@ interface TripClassStudentsClientProps {
 
 export default function TripClassStudentsClient({
   tripData,
-  userProfile,
 }: TripClassStudentsClientProps) {
   const router = useRouter();
   const locale = useLocale();
@@ -85,11 +72,6 @@ export default function TripClassStudentsClient({
   const getCurrencySymbol = () => {
     return locale === "ar" ? "ج.م" : "E.L";
   };
-
-  function formatDate(dateString: string | null) {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString();
-  }
 
   function formatDateTime(dateString: string | null) {
     if (!dateString) return "-";
@@ -129,8 +111,6 @@ export default function TripClassStudentsClient({
       };
     })
     .filter((cls) => cls.students.length > 0);
-
-  const allFilteredStudents = filteredClasses.flatMap((cls) => cls.students);
 
   return (
     <div className="space-y-6">

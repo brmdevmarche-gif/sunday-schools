@@ -77,7 +77,7 @@ export default async function StorePage({
     );
   }
 
-  const { data: items, error: itemsError, count } = await itemsQuery.range(
+  const { data: items, count } = await itemsQuery.range(
     fromIdx,
     toIdx
   );

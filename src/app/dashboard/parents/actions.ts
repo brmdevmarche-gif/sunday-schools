@@ -15,7 +15,6 @@ import type {
   ChildProfileData,
   ChildActivitySummary,
   ChildAttendanceSummary,
-  ChildAttendanceRecord,
   ActionResult,
 } from "@/lib/types";
 

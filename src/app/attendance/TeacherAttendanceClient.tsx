@@ -77,7 +77,6 @@ interface AttendanceRecord {
 
 export default function TeacherAttendanceClient({
   classes,
-  userRole,
   userName,
 }: TeacherAttendanceClientProps) {
   const t = useTranslations();

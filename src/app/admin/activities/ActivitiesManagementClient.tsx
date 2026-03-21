@@ -50,7 +50,6 @@ interface ActivitiesManagementClientProps {
 
 export default function ActivitiesManagementClient({
   activities: initialActivities,
-  userProfile,
 }: ActivitiesManagementClientProps) {
   const t = useTranslations();
   const router = useRouter();

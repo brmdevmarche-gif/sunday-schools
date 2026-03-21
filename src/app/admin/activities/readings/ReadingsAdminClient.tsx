@@ -44,7 +44,6 @@ import { BookOpen, Plus, Eye, Calendar, Trophy, ArrowLeft } from "lucide-react";
 import { createReadingScheduleAction } from "@/app/activities/readings/actions";
 import type {
   ReadingScheduleWithStats,
-  CreateReadingScheduleInput,
 } from "@/lib/types";
 
 interface UserProfile {
@@ -84,12 +83,10 @@ type ReadingScheduleFormData = z.infer<typeof readingScheduleSchema>;
 
 export default function ReadingsAdminClient({
   schedules,
-  userProfile,
 }: ReadingsAdminClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const canViewReadings = useHasPermission("activities.view_readings");
-  const canCreate = useHasPermission("activities.create");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const form = useForm<ReadingScheduleFormData>({
@@ -146,7 +143,7 @@ export default function ReadingsAdminClient({
       } else {
         toast.error(result.error || "Failed to create schedule");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   }

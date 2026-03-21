@@ -1,6 +1,5 @@
 import { redirect, notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ChildProfileClient } from "./ChildProfileClient";
 import { getChildDetailsAction } from "../../actions";
@@ -22,8 +21,6 @@ export default async function ChildProfilePage({
 }: ChildProfilePageProps) {
   const { childId } = await params;
   const supabase = await createClient();
-  const t = await getTranslations("parents");
-
   const {
     data: { user },
   } = await supabase.auth.getUser();

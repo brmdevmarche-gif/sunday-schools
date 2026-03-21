@@ -3,7 +3,6 @@ import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import AdminLayout from "@/components/admin/AdminLayout";
 import UserDetailsClient from './UserDetailsClient'
-import { getTranslations } from 'next-intl/server'
 import { getChurchesData, getDiocesesData } from '../actions'
 import { getRolesSimple } from '@/lib/sunday-school/roles-simple'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
@@ -102,7 +101,6 @@ export default async function UserDetailsPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const t = await getTranslations()
   const supabase = await createClient()
 
   // Check if user is authenticated

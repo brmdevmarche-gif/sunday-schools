@@ -23,7 +23,7 @@ import {
   ArrowDownCircle,
 } from "lucide-react";
 import { getStudentPointsSummaryAction } from "@/app/admin/points/actions";
-import type { StudentPointsSummary, PointsTransaction } from "@/lib/types";
+import type { StudentPointsSummary } from "@/lib/types";
 import { clientLogger } from '@/lib/client-logger'
 
 interface PointsDashboardProps {

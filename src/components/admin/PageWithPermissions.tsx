@@ -1,5 +1,4 @@
-import { hasPermission, checkPermissionWithRedirect } from '@/lib/permissions/check'
-import { redirect } from 'next/navigation'
+import { hasPermission } from '@/lib/permissions/check'
 import type { ReactNode } from 'react'
 import { UnauthorizedPage } from './UnauthorizedPage'
 
@@ -28,6 +27,7 @@ interface PageWithPermissionsProps {
 export async function PageWithPermissions({
   permission,
   requireAll = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   redirectTo = '/admin',
   children,
   fallback,

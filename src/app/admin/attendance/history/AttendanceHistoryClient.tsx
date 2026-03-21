@@ -61,7 +61,6 @@ interface AttendanceRecord {
 
 export default function AttendanceHistoryClient({
   classes,
-  userRole,
 }: AttendanceHistoryClientProps) {
   const t = useTranslations();
   const [selectedClassId, setSelectedClassId] = useState<string>("");

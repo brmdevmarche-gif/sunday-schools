@@ -168,7 +168,7 @@ export default function UserDetailsClient({
   });
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [identityVerified, setIdentityVerified] = useState(false);
+  const [_identityVerified, setIdentityVerified] = useState(false);
 
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {

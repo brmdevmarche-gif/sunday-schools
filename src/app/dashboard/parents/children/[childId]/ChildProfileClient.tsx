@@ -24,7 +24,7 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import type { ChildProfileData, ChildBadge } from "@/lib/types";
+import type { ChildProfileData } from "@/lib/types";
 
 interface ChildProfileClientProps {
   childData: ChildProfileData;

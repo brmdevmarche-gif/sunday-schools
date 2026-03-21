@@ -11,7 +11,6 @@ export const metadata: Metadata = {
 import { getTeacherDashboardData } from "./actions";
 import {
   StatCard,
-  StatCardSkeleton,
   ActionRequiredCard,
   ActionRequiredSection,
   QuickAttendanceButton,

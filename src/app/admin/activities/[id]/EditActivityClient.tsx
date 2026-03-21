@@ -25,7 +25,6 @@ import { updateActivityAction } from "../actions";
 import { normalizeNonNegativeIntInput, toNonNegativeInt } from "@/lib/utils";
 import type {
   Activity,
-  ActivityStatus,
   UpdateActivityInput,
   ExtendedUser,
 } from "@/lib/types";
@@ -38,7 +37,6 @@ interface EditActivityClientProps {
 
 export default function EditActivityClient({
   activity,
-  userProfile,
 }: EditActivityClientProps) {
   const t = useTranslations();
   const router = useRouter();

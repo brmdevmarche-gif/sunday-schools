@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import AdminLayout from "@/components/admin/AdminLayout";
 import {
   Card,
   CardContent,

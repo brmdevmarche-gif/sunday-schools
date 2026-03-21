@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Flame, BookOpen, Heart, Calendar, Zap } from "lucide-react";
@@ -45,7 +45,6 @@ export default function StreakDisplay({
   className,
 }: StreakDisplayProps) {
   const t = useTranslations("gamification");
-  const locale = useLocale();
 
   const getStreakLabel = (type: StreakType) => {
     switch (type) {

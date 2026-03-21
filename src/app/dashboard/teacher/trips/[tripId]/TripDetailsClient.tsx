@@ -83,7 +83,7 @@ const paymentStatusConfig: Record<
 export function TripDetailsClient({ tripDetails }: TripDetailsClientProps) {
   const t = useTranslations("teacher.myTrips");
   const locale = useLocale();
-  const { student, isOpen, isLoading, openDrawer, closeDrawer, setIsOpen } = useStudentDrawer();
+  const { student, isOpen, isLoading, openDrawer, setIsOpen } = useStudentDrawer();
 
   const { trip, participants, organizers } = tripDetails;
   const startDate = new Date(trip.startDatetime);

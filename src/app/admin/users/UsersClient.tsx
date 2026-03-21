@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { PermissionButton } from "@/components/admin/PermissionButton";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
@@ -269,7 +266,7 @@ export default function UsersClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error) {
+    } catch {
       toast.error(t("users.updateFailed"));
     }
   }

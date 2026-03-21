@@ -45,12 +45,6 @@ export function StudentSelectionGate({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<string>("");
 
-  const classMap = useMemo(() => {
-    const map = new Map<string, Class>();
-    classes.forEach((cls) => map.set(cls.id, cls));
-    return map;
-  }, [classes]);
-
   const filteredStudents = useMemo(() => {
     let filtered = students;
 

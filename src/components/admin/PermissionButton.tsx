@@ -26,7 +26,6 @@ type PermissionButtonProps = ComponentProps<typeof Button> & {
  */
 export function PermissionButton({
   permission,
-  tooltip,
   children,
   ...props
 }: PermissionButtonProps) {

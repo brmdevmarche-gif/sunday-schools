@@ -8,12 +8,10 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  Loader2,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { clientLogger } from '@/lib/client-logger'
 

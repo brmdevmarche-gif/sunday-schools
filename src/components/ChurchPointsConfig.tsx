@@ -21,7 +21,7 @@ import {
   getChurchPointsConfigAction,
   upsertChurchPointsConfigAction,
 } from "@/app/admin/points/actions";
-import type { ChurchPointsConfig, ChurchPointsConfigFormData } from "@/lib/types";
+import type { ChurchPointsConfigFormData } from "@/lib/types";
 import { clientLogger } from '@/lib/client-logger'
 
 interface ChurchPointsConfigProps {

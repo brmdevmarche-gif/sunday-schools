@@ -49,7 +49,6 @@ interface MyOrdersClientProps {
 
 export default function MyOrdersClient({
   orders,
-  userProfile,
 }: MyOrdersClientProps) {
   const t = useTranslations();
   const router = useRouter();

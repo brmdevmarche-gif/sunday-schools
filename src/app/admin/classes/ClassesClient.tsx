@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PermissionButton } from "@/components/admin/PermissionButton";
-import { useHasPermission, usePermissions } from "@/hooks/usePermissions";
+import { useHasPermission } from "@/hooks/usePermissions";
 import {
   ResponsiveTable,
   type SortOption,
@@ -40,7 +40,6 @@ import {
   User as UserIcon,
   Mail,
   Phone,
-  Loader2,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -111,7 +110,6 @@ export default function ClassesClient({
   const [, startTransition] = useTransition();
   
   // Check permissions for assigning users
-  const { hasAnyPermission } = usePermissions();
   const hasAssignUsers = useHasPermission('classes.assign_users');
   const hasAssignTeachers = useHasPermission('classes.assign_teachers');
   const hasAssignStudents = useHasPermission('classes.assign_students');

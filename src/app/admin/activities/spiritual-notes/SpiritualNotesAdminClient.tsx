@@ -85,16 +85,6 @@ interface SpiritualNotesAdminClientProps {
   userProfile: UserProfile;
 }
 
-const ACTIVITY_TYPE_ICONS: Record<SpiritualActivityType, string> = {
-  prayer: "hands-praying",
-  mass: "church",
-  confession: "heart-handshake",
-  fasting: "utensils-crossed",
-  bible_reading: "book-open",
-  charity: "hand-heart",
-  other: "sparkles",
-};
-
 const ACTIVITY_TYPES = [
   "prayer",
   "mass",
@@ -144,7 +134,6 @@ type TemplateFormData = z.infer<typeof templateSchema>;
 export default function SpiritualNotesAdminClient({
   notes,
   templates,
-  userProfile,
 }: SpiritualNotesAdminClientProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -154,8 +143,7 @@ export default function SpiritualNotesAdminClient({
   const canViewSpiritualNotes = useHasPermission("activities.view_spiritual_notes");
   const canManageParticipants = useHasPermission("activities.manage_participants");
   const canUpdate = useHasPermission("activities.update");
-  const canCreate = useHasPermission("activities.create");
-  
+
   const canViewSubmissions = canViewSpiritualNotes || canManageParticipants;
   const canViewTemplates = canViewSpiritualNotes || canUpdate;
 
@@ -244,7 +232,7 @@ export default function SpiritualNotesAdminClient({
       } else {
         toast.error(result.error || "Failed to create template");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   }
@@ -268,7 +256,7 @@ export default function SpiritualNotesAdminClient({
       } else {
         toast.error(result.error || "Failed to review");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsReviewing(false);
@@ -284,7 +272,7 @@ export default function SpiritualNotesAdminClient({
       toast.success(`Approved ${result.successCount} notes`);
       setSelectedIds([]);
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsReviewing(false);

@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,7 +85,6 @@ interface ReadingScheduleDetailClientProps {
 
 export default function ReadingScheduleDetailClient({
   schedule,
-  userProfile,
 }: ReadingScheduleDetailClientProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -137,7 +136,7 @@ export default function ReadingScheduleDetailClient({
       } else {
         toast.error(result.error || "Failed to complete reading");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   }

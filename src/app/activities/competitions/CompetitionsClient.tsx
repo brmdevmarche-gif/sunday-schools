@@ -40,7 +40,6 @@ interface CompetitionsClientProps {
 export default function CompetitionsClient({
   competitions,
   mySubmissions,
-  userProfile,
 }: CompetitionsClientProps) {
   const t = useTranslations();
   const locale = useLocale();
@@ -133,9 +132,6 @@ export default function CompetitionsClient({
   }
 
   const activeCompetitions = competitions.filter((c) => isActive(c));
-  const upcomingCompetitions = competitions.filter(
-    (c) => c.status === "active" && new Date(c.start_date) > now
-  );
 
   // Stats
   const totalPoints = mySubmissions

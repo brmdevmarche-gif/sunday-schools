@@ -54,14 +54,12 @@ interface TripsManagementClientProps {
 
 export default function TripsManagementClient({
   trips: initialTrips,
-  userProfile,
 }: TripsManagementClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const locale = useLocale();
   const canUpdate = useHasPermission("trips.update");
   const canDelete = useHasPermission("trips.delete");
-  const canViewDetail = useHasPermission("trips.view_detail");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Get currency symbol based on locale

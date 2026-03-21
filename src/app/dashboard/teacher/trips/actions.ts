@@ -5,9 +5,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import type {
   Trip,
-  TripWithDetails,
-  TripParticipantWithUser,
-  TripOrganizerWithUser,
   TripStatus,
   TripApprovalStatus,
 } from "@/lib/types/modules/trips";

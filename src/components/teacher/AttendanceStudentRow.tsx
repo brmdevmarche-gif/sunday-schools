@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { ChevronUp, MessageSquare } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";

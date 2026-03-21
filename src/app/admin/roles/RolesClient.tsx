@@ -23,8 +23,6 @@ import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, Shield } from 'lucide-react'
 import type { RoleWithPermissions } from '@/lib/types/modules/permissions'
 import {
-  createRoleAction,
-  updateRoleAction,
   deleteRoleAction,
 } from './actions'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -36,7 +34,7 @@ interface RolesClientProps {
 export default function RolesClient({ initialRoles }: RolesClientProps) {
   const router = useRouter()
   const [roles, setRoles] = useState<RoleWithPermissions[]>(initialRoles)
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [roleToDelete, setRoleToDelete] = useState<RoleWithPermissions | null>(
     null

@@ -75,7 +75,6 @@ const typeConfig = {
  * Used in the Action Required queue for teachers.
  */
 function ApprovalCard({
-  id,
   type,
   student,
   title,

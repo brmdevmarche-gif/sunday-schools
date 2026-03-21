@@ -3,7 +3,6 @@
 import { useEffect, useState, useContext } from 'react'
 import {
   getUserPermissionCodes,
-  currentUserHasPermission,
   getCurrentUserPermissions,
 } from '@/lib/sunday-school/roles.client'
 import { PermissionsContext } from '@/contexts/PermissionsContext'

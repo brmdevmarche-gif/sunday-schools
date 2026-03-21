@@ -76,7 +76,7 @@ export async function getRolesSimple(filters?: {
       permissions: [],
       permission_count: countsByRoleId.get(String(role.id)) ?? 0,
     })) as RoleWithPermissions[]
-  } catch (error) {
+  } catch {
     // Return empty array on any error to prevent server render failures
     return []
   }

@@ -6,15 +6,8 @@ import { revalidatePath } from 'next/cache'
 import type {
   CreateTripInput,
   UpdateTripInput,
-  Trip,
-  TripWithDetails,
-  TripParticipantWithUser,
   TripStatus,
-  TripApprovalStatus,
-  TripPaymentStatus,
   UpdateTripParticipantInput,
-  TripOrganizer,
-  TripOrganizerWithUser,
   AddTripOrganizerInput,
   UpdateTripOrganizerInput,
 } from '@/lib/types/sunday-school'

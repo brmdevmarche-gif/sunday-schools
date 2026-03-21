@@ -48,7 +48,6 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import { ResponsiveFilters } from "@/components/ui/filter-sheet";
 import { Pagination } from "@/components/ui/pagination";
 import {
   updateOrderStatusAction,
@@ -156,7 +155,6 @@ export default function OrdersManagementClient({
   pageSize,
   from,
   to,
-  userProfile,
   dioceses,
   churches,
   classes,
@@ -175,8 +173,8 @@ export default function OrdersManagementClient({
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
-  const [fromLocal, setFromLocal] = useState<string>(() => isoToDatetimeLocal(from));
-  const [toLocal, setToLocal] = useState<string>(() => isoToDatetimeLocal(to));
+  const [, setFromLocal] = useState<string>(() => isoToDatetimeLocal(from));
+  const [, setToLocal] = useState<string>(() => isoToDatetimeLocal(to));
 
   useEffect(() => {
     setFromLocal(isoToDatetimeLocal(from));
@@ -196,13 +194,6 @@ export default function OrdersManagementClient({
     return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
   }
 
-  function datetimeLocalToIso(local: string) {
-    if (!local) return null;
-    const d = new Date(local);
-    if (Number.isNaN(d.getTime())) return null;
-    return d.toISOString();
-  }
-
   function pushWithParams(next: Record<string, string | null>) {
     const sp = new URLSearchParams(searchParams?.toString() ?? "");
     for (const [k, v] of Object.entries(next)) {
@@ -210,15 +201,6 @@ export default function OrdersManagementClient({
       else sp.set(k, v);
     }
     router.push(`?${sp.toString()}`);
-  }
-
-  function applyDateFilter(nextFromIso: string | null, nextToIso: string | null) {
-    pushWithParams({
-      page: "1",
-      pageSize: String(pageSize),
-      from: nextFromIso,
-      to: nextToIso,
-    });
   }
 
   const totalPages = Math.max(1, Math.ceil((totalCount || 0) / pageSize));
@@ -232,22 +214,6 @@ export default function OrdersManagementClient({
   const onPageSizeChange = (nextPageSize: number) => {
     pushWithParams({ page: "1", pageSize: String(nextPageSize) });
   };
-
-  // Calculate active filter count
-  const activeFilterCount = [
-    statusFilter !== "all",
-    dioceseFilter !== "all",
-    churchFilter !== "all",
-    classFilter !== "all",
-  ].filter(Boolean).length;
-
-  function clearFilters() {
-    setStatusFilter("all");
-    setDioceseFilter("all");
-    setChurchFilter("all");
-    setClassFilter("all");
-    setSearchQuery("");
-  }
 
   // Filter churches based on selected diocese
   const filteredChurches = useMemo(() => {

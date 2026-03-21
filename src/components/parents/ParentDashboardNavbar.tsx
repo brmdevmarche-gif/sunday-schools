@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import {
@@ -12,10 +12,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { ParentSidebar } from "./ParentSidebar";
-import { Bell, Users, Star, ChevronDown } from "lucide-react";
+import { Bell, Users, Star } from "lucide-react";
 import type { ParentChild } from "@/lib/types";
 
 interface ParentDashboardNavbarProps {
@@ -34,13 +33,11 @@ export function ParentDashboardNavbar({
   unreadNotificationsCount,
 }: ParentDashboardNavbarProps) {
   const t = useTranslations();
-  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const isRTL = locale === "ar";
   const selectedChildId = searchParams.get("for");
   const isHomePage = pathname === "/dashboard/parents";
 

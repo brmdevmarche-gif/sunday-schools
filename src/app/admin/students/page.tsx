@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
-import type { ExtendedUser, Diocese, Church, Class } from "@/lib/types";
+import type { Diocese, Church, Class } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 

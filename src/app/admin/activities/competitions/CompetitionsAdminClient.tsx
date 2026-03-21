@@ -67,7 +67,6 @@ import {
   ArrowLeft,
   Search,
   MoreHorizontal,
-  Pencil,
   Trash2,
   Play,
   CheckCircle2,
@@ -80,9 +79,6 @@ import {
 import type {
   CompetitionWithStats,
   CompetitionSubmissionWithDetails,
-  CreateCompetitionInput,
-  CompetitionSubmissionType,
-  ActivityStatus,
 } from "@/lib/types";
 
 interface UserProfile {
@@ -173,7 +169,6 @@ type CompetitionFormData = z.infer<typeof competitionSchema>;
 export default function CompetitionsAdminClient({
   competitions,
   pendingSubmissions,
-  userProfile,
 }: CompetitionsAdminClientProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -182,7 +177,6 @@ export default function CompetitionsAdminClient({
   // Check permissions for tabs
   const canViewCompetitions = useHasPermission("activities.view_competitions");
   const canManageParticipants = useHasPermission("activities.manage_participants");
-  const canCreate = useHasPermission("activities.create");
   const canUpdate = useHasPermission("activities.update");
   const canDelete = useHasPermission("activities.delete");
 
@@ -289,7 +283,7 @@ export default function CompetitionsAdminClient({
       } else {
         toast.error(result.error || "Failed to create competition");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   }
@@ -311,7 +305,7 @@ export default function CompetitionsAdminClient({
       } else {
         toast.error(result.error || "Failed to delete competition");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsDeleting(false);
@@ -335,7 +329,7 @@ export default function CompetitionsAdminClient({
       } else {
         toast.error(result.error || "Failed to update status");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   }

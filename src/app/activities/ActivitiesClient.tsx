@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -15,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Trophy,
@@ -23,10 +21,8 @@ import {
   Calendar,
   Users,
   CheckCircle2,
-  Clock,
   ArrowLeft,
   Target,
-  Award,
   Heart,
   BookOpen,
   ChevronRight,
@@ -68,8 +64,6 @@ interface ActivitiesClientProps {
 
 export default function ActivitiesClient({
   activities: initialActivities,
-  completionsData,
-  userProfile,
 }: ActivitiesClientProps) {
   const t = useTranslations();
   const router = useRouter();

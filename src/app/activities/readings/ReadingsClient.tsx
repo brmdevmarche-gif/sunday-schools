@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import {
   BookOpen,
   Calendar,
   CheckCircle2,
-  Circle,
   Trophy,
   Flame,
   ChevronRight,
@@ -33,14 +31,12 @@ interface ReadingsClientProps {
 
 export default function ReadingsClient({
   schedules,
-  userProfile,
 }: ReadingsClientProps) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
 
   const now = new Date();
-  const today = now.toISOString().split("T")[0];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {

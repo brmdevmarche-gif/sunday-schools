@@ -318,8 +318,6 @@ export function LeaderboardMini({
   highlightUserId?: string;
   className?: string;
 }) {
-  const t = useTranslations("gamification");
-
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:

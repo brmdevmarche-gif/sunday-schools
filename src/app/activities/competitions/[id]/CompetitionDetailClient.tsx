@@ -69,7 +69,6 @@ interface CompetitionDetailClientProps {
 
 export default function CompetitionDetailClient({
   competition,
-  userProfile,
 }: CompetitionDetailClientProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -148,7 +147,7 @@ export default function CompetitionDetailClient({
       } else {
         toast.error(result.error || "Failed to submit");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   }

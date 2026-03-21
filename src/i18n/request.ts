@@ -17,7 +17,7 @@ export default getRequestConfig(async () => {
     if (headerLocale && locales.includes(headerLocale as Locale)) {
       locale = headerLocale as Locale
     }
-  } catch (error) {
+  } catch {
     // Headers might not be available in all contexts (e.g., during build)
     // Fall back to default locale 'en'
     // This is expected during build time, so we can safely ignore

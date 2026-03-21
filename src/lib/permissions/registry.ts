@@ -441,7 +441,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
 export function getAllPermissionCodes(): string[] {
   const codes: string[] = [];
   for (const [module, permissions] of Object.entries(PERMISSION_REGISTRY)) {
-    for (const [action, _] of Object.entries(permissions)) {
+    for (const action of Object.keys(permissions)) {
       codes.push(`${module}.${action}`);
     }
   }

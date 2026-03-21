@@ -34,9 +34,8 @@ interface CreateActivityClientProps {
   userProfile: ExtendedUser;
 }
 
-export default function CreateActivityClient({
-  userProfile,
-}: CreateActivityClientProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function CreateActivityClient(_props: CreateActivityClientProps) {
   const t = useTranslations();
   const router = useRouter();
   const canCreate = useHasPermission("activities.create");

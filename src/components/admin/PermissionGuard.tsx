@@ -42,7 +42,7 @@ export function PermissionGuard({
   fallback,
   children,
 }: PermissionGuardProps) {
-  const { hasPermission, hasAnyPermission, hasAllPermissions, isLoading } = usePermissions()
+  const { hasAnyPermission, hasAllPermissions, isLoading } = usePermissions()
   const router = useRouter()
 
   const permissions = Array.isArray(permission) ? permission : [permission]

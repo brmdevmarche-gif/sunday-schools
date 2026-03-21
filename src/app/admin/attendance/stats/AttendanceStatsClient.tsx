@@ -51,7 +51,6 @@ interface StudentStats {
 
 export default function AttendanceStatsClient({
   classes,
-  userRole,
 }: AttendanceStatsClientProps) {
   const t = useTranslations();
   const [selectedClassId, setSelectedClassId] = useState<string>("");

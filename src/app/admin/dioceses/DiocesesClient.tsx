@@ -14,7 +14,6 @@ import {
 import { PermissionButton } from "@/components/admin/PermissionButton";
 import {
   ResponsiveTable,
-  type Column,
   type SortOption,
 } from "@/components/ui/responsive-table";
 import {

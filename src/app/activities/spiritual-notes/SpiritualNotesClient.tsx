@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -140,7 +140,6 @@ const ACTIVITY_COLORS: Record<SpiritualActivityType, string> = {
 export default function SpiritualNotesClient({
   notes,
   templates,
-  userProfile,
 }: SpiritualNotesClientProps) {
   const t = useTranslations();
   const locale = useLocale();
@@ -190,7 +189,7 @@ export default function SpiritualNotesClient({
       } else {
         toast.error(result.error || "Failed to submit");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   }

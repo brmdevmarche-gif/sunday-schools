@@ -15,14 +15,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -33,7 +25,6 @@ import {
 import { OptimizedAvatar, getInitials } from "@/components/ui/optimized-avatar";
 import { Input } from "@/components/ui/input";
 import { ResponsiveBreadcrumb } from "@/components/ui/responsive-breadcrumb";
-import Link from "next/link";
 import {
   ArrowLeft,
   Users,
@@ -48,8 +39,6 @@ import {
   Clock,
   MapPinIcon,
   DollarSign,
-  Tag,
-  Eye,
   CheckCircle2,
   XCircle,
   Filter,
@@ -73,7 +62,6 @@ import {
   subscribeStudentToTripAction,
   approveTripParticipantAction,
   markTripParticipantAsPaidAction,
-  getStudentPriceTier,
 } from "../actions";
 import {
   Select,
@@ -95,7 +83,6 @@ export default function ClassDetailsClient({
   classData,
   rosterData: initialRosterData,
   activitiesData,
-  userProfile,
 }: ClassDetailsClientProps) {
   const t = useTranslations();
   const locale = useLocale();
@@ -195,7 +182,7 @@ export default function ClassDetailsClient({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error) {
+    } catch {
       toast.error(t("classes.assignFailed"));
     } finally {
       setIsSubmitting(false);

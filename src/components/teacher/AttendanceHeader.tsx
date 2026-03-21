@@ -54,7 +54,6 @@ export interface AttendanceHeaderProps {
 function AttendanceHeader({
   className,
   date,
-  onDateChange,
   stats,
   onMarkAllPresent,
   allMarkedPresent = false,

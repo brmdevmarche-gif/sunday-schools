@@ -25,7 +25,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   MapPin,
@@ -41,7 +40,6 @@ import {
 } from "lucide-react";
 import { subscribeToTripAction } from "./actions";
 import type { TripWithDetails, TripType, ParentChild } from "@/lib/types";
-import { ChildContextBanner } from "@/components/parents";
 import { clientLogger } from '@/lib/client-logger'
 
 interface UserProfile {
@@ -74,7 +72,7 @@ export default function TripsClient({
   const t = useTranslations();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TripType | "all">("all");
-  const [selectedTrip, setSelectedTrip] = useState<TripWithDetails | null>(
+  const [selectedTrip] = useState<TripWithDetails | null>(
     null
   );
   const [isSubscribeDialogOpen, setIsSubscribeDialogOpen] = useState(false);
@@ -85,8 +83,6 @@ export default function TripsClient({
     medical_info: "",
   });
   const [isChildSelectOpen, setIsChildSelectOpen] = useState(false);
-
-  const isParent = userProfile.role === "parent";
 
   // Filter trips
   const filteredTrips = useMemo(() => {
@@ -156,16 +152,6 @@ export default function TripsClient({
     return trip.price_normal;
   }
 
-  function handleSubscribeClick(trip: TripWithDetails) {
-    setSelectedTrip(trip);
-    // If parent without child context, prompt to select child first
-    if (isParent && !childContext) {
-      setIsChildSelectOpen(true);
-    } else {
-      setIsSubscribeDialogOpen(true);
-    }
-  }
-
   function handleChildSelect(childId: string) {
     setIsChildSelectOpen(false);
     // Navigate to trips page with child context and the trip will be selected
@@ -205,11 +191,6 @@ export default function TripsClient({
       setIsSubscribing(false);
     }
   }
-
-  // Handle child switching
-  const handleChildChange = (childId: string) => {
-    router.push(`/trips?for=${childId}`);
-  };
 
   return (
     <>

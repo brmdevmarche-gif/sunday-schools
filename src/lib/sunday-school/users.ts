@@ -245,7 +245,7 @@ export async function createUser(input: {
   let data;
   try {
     data = text ? JSON.parse(text) : {};
-  } catch (e) {
+  } catch {
     console.error("Failed to parse response:", text);
     throw new Error("Invalid response from server");
   }

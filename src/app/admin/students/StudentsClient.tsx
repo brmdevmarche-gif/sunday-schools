@@ -81,7 +81,7 @@ export default function StudentsClient({
 }: StudentsClientProps) {
   const router = useRouter();
   const t = useTranslations();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

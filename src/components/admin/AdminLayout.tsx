@@ -336,8 +336,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           variant="ghost"
           size="icon"
           onClick={() => setIsMobileOpen(true)}
+          aria-label="Open menu"
         >
-          <Menu className="h-6 w-6" />
+          <Menu className="h-6 w-6" aria-hidden="true" />
         </Button>
         <span className="ms-3 text-lg font-semibold">Knesty</span>
       </div>

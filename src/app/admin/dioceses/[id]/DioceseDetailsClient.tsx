@@ -121,9 +121,9 @@ export function DioceseDetailsClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
+          <Button variant="outline" size="icon" asChild aria-label={t("common.back")}>
             <Link href="/admin/dioceses">
-              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </Link>
           </Button>
           <div>

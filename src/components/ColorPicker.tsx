@@ -63,9 +63,10 @@ export default function ColorPicker({
         {/* Color picker popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" aria-label="Pick color">
               <svg
                 className="h-4 w-4"
+                aria-hidden="true"
                 fill="none"
                 strokeWidth="2"
                 stroke="currentColor"

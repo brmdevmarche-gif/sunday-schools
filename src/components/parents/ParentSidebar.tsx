@@ -286,8 +286,8 @@ export function ParentSidebar({
     <>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="shrink-0">
-            <Menu className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="shrink-0" aria-label={t("common.menu")}>
+            <Menu className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">{t("common.menu")}</span>
           </Button>
         </SheetTrigger>

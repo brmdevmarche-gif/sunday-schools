@@ -135,7 +135,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-10 transition-all duration-300 ${
+      className={`fixed top-0 inset-x-0 z-10 transition-all duration-300 ${
         isScrolled
           ? "bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50"
           : "bg-transparent"
@@ -185,7 +185,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                   className={`h-5 w-5 ${!isScrolled ? "text-white" : ""}`}
                 />
                 {role !== "parent" && announcementsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] leading-5 text-center">
+                  <span className="absolute -top-1 -end-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] leading-5 text-center">
                     {announcementsCount > 99 ? "99+" : announcementsCount}
                   </span>
                 )}
@@ -226,7 +226,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                       height={48}
                       className="rounded-lg"
                     />
-                    <SheetTitle className="text-left">
+                    <SheetTitle className="text-start">
                       {userName
                         ? t("common.welcome") + ", " + userName.split(" ")[0]
                         : "Knasty"}

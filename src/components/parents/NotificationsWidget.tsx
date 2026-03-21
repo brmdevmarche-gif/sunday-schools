@@ -201,11 +201,12 @@ export function NotificationsWidget({
                         className="h-8 w-8"
                         onClick={() => handleMarkRead(notification.id)}
                         disabled={processingId === notification.id}
+                        aria-label="Mark as read"
                       >
                         {processingId === notification.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                         ) : (
-                          <Check className="h-4 w-4" />
+                          <Check className="h-4 w-4" aria-hidden="true" />
                         )}
                       </Button>
                     )}
@@ -215,8 +216,9 @@ export function NotificationsWidget({
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"
                       onClick={() => handleDelete(notification.id)}
                       disabled={processingId === notification.id}
+                      aria-label="Delete notification"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>

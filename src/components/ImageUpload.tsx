@@ -216,8 +216,9 @@ export default function ImageUpload({
               className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={handleRemove}
               disabled={uploading}
+              aria-label="Remove image"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         ) : (

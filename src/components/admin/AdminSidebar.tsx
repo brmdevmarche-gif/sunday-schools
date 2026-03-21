@@ -133,8 +133,9 @@ export default function AdminSidebar({
             size="icon"
             className="ms-auto"
             onClick={onClose}
+            aria-label="Close menu"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </Button>
         )}
       </div>
@@ -147,11 +148,12 @@ export default function AdminSidebar({
             size="icon"
             onClick={onToggleCollapse}
             className="h-8 w-8"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
-              <PanelLeft className="h-4 w-4 rtl:rotate-180" />
+              <PanelLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             ) : (
-              <PanelLeftClose className="h-4 w-4 rtl:rotate-180" />
+              <PanelLeftClose className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             )}
           </Button>
         </div>
@@ -225,8 +227,8 @@ export default function AdminSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/admin/settings" onClick={isMobile ? onClose : undefined}>
-                    <Button variant="ghost" size="icon" className="h-10 w-10">
-                      <Settings className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="h-10 w-10" aria-label={t('nav.settings')}>
+                      <Settings className="h-5 w-5" aria-hidden="true" />
                     </Button>
                   </Link>
                 </TooltipTrigger>
@@ -240,8 +242,9 @@ export default function AdminSidebar({
                       size="icon"
                       className="h-10 w-10"
                       onClick={onLogout}
+                      aria-label={t('nav.logout')}
                     >
-                      <LogOut className="h-5 w-5" />
+                      <LogOut className="h-5 w-5" aria-hidden="true" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="right">{t('nav.logout')}</TooltipContent>

@@ -1668,8 +1668,9 @@ export default function TripDetailsClient({
                             variant="ghost"
                             size="icon"
                             onClick={() => handleRemoveOrganizer(organizer.id)}
+                            aria-label="Remove organizer"
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                           </PermissionButton>
                         )}
                       </div>

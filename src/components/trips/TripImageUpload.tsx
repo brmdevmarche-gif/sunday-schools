@@ -237,8 +237,9 @@ export default function TripImageUpload({
                 size="icon"
                 className="absolute top-2 right-2"
                 onClick={handleClearImage}
+                aria-label="Clear image"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2 break-all">

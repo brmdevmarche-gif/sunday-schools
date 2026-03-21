@@ -148,6 +148,7 @@ export function SearchableSelect({
             className="min-h-[44px] py-3 cursor-pointer"
           >
             <Check
+              aria-hidden="true"
               className={cn(
                 "me-2 h-4 w-4 shrink-0",
                 value === clearOptionValue ? "opacity-100" : "opacity-0"
@@ -165,6 +166,7 @@ export function SearchableSelect({
             className="min-h-[44px] py-3 cursor-pointer"
           >
             <Check
+              aria-hidden="true"
               className={cn(
                 "me-2 h-4 w-4 shrink-0",
                 value === option.value ? "opacity-100" : "opacity-0"
@@ -192,6 +194,8 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-label={displayLabel === placeholder ? placeholder : undefined}
           disabled={disabled}
           onClick={() => setOpen(true)}
           className={cn(
@@ -201,7 +205,7 @@ export function SearchableSelect({
           )}
         >
           <span className="truncate">{displayLabel}</span>
-          <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
         </Button>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent
@@ -220,7 +224,7 @@ export function SearchableSelect({
             <Command className="rounded-none border-none" shouldFilter={false}>
               <div className="border-b px-3">
                 <div className="flex items-center gap-2 py-2">
-                  <Search className="h-4 w-4 shrink-0 opacity-50" />
+                  <Search className="h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
                   <input
                     className="flex h-10 w-full bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder={searchPlaceholder}
@@ -248,6 +252,8 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-label={displayLabel === placeholder ? placeholder : undefined}
           disabled={disabled}
           className={cn(
             "w-full justify-between font-normal",
@@ -256,7 +262,7 @@ export function SearchableSelect({
           )}
         >
           <span className="truncate">{displayLabel}</span>
-          <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">

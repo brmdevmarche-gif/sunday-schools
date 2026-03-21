@@ -9,8 +9,8 @@ export default function DioceseDetailsLoading() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" disabled>
-            <ArrowLeft className="h-4 w-4" />
+          <Button variant="outline" size="icon" disabled aria-label="Back">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
           <div>
             <Skeleton className="h-9 w-48 mb-2" />

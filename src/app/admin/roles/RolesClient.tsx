@@ -157,16 +157,18 @@ export default function RolesClient({ initialRoles }: RolesClientProps) {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEdit(role.id)}
+                            aria-label="Edit"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" aria-hidden="true" />
                           </Button>
                           {!role.is_system_role && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteClick(role)}
+                              aria-label="Delete"
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                             </Button>
                           )}
                         </div>

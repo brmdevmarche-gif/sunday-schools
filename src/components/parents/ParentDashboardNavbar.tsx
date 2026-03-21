@@ -93,7 +93,7 @@ export function ParentDashboardNavbar({
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-10 transition-all duration-300 ${
+      className={`fixed top-0 inset-x-0 z-10 transition-all duration-300 ${
         isScrolled
           ? "bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl backdrop-saturate-150 shadow-lg border-b border-white/20 dark:border-gray-700/50"
           : "bg-background border-b"
@@ -201,10 +201,10 @@ export function ParentDashboardNavbar({
           <div className="flex items-center gap-2">
             {/* Quick Notifications Button */}
             <Link href="/dashboard/parents/notifications">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="relative" aria-label={t("parents.notifications.title")}>
+                <Bell className="h-5 w-5" aria-hidden="true" />
                 {totalBadgeCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] leading-5 text-center">
+                  <span className="absolute -top-1 -end-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] leading-5 text-center">
                     {totalBadgeCount > 99 ? "99+" : totalBadgeCount}
                   </span>
                 )}

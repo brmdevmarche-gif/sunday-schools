@@ -8,7 +8,7 @@ export default function NavigationLoader() {
   if (!isNavigating) return null
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9999]">
+    <div className="fixed top-0 inset-x-0 z-[9999]">
       {/* Progress bar */}
       <div className="h-1 bg-primary/20 overflow-hidden">
         <div className="h-full bg-primary animate-progress-bar" />

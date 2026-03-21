@@ -105,7 +105,7 @@ function TeacherBottomNav({
     <nav
       data-slot="teacher-bottom-nav"
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50",
+        "fixed bottom-0 inset-x-0 z-50",
         "border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
         "safe-area-inset-bottom",
         className
@@ -146,7 +146,7 @@ function TeacherBottomNav({
                   <Badge
                     variant="destructive"
                     className={cn(
-                      "absolute -top-2 -right-2 h-4 min-w-4 px-1",
+                      "absolute -top-2 -end-2 h-4 min-w-4 px-1",
                       "flex items-center justify-center",
                       "text-[10px] font-bold",
                       "animate-in fade-in-0 zoom-in-50"

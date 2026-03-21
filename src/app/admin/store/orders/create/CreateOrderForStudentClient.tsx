@@ -478,8 +478,9 @@ export default function CreateOrderForStudentClient({
                               onClick={() =>
                                 updateItemQuantity(item.id, quantity - 1)
                               }
+                              aria-label="Decrease quantity"
                             >
-                              <Minus className="h-3 w-3" />
+                              <Minus className="h-3 w-3" aria-hidden="true" />
                             </Button>
                             <span className="w-6 text-center text-sm">
                               {quantity}
@@ -491,16 +492,18 @@ export default function CreateOrderForStudentClient({
                               onClick={() =>
                                 updateItemQuantity(item.id, quantity + 1)
                               }
+                              aria-label="Increase quantity"
                             >
-                              <Plus className="h-3 w-3" />
+                              <Plus className="h-3 w-3" aria-hidden="true" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 text-destructive"
                               onClick={() => removeItem(item.id)}
+                              aria-label="Remove item"
                             >
-                              <Trash2 className="h-3 w-3" />
+                              <Trash2 className="h-3 w-3" aria-hidden="true" />
                             </Button>
                           </div>
                         </div>

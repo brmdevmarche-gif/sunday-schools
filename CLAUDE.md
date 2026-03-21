@@ -216,6 +216,91 @@ Cleanup function in migration 54. When adding tables with ephemeral data, add cl
 - CSP with nonce generated per-request in `src/proxy.ts`
 - If CSP blocks something, temporarily switch to `Content-Security-Policy-Report-Only` in proxy.ts
 
+## Accessibility Rules (WCAG 2.2 AA — CRITICAL)
+
+The app targets WCAG 2.2 AA conformance. Every new feature or UI change MUST follow these rules.
+
+### Page Structure
+
+- Every `page.tsx` MUST export metadata with a unique, descriptive title:
+  ```typescript
+  import type { Metadata } from "next";
+  export const metadata: Metadata = { title: "Page Name" };
+  ```
+  The root layout uses a template: `"%s — Knasty Portal"`. Client component pages need a `layout.tsx` wrapper.
+
+- Every page MUST have a single `<h1>` and sequential heading levels (no skipping h1→h3).
+
+- Use `<main id="main-content">` for the primary content area in layouts. The root layout includes a skip-to-main link (`src/components/ui/skip-link.tsx`).
+
+### Interactive Elements
+
+- **NEVER use `<div>` or `<span>` with `onClick` for interactive elements.** Use `<button>` or `<a>` (Link). If a non-button element MUST be interactive, add `role="button"`, `tabIndex={0}`, and `onKeyDown` handler for Enter/Space.
+
+- **Every icon-only button MUST have `aria-label`** describing the action. Add `aria-hidden="true"` to the icon inside:
+  ```tsx
+  <Button size="icon" aria-label={t("common.delete")}>
+    <Trash2 aria-hidden="true" />
+  </Button>
+  ```
+
+- **All interactive elements must have visible focus indicators.** Use `focus-visible:ring-2 focus-visible:ring-ring` — NEVER `focus:outline-none` without a `focus-visible:` replacement.
+
+- **Touch targets must be at least 44px on mobile.** Button sizes are responsive: `h-11 sm:h-9` (default), `size-11 sm:size-9` (icon). Do NOT override these with smaller fixed sizes on mobile-primary pages.
+
+### Forms
+
+- **Every input MUST have an associated label.** Use `<Label htmlFor="id">` with matching `id` on the input. For search inputs where a visible label is not desired, use `className="sr-only"`:
+  ```tsx
+  <label htmlFor="search" className="sr-only">{t("common.search")}</label>
+  <Input id="search" placeholder={t("common.searchPlaceholder")} />
+  ```
+
+- **Prefer react-hook-form + Zod** over manual useState forms. The `FormControl` component automatically provides `aria-invalid` and `aria-describedby`. The `FormMessage` component has `role="alert"` for screen reader announcements.
+
+- **Required fields** must have `aria-required="true"` on the input and a visual `*` indicator with `aria-hidden="true"`.
+
+- **Login/auth inputs** must have `autoComplete` attributes (`"username"`, `"current-password"`, `"email"`, etc.).
+
+### Images and Media
+
+- **All `<Image>` and `<img>` MUST have meaningful `alt` text.** Use `alt=""` only for purely decorative images.
+- **All `<AvatarImage>` MUST have `alt` prop** — use the person's name.
+
+### RTL Support (Arabic)
+
+- **ALWAYS use logical CSS properties**, never physical:
+  | Never use | Use instead |
+  |-----------|-------------|
+  | `pl-*` / `pr-*` | `ps-*` / `pe-*` |
+  | `ml-*` / `mr-*` | `ms-*` / `me-*` |
+  | `text-left` / `text-right` | `text-start` / `text-end` |
+  | `left-*` / `right-*` | `start-*` / `end-*` |
+  | `border-l-*` / `border-r-*` | `border-s-*` / `border-e-*` |
+  | `rounded-l-*` / `rounded-r-*` | `rounded-s-*` / `rounded-e-*` |
+  | `left-0 right-0` | `inset-x-0` |
+
+- **Exceptions**: `-translate-x-*` transforms, `left-1/2` centering, and explicit `ltr:`/`rtl:` overrides are fine.
+
+- **`aria-label` values must use `t()` i18n keys** so they translate to Arabic.
+
+### Dynamic Content
+
+- Use `aria-live="polite"` on containers that update dynamically (points, counts, status).
+- Use `aria-busy={isLoading}` on containers during loading states.
+- Sonner toasts handle `role="alert"` (errors) and `role="status"` (success) automatically.
+
+### Color and Motion
+
+- **Color must NOT be the only means of conveying information.** Badges/status indicators must include text or icons alongside color.
+- The app respects `prefers-reduced-motion` via `globals.css`. Do NOT add custom animations without wrapping in `@media (prefers-reduced-motion: no-preference)`.
+- **Minimum contrast ratios**: 4.5:1 for normal text, 3:1 for large text and UI components. Test new color combinations before using them.
+
+### Data Tables
+
+- Use the `Table` component from `src/components/ui/table.tsx` — it provides `scope="col"` on headers and `text-start` for RTL.
+- Add `<TableCaption className="sr-only">{description}</TableCaption>` to every data table.
+
 ## Testing Checklist for New Features
 
 1. Auth guard added to all server actions and API routes?
@@ -228,3 +313,8 @@ Cleanup function in migration 54. When adding tables with ephemeral data, add cl
 8. Using structured logger (not `console.log`)?
 9. HTML content sanitized before storage and display?
 10. Explicit column selection in Supabase queries (no `SELECT *`)?
+11. **Page title** — `export const metadata` with unique title in every `page.tsx`?
+12. **Accessibility** — All inputs labeled? Icon buttons have `aria-label`? Focus visible?
+13. **RTL** — Using logical CSS properties (not `pl-`/`pr-`/`ml-`/`mr-`/`text-left`)?
+14. **Touch targets** — Interactive elements at least 44px on mobile?
+15. **Color contrast** — New colors meet 4.5:1 ratio for text, 3:1 for UI components?

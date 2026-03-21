@@ -3,8 +3,13 @@ import UsersClient from './UsersClient'
 import { getUsersData, getChurchesData, getDiocesesData } from './actions'
 import { getRolesSimple } from '@/lib/sunday-school/roles-simple'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Users',
+}
 
 export default async function UsersPage() {
   // Fetch all data server-side in parallel

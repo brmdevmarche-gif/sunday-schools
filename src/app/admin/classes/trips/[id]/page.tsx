@@ -1,9 +1,14 @@
 import { redirect, notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getTripDetailsForAllClassesAction } from "../../actions";
 import TripClassStudentsClient from "./TripClassStudentsClient";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Trip Students",
+};
 
 interface PageProps {
   params: Promise<{ id: string }>;

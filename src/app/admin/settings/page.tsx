@@ -7,8 +7,13 @@ import {
 } from './actions'
 import { createClient } from '@/lib/supabase/server'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Settings',
+}
 
 export default async function SettingsPage() {
   const supabase = await createClient()

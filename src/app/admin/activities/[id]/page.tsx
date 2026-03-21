@@ -1,9 +1,14 @@
 import { redirect, notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getActivityByIdAction } from "../actions";
 import AdminLayout from "@/components/admin/AdminLayout";
 import EditActivityClient from "./EditActivityClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Edit Activity",
+};
 
 export default async function EditActivityPage({
   params,

@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import ClassDetailsClient from "./ClassDetailsClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Class Details",
+};
 
 interface PageProps {
   params: Promise<{ id: string }>;

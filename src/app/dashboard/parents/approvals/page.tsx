@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getPendingApprovalsAction, getApprovalHistoryAction } from "../actions";
 import { ApprovalsClient } from "./ApprovalsClient";
+
+export const metadata: Metadata = {
+  title: "Approvals",
+};
 
 export const dynamic = "force-dynamic";
 

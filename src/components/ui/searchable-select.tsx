@@ -222,8 +222,9 @@ export function SearchableSelect({
                 <div className="flex items-center gap-2 py-2">
                   <Search className="h-4 w-4 shrink-0 opacity-50" />
                   <input
-                    className="flex h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-10 w-full bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder={searchPlaceholder}
+                    aria-label={searchPlaceholder}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />

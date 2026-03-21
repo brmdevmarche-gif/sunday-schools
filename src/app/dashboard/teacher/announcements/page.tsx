@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Announcements",
+};
 
 import {
   TeacherBottomNav,
@@ -41,7 +46,7 @@ export default async function MyAnnouncementsPage() {
         </div>
       </header>
 
-      <main className="container px-4 py-6">
+      <main id="main-content" className="container px-4 py-6">
         <AnnouncementsClient announcements={announcements} />
       </main>
 

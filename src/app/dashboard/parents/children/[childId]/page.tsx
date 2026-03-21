@@ -1,8 +1,13 @@
 import { redirect, notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ChildProfileClient } from "./ChildProfileClient";
 import { getChildDetailsAction } from "../../actions";
+
+export const metadata: Metadata = {
+  title: "Child Profile",
+};
 
 export const dynamic = "force-dynamic";
 

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { createClient } from '@/lib/supabase/server'
 import type { Class, Church, Diocese, ExtendedUser } from '@/lib/types'
@@ -6,6 +7,10 @@ import AnnouncementForm from '../AnnouncementForm'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Create Announcement',
+}
 
 export default async function AdminCreateAnnouncementPage() {
   const supabase = await createClient()

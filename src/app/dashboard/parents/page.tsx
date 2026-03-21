@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ParentDashboardClient } from "./ParentDashboardClient";
+
+export const metadata: Metadata = {
+  title: "Parent Dashboard",
+};
 import {
   getParentChildrenAction,
   getPendingApprovalsAction,

@@ -1,7 +1,12 @@
 import { redirect, notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getReadingScheduleByIdAction } from "../actions";
 import ReadingScheduleDetailClient from "./ReadingScheduleDetailClient";
+
+export const metadata: Metadata = {
+  title: "Reading Details",
+};
 
 interface Props {
   params: Promise<{ id: string }>;

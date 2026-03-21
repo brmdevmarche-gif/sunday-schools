@@ -2,9 +2,14 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import { RoleForm } from '@/components/admin/roles/RoleForm'
 import { getRoleById, getPermissions } from '@/lib/sunday-school/roles'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Edit Role',
+}
 
 export default async function EditRolePage({
   params,

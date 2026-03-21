@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { BookOpen } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "My Classes",
+};
 
 import { getTeacherClassesWithDetails } from "./actions";
 import { ClassCard } from "@/components/teacher";
@@ -36,7 +41,7 @@ export default async function MyClassesPage() {
         </div>
       </header>
 
-      <main className="container px-4 py-6">
+      <main id="main-content" className="container px-4 py-6">
         {classes.length === 0 ? (
           <EmptyState
             icon="BookOpen"

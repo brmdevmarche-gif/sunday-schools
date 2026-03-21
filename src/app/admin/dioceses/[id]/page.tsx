@@ -1,9 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DioceseDetailsClient } from './DioceseDetailsClient'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 import type { Diocese } from '@/lib/types/sunday-school'
+
+export const metadata: Metadata = {
+  title: 'Diocese Details',
+}
 
 export default async function DioceseDetailsPage({
   params,

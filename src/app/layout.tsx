@@ -9,6 +9,7 @@ import { NavigationProvider } from "@/components/NavigationProvider";
 import NavigationLoader from "@/components/NavigationLoader";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { OfflineDetector } from "@/components/OfflineDetector";
+import { SkipLink } from "@/components/ui/skip-link";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -16,7 +17,10 @@ const geistSans = GeistSans;
 const geistMono = GeistMono;
 
 export const metadata: Metadata = {
-  title: "Knesty",
+  title: {
+    template: "%s — Knasty Portal",
+    default: "Knasty Portal",
+  },
   description: "Sunday School Management System",
   icons: {
     icon: [
@@ -71,6 +75,7 @@ export default async function RootLayout({
             <NavigationProvider>
               <NavigationLoader />
               <NextIntlClientProvider messages={messages}>
+                <SkipLink />
                 <PermissionsProvider>
                   {children}
                   <Toaster />

@@ -1,10 +1,15 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StoreClient from "./StoreClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 import type { StoreItem } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "Store",
+};
 
 interface Church {
   id: string;

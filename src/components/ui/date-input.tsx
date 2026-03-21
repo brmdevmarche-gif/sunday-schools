@@ -120,7 +120,7 @@ export function DateInput({
             "flex-1 h-11 sm:h-10 px-3 py-2",
             "bg-transparent text-sm",
             "placeholder:text-muted-foreground",
-            "focus:outline-none",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             "disabled:cursor-not-allowed",
             // Hide the default calendar icon on webkit browsers (we have our own)
             "[&::-webkit-calendar-picker-indicator]:opacity-0",
@@ -267,7 +267,7 @@ export function DateTimePicker({
         disabled={disabled}
         className={cn(
           "w-full h-12 px-3 rounded-md border border-input bg-background text-sm",
-          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       />

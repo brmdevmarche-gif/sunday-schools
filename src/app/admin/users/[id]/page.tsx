@@ -1,11 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import AdminLayout from "@/components/admin/AdminLayout";
 import UserDetailsClient from './UserDetailsClient'
 import { getTranslations } from 'next-intl/server'
 import { getChurchesData, getDiocesesData } from '../actions'
 import { getRolesSimple } from '@/lib/sunday-school/roles-simple'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
+
+export const metadata: Metadata = {
+  title: 'User Details',
+}
 
 async function getUserDetails(userId: string) {
   const supabase = await createClient()

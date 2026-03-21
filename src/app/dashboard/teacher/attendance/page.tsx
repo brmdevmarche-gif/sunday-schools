@@ -1,7 +1,12 @@
 import { notFound, redirect } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Attendance",
+};
 
 import {
   TeacherBottomNav,
@@ -57,7 +62,7 @@ export default async function TakeAttendancePage({ searchParams }: PageProps) {
             </div>
           </header>
 
-          <main className="container px-4 py-6">
+          <main id="main-content" className="container px-4 py-6">
             <div className="text-center py-12">
               <p className="text-muted-foreground">{t("noClasses")}</p>
             </div>
@@ -89,7 +94,7 @@ export default async function TakeAttendancePage({ searchParams }: PageProps) {
           </div>
         </header>
 
-        <main className="container px-4 py-6">
+        <main id="main-content" className="container px-4 py-6">
           <ClassSelectorClient classes={classes} />
         </main>
 
@@ -125,7 +130,7 @@ export default async function TakeAttendancePage({ searchParams }: PageProps) {
         </div>
       </header>
 
-      <main className="container px-4 py-6">
+      <main id="main-content" className="container px-4 py-6">
         <TakeAttendanceClient initialData={attendanceData} />
       </main>
 

@@ -1,7 +1,12 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import AnnouncementsWidget from '@/components/announcements/AnnouncementsWidget'
+
+export const metadata: Metadata = {
+  title: 'Announcements',
+}
 
 export const dynamic = 'force-dynamic'
 

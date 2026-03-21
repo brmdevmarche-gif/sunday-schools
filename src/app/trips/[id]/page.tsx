@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getTripDetailsAction } from "../actions";
 import TripDetailsClient from "./TripDetailsClient";
@@ -7,6 +8,10 @@ import { ParentNavbarWrapper } from "@/components/parents/ParentNavbarWrapper";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getTranslations } from "next-intl/server";
 import type { ParentChild } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "Trip Details",
+};
 
 interface TripDetailsPageProps {
   params: Promise<{ id: string }>;

@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { createClient } from "@/lib/supabase/server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import CreateStoreItemClient from "./CreateStoreItemClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Create Store Item",
+};
 
 export default async function CreateStoreItemPage() {
   const profile = await getCurrentUserProfile();

@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Trip Details",
+};
 
 import {
   TeacherBottomNav,
@@ -54,7 +59,7 @@ export default async function TripDetailsPage({ params }: TripDetailsPageProps) 
         </div>
       </header>
 
-      <main className="container px-4 py-6">
+      <main id="main-content" className="container px-4 py-6">
         <TripDetailsClient tripDetails={tripDetails} />
       </main>
 

@@ -154,7 +154,7 @@ export function StudentSelectionGate({
                 >
                   <div className="flex items-center gap-4 w-full">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={student.avatar_url || undefined} />
+                      <AvatarImage src={student.avatar_url || undefined} alt={student.full_name || ""} />
                       <AvatarFallback>
                         {student.full_name ? getInitials(student.full_name) : <Users className="h-6 w-6" />}
                       </AvatarFallback>

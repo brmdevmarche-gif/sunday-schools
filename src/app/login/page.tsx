@@ -182,6 +182,7 @@ export default function LoginPage() {
                 <Input
                   id="identifier"
                   type="text"
+                  autoComplete="username"
                   placeholder={t("auth.emailOrUserCodePlaceholder")}
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
@@ -194,6 +195,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -38,6 +38,7 @@ export function ClassSelectorClient({ classes }: ClassSelectorClientProps) {
           onClick={() => handleClassSelect(cls.id)}
           role="button"
           tabIndex={0}
+          aria-label={`${t("selectClass")}: ${cls.name}`}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();

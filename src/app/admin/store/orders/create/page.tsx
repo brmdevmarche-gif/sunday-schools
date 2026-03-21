@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { createClient } from "@/lib/supabase/server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import CreateOrderForStudentClient from "./CreateOrderForStudentClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Create Order",
+};
 
 export default async function CreateOrderForStudentPage() {
   const profile = await getCurrentUserProfile();

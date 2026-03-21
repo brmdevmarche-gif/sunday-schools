@@ -3,6 +3,7 @@ import { ChurchDetailsClient } from "./ChurchDetailsClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+import type { Metadata } from "next";
 import type {
   Church,
   Diocese,
@@ -11,6 +12,10 @@ import type {
 } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Church Details",
+};
 
 interface ChurchDetailsPageProps {
   params: Promise<{ id: string }>;

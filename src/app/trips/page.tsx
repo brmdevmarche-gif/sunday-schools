@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
@@ -9,6 +10,10 @@ import { ParentNavbarWrapper } from "@/components/parents/ParentNavbarWrapper";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plane } from "lucide-react";
 import type { ParentChild } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "Trips",
+};
 
 interface TripsPageProps {
   searchParams: Promise<{ for?: string }>;

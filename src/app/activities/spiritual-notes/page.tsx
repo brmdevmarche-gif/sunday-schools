@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getMySpiritualNotesAction, getSpiritualActivityTemplatesAction } from "./actions";
 import SpiritualNotesClient from "./SpiritualNotesClient";
+
+export const metadata: Metadata = {
+  title: "Spiritual Notes",
+};
 
 export default async function SpiritualNotesPage() {
   const profile = await getCurrentUserProfile();

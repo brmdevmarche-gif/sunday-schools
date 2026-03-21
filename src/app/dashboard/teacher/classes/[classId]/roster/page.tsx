@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, Users } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Class Roster",
+};
 
 import { getClassStudents, getClassInfo } from "../../actions";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -58,7 +63,7 @@ export default async function ClassRosterPage({ params }: PageProps) {
         </div>
       </header>
 
-      <main className="container px-4 py-6 space-y-4">
+      <main id="main-content" className="container px-4 py-6 space-y-4">
         {students.length === 0 ? (
           <EmptyState
             icon="Users"

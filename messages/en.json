@@ -2562,5 +2562,8 @@
       "studentsCount": "{count} students",
       "noDestination": "No destination"
     }
+  },
+  "accessibility": {
+    "skipToMain": "Skip to main content"
   }
 }

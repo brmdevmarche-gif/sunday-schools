@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { ParentOrdersClient } from "./ParentOrdersClient";
 import { EmptyState } from "@/components/ui/empty-state";
+
+export const metadata: Metadata = {
+  title: "Orders",
+};
 
 export const dynamic = "force-dynamic";
 

@@ -60,7 +60,7 @@ export default async function ParentDashboardLayout({
         pendingApprovalsCount={pendingApprovals.length}
         unreadNotificationsCount={unreadCount}
       />
-      <main className="pt-14">{children}</main>
+      <main id="main-content" className="pt-14">{children}</main>
     </div>
   );
 }

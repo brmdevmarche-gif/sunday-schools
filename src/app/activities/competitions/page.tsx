@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getCompetitionsAction, getMyCompetitionSubmissionsAction } from "./actions";
 import CompetitionsClient from "./CompetitionsClient";
+
+export const metadata: Metadata = {
+  title: "Competitions",
+};
 
 export default async function CompetitionsPage() {
   const profile = await getCurrentUserProfile();

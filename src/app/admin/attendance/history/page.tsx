@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AttendanceHistoryClient from "./AttendanceHistoryClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Attendance History",
+};
 
 export default async function AttendanceHistoryPage() {
   const supabase = await createClient();

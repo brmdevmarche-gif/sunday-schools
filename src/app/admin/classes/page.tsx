@@ -7,8 +7,13 @@ import {
   getCurrentUserProfile,
 } from './actions'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Classes',
+}
 
 export default async function ClassesPage() {
   // Fetch all data server-side in parallel

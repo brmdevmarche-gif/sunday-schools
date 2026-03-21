@@ -124,7 +124,7 @@
 
   /* Muted - subtle dark surfaces */
   --muted: oklch(0.28 0.02 240);
-  --muted-foreground: oklch(0.65 0.01 240);
+  --muted-foreground: oklch(0.75 0.01 240);
 
   /* Accent: #e3ab4a golden - brighter for dark mode */
   --accent: oklch(0.82 0.15 80);
@@ -176,4 +176,24 @@
 
 .animate-progress-bar {
   animation: progress-bar 1s ease-in-out infinite;
+}
+
+/* Safe area insets for iOS notch/home indicator */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

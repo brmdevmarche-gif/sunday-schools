@@ -1,10 +1,15 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getAllOrdersAction } from "./actions";
 import { createClient } from "@/lib/supabase/server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import OrdersManagementClient from "./OrdersManagementClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Orders",
+};
 
 export default async function AdminOrdersPage({
   searchParams,

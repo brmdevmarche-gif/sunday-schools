@@ -2,8 +2,13 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import { RoleForm } from '@/components/admin/roles/RoleForm'
 import { getPermissions } from '@/lib/sunday-school/roles'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Create Role',
+}
 
 export default async function CreateRolePage() {
   const permissions = await getPermissions({ isActive: true })

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { createClient } from '@/lib/supabase/server'
 import type { Class, Church, Diocese } from '@/lib/types'
@@ -7,6 +8,10 @@ import AnnouncementForm from '../../AnnouncementForm'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Edit Announcement',
+}
 
 function isoToDateTimeLocal(iso: string) {
   const d = new Date(iso)

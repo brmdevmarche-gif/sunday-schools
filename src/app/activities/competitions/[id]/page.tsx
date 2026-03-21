@@ -1,7 +1,12 @@
 import { redirect, notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getCompetitionByIdAction } from "../actions";
 import CompetitionDetailClient from "./CompetitionDetailClient";
+
+export const metadata: Metadata = {
+  title: "Competition Details",
+};
 
 interface Props {
   params: Promise<{ id: string }>;

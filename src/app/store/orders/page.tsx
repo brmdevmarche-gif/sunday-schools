@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getMyOrdersAction } from "@/app/admin/store/orders/actions";
 import MyOrdersClient from "./MyOrdersClient";
+
+export const metadata: Metadata = {
+  title: "My Orders",
+};
 
 export default async function MyOrdersPage() {
   const profile = await getCurrentUserProfile();

@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { Zap } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Teacher Dashboard",
+};
 
 import { getTeacherDashboardData } from "./actions";
 import {
@@ -67,7 +72,7 @@ export default async function TeacherDashboardPage() {
         teacherAvatar={teacher.avatarUrl}
       />
 
-      <main className="container px-4 py-6 space-y-6">
+      <main id="main-content" className="container px-4 py-6 space-y-6">
         {/* Welcome Banner */}
         <div className="rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 p-6">
           <h1 className="text-2xl font-bold">

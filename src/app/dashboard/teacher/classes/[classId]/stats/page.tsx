@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+
+export const metadata: Metadata = {
+  title: "Class Statistics",
+};
 import {
   ArrowLeft,
   BarChart3,
@@ -78,7 +83,7 @@ export default async function ClassStatsPage({ params }: PageProps) {
         </div>
       </header>
 
-      <main className="container px-4 py-6 space-y-6">
+      <main id="main-content" className="container px-4 py-6 space-y-6">
         {/* Summary Stats */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <Card>

@@ -137,7 +137,7 @@ export async function ParentNavbarWrapper({
         pendingApprovalsCount={pendingApprovalsCount}
         unreadNotificationsCount={notificationData?.length || 0}
       />
-      <main className="pt-14">{children}</main>
+      <main id="main-content" className="pt-14">{children}</main>
     </div>
   );
 }

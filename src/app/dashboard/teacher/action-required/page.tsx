@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { Zap } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Action Required",
+};
 
 import { getPendingActions } from "./actions";
 import { getTeacherDashboardData } from "../actions";
@@ -60,7 +65,7 @@ export default async function ActionRequiredPage() {
         </div>
       </header>
 
-      <main className="container px-4 py-6">
+      <main id="main-content" className="container px-4 py-6">
         <Suspense fallback={<ActionRequiredSkeleton />}>
           <ActionRequiredContent pendingActions={pendingActions} />
         </Suspense>

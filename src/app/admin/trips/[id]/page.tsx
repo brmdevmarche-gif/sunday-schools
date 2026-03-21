@@ -1,9 +1,14 @@
 import { redirect, notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import { getTripByIdAction, getTripParticipantsAction, getTripDetailsAction, getTripOrganizersAction } from "../actions";
 import TripDetailsClient from "./TripDetailsClient";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+
+export const metadata: Metadata = {
+  title: "Trip Details",
+};
 
 export default async function TripDetailsPage({
   params,

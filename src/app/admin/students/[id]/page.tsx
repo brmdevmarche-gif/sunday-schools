@@ -2,6 +2,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import StudentDetailsClient from "./StudentDetailsClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
 import {
   getStudentDetailsAction,
@@ -11,6 +12,10 @@ import {
 } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Student Details",
+};
 
 interface StudentDetailsPageProps {
   params: Promise<{

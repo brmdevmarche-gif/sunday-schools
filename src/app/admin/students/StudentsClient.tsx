@@ -362,10 +362,11 @@ export default function StudentsClient({
       >
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2">
-            <Label>{t("common.search")}</Label>
+            <Label htmlFor="search-students">{t("common.search")}</Label>
             <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute start-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                id="search-students"
                 placeholder={t("students.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -439,7 +440,7 @@ export default function StudentsClient({
                   <TableHead>Church</TableHead>
                   <TableHead>Classes</TableHead>
                   <TableHead>Age</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-end">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -486,7 +487,7 @@ export default function StudentsClient({
                                 }}
                               >
                                 {assignment.class_name}
-                                <X className="ml-1 h-3 w-3" />
+                                <X className="ms-1 h-3 w-3" />
                               </Badge>
                             ))
                           ) : (
@@ -497,7 +498,7 @@ export default function StudentsClient({
                         </div>
                       </TableCell>
                       <TableCell>{age ? `${age} yrs` : "-"}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-end">
                         <div
                           className="flex gap-1 justify-end"
                           onClick={(e) => e.stopPropagation()}

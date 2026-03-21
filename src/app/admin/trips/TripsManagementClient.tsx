@@ -206,7 +206,7 @@ export default function TripsManagementClient({
           <div className="space-y-2">
             <Label>{t("common.search")}</Label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t("trips.searchPlaceholder")}
                 value={searchQuery}
@@ -346,7 +346,7 @@ export default function TripsManagementClient({
                         <DropdownMenuItem
                           onClick={() => router.push(`/admin/trips/${trip.id}`)}
                         >
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="h-4 w-4 me-2" />
                           Edit
                         </DropdownMenuItem>
                       )}
@@ -355,7 +355,7 @@ export default function TripsManagementClient({
                           onClick={() => handleDelete(trip.id)}
                           className="text-destructive"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-4 w-4 me-2" />
                           Delete
                         </DropdownMenuItem>
                       )}
@@ -377,7 +377,7 @@ export default function TripsManagementClient({
                       <MapPin className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Destinations:</span>
                     </div>
-                    <div className="pl-6 space-y-1">
+                    <div className="ps-6 space-y-1">
                       {trip.destinations.slice(0, 2).map((dest, idx) => (
                         <p
                           key={dest.id}

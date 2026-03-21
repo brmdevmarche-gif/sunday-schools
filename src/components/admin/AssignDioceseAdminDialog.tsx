@@ -154,15 +154,15 @@ export function AssignDioceseAdminDialog({
             <div className="grid gap-2">
               <Label>Search Users</Label>
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute start-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
+                  className="ps-8"
                 />
                 {searching && (
-                  <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                  <Loader2 className="absolute end-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
                 )}
               </div>
             </div>

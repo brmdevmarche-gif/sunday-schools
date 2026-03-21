@@ -485,19 +485,20 @@ export default function AnnouncementsClient(props: {
                   </p>
                 )}
               <div className="grid gap-2">
-                <Label>Title</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title" />
+                <Label htmlFor="announcement-title">Title</Label>
+                <Input id="announcement-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title" />
               </div>
 
               <div className="grid gap-2">
-                <Label>Description</Label>
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." />
+                <Label htmlFor="announcement-description">Description</Label>
+                <Textarea id="announcement-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." />
               </div>
 
               <div className="grid gap-2">
-                <Label>Types (tags)</Label>
+                <Label htmlFor="announcement-types">Types (tags)</Label>
                 <div className="flex gap-2">
                   <Input
+                    id="announcement-types"
                     value={typeInput}
                     onChange={(e) => setTypeInput(e.target.value)}
                     onKeyDown={(e) => {

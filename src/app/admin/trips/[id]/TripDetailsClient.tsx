@@ -757,12 +757,12 @@ export default function TripDetailsClient({
         <div className="flex items-center gap-2">
           {canTakeAttendance && isTripStartDate() && (
             <PermissionButton permission="trips.manage_participants" onClick={initializeAttendance} variant="default">
-              <ClipboardCheck className="mr-2 h-4 w-4" />
+              <ClipboardCheck className="me-2 h-4 w-4" />
               Attendance
             </PermissionButton>
           )}
           <PermissionButton permission="trips.update" onClick={() => router.push(`/admin/trips/${trip.id}/edit`)}>
-            <Edit className="mr-2 h-4 w-4" />
+            <Edit className="me-2 h-4 w-4" />
             {t("trips.editTrip")}
           </PermissionButton>
         </div>
@@ -776,7 +776,7 @@ export default function TripDetailsClient({
         <TabsList>
           <TabsTrigger value="details">{t("trips.tripDetails")}</TabsTrigger>
           <TabsTrigger value="participants">
-            <Users className="h-4 w-4 mr-2" />
+            <Users className="h-4 w-4 me-2" />
             {t("trips.participants")} ({stats.total})
           </TabsTrigger>
           <TabsTrigger
@@ -789,12 +789,12 @@ export default function TripDetailsClient({
               }
             }}
           >
-            <ClipboardCheck className="h-4 w-4 mr-2" />
+            <ClipboardCheck className="h-4 w-4 me-2" />
             Attendance
           </TabsTrigger>
           {canManageOrganizersPermission && (
             <TabsTrigger value="organizers">
-              <UserCog className="h-4 w-4 mr-2" />
+              <UserCog className="h-4 w-4 me-2" />
               Organizers ({organizers.length})
             </TabsTrigger>
           )}
@@ -1071,7 +1071,7 @@ export default function TripDetailsClient({
                         }
                         disabled={isBulkUpdating}
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        <CheckCircle2 className="h-4 w-4 me-2" />
                         {t("trips.actions.approveSelected")}
                       </PermissionButton>
                       <PermissionButton
@@ -1083,7 +1083,7 @@ export default function TripDetailsClient({
                         }
                         disabled={isBulkUpdating}
                       >
-                        <XCircle className="h-4 w-4 mr-2" />
+                        <XCircle className="h-4 w-4 me-2" />
                         {t("trips.actions.rejectSelected")}
                       </PermissionButton>
                       <Button
@@ -1098,7 +1098,7 @@ export default function TripDetailsClient({
                   )}
                   {canAddParticipants && (
                     <PermissionButton permission="trips.manage_participants" onClick={handleOpenAddParticipants}>
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="h-4 w-4 me-2" />
                       {t("trips.addStudents")}
                     </PermissionButton>
                   )}
@@ -1271,7 +1271,7 @@ export default function TripDetailsClient({
                             </div>
                             <p className="text-sm text-muted-foreground">
                               {(participant.user as any)?.user_code && (
-                                <span className="font-mono mr-2">
+                                <span className="font-mono me-2">
                                   ID: {(participant.user as any).user_code}
                                 </span>
                               )}
@@ -1383,7 +1383,7 @@ export default function TripDetailsClient({
                                     }}
                                     disabled={isUpdating === participant.id}
                                   >
-                                    <DollarSign className="h-4 w-4 mr-1" />
+                                    <DollarSign className="h-4 w-4 me-1" />
                                     {t("trips.actions.pay")}
                                   </PermissionButton>
                                 )}
@@ -1399,7 +1399,7 @@ export default function TripDetailsClient({
                                   disabled={isUpdating === participant.id}
                                   className="text-destructive hover:text-destructive"
                                 >
-                                  <XCircle className="h-4 w-4 mr-1" />
+                                  <XCircle className="h-4 w-4 me-1" />
                                   {t("trips.actions.reject")}
                                 </PermissionButton>
                               </>
@@ -1417,7 +1417,7 @@ export default function TripDetailsClient({
                                     }
                                     disabled={isUpdating === participant.id}
                                   >
-                                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                                    <CheckCircle2 className="h-4 w-4 me-1" />
                                     {t("trips.actions.approve")}
                                   </PermissionButton>
                                 )}
@@ -1434,7 +1434,7 @@ export default function TripDetailsClient({
                                     disabled={isUpdating === participant.id}
                                     className="text-destructive hover:text-destructive"
                                   >
-                                    <XCircle className="h-4 w-4 mr-1" />
+                                    <XCircle className="h-4 w-4 me-1" />
                                     {t("trips.actions.reject")}
                                   </PermissionButton>
                                 )}
@@ -1503,7 +1503,7 @@ export default function TripDetailsClient({
                       <TableHead>{t("trips.tripAttendance.student")}</TableHead>
                       <TableHead>{t("trips.tripAttendance.email")}</TableHead>
                       <TableHead>{t("trips.tripAttendance.notes")}</TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-end">
                         {t("common.actions")}
                       </TableHead>
                     </TableRow>
@@ -1572,7 +1572,7 @@ export default function TripDetailsClient({
                               className="min-w-[260px]"
                             />
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-end">
                             <div className="flex justify-end">
                               <AttendanceStatusButtons
                                 status={record.status}
@@ -1603,7 +1603,7 @@ export default function TripDetailsClient({
                 <CardTitle>{t("trips.organizers.title")}</CardTitle>
                 {canManageOrganizers && (
                   <PermissionButton permission="trips.update" onClick={handleOpenAddOrganizer}>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 me-2" />
                     {t("trips.organizers.addOrganizer")}
                   </PermissionButton>
                 )}
@@ -1712,7 +1712,7 @@ export default function TripDetailsClient({
                                       ? "default"
                                       : "outline"
                                   }
-                                  className="mr-2"
+                                  className="me-2"
                                 >
                                   {organizer.can_approve
                                     ? t("common.yes")
@@ -1756,7 +1756,7 @@ export default function TripDetailsClient({
                                   variant={
                                     organizer.can_go ? "default" : "outline"
                                   }
-                                  className="mr-2"
+                                  className="me-2"
                                 >
                                   {organizer.can_go
                                     ? t("common.yes")
@@ -1800,7 +1800,7 @@ export default function TripDetailsClient({
                                       ? "default"
                                       : "outline"
                                   }
-                                  className="mr-2"
+                                  className="me-2"
                                 >
                                   {organizer.can_take_attendance
                                     ? t("common.yes")
@@ -1846,7 +1846,7 @@ export default function TripDetailsClient({
                                       ? "default"
                                       : "outline"
                                   }
-                                  className="mr-2"
+                                  className="me-2"
                                 >
                                   {organizer.can_collect_payment
                                     ? t("common.yes")
@@ -1897,7 +1897,7 @@ export default function TripDetailsClient({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pr-1">
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pe-1">
             {/* Search Teacher */}
             <div className="space-y-2">
               <Label>{t("common.search")}</Label>
@@ -2062,7 +2062,7 @@ export default function TripDetailsClient({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pr-1">
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pe-1">
             {/* Search Input */}
             {!isLoadingStudents && availableStudents.length > 0 && (
               <div className="relative">
@@ -2070,7 +2070,7 @@ export default function TripDetailsClient({
                   placeholder={t("trips.searchStudentsPlaceholder")}
                   value={studentSearchQuery}
                   onChange={(e) => setStudentSearchQuery(e.target.value)}
-                  className="pr-8"
+                  className="pe-8"
                 />
               </div>
             )}
@@ -2142,12 +2142,12 @@ export default function TripDetailsClient({
                     >
                       {subscribingStudentId === student.id ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 me-2 animate-spin" />
                           {t("trips.adding")}
                         </>
                       ) : (
                         <>
-                          <Plus className="h-4 w-4 mr-2" />
+                          <Plus className="h-4 w-4 me-2" />
                           {t("trips.add")}
                         </>
                       )}

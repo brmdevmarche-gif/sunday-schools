@@ -136,7 +136,7 @@ export default function ChurchPointsConfigComponent({
           </div>
 
           {config.is_attendance_points_enabled && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pl-7">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ps-7">
               <div className="space-y-2">
                 <Label htmlFor="present">{t("presentPoints")}</Label>
                 <Input

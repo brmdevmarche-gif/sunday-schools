@@ -84,7 +84,7 @@ export default function BadgeCollection({
         {/* Progress bar */}
         <div className="space-y-1">
           <Progress value={progressPercent} className="h-2" />
-          <p className="text-xs text-muted-foreground text-right">
+          <p className="text-xs text-muted-foreground text-end">
             {Math.round(progressPercent)}% {t("badges.complete")}
           </p>
         </div>

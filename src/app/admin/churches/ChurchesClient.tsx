@@ -331,7 +331,7 @@ export default function ChurchesClient({
                     </button>
                   </TableHead>
                   <TableHead>{t("churches.contact")}</TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="text-end">
                     <button
                       onClick={() => handleSort("classCount")}
                       className="flex items-center justify-end hover:text-foreground transition-colors w-full"
@@ -340,7 +340,7 @@ export default function ChurchesClient({
                       <SortIcon column="classCount" />
                     </button>
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="text-end">
                     {t("common.actions")}
                   </TableHead>
                 </TableRow>
@@ -376,10 +376,10 @@ export default function ChurchesClient({
                         {!church.contact_email && !church.contact_phone && "-"}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       {church.classCount}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <div className="flex gap-1 justify-end">
                         <PermissionButton
                           permission="churches.update"

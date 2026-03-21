@@ -89,7 +89,7 @@ export default function RolesClient({ initialRoles }: RolesClientProps) {
             </p>
           </div>
           <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             Create Role
           </Button>
         </div>
@@ -115,7 +115,7 @@ export default function RolesClient({ initialRoles }: RolesClientProps) {
                     <TableHead>Permissions</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-end">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -151,7 +151,7 @@ export default function RolesClient({ initialRoles }: RolesClientProps) {
                           <Badge variant="secondary">Inactive</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-end">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"

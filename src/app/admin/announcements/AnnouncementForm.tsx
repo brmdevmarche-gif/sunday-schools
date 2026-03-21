@@ -235,19 +235,20 @@ export default function AnnouncementForm(props: {
     <div className="space-y-6">
       <div className="grid gap-4">
         <div className="grid gap-2">
-          <Label>{t('announcements.form.title')}</Label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('announcements.form.titlePlaceholder')} />
+          <Label htmlFor="announcement-title">{t('announcements.form.title')}</Label>
+          <Input id="announcement-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('announcements.form.titlePlaceholder')} />
         </div>
 
         <div className="grid gap-2">
-          <Label>{t('announcements.form.description')}</Label>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('announcements.form.descriptionPlaceholder')} />
+          <Label htmlFor="announcement-description">{t('announcements.form.description')}</Label>
+          <Textarea id="announcement-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('announcements.form.descriptionPlaceholder')} />
         </div>
 
         <div className="grid gap-2">
-          <Label>{t('announcements.form.types')}</Label>
+          <Label htmlFor="announcement-type-input">{t('announcements.form.types')}</Label>
           <div className="flex gap-2">
             <Input
+              id="announcement-type-input"
               value={typeInput}
               onChange={(e) => setTypeInput(e.target.value)}
               onKeyDown={(e) => {

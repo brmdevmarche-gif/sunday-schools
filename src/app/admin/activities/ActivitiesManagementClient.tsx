@@ -130,7 +130,7 @@ export default function ActivitiesManagementClient({
           </p>
         </div>
         <PermissionButton permission="activities.create" onClick={() => router.push("/admin/activities/create")}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t("activities.createActivity")}
         </PermissionButton>
       </div>
@@ -201,12 +201,12 @@ export default function ActivitiesManagementClient({
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("activities.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="ps-9"
           />
         </div>
         <Select
@@ -291,7 +291,7 @@ export default function ActivitiesManagementClient({
                             router.push(`/admin/activities/${activity.id}`)
                           }
                         >
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="h-4 w-4 me-2" />
                           {t("common.edit")}
                         </DropdownMenuItem>
                       )}
@@ -300,7 +300,7 @@ export default function ActivitiesManagementClient({
                           onClick={() => handleDelete(activity.id)}
                           className="text-destructive"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-4 w-4 me-2" />
                           {t("common.delete")}
                         </DropdownMenuItem>
                       )}
@@ -343,13 +343,13 @@ export default function ActivitiesManagementClient({
                   <div className="flex gap-2 flex-wrap">
                     {activity.requires_participation_approval && (
                       <Badge variant="outline" className="text-xs">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        <CheckCircle2 className="h-3 w-3 me-1" />
                         {t("activities.requiresApproval")}
                       </Badge>
                     )}
                     {activity.requires_completion_approval && (
                       <Badge variant="outline" className="text-xs">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        <CheckCircle2 className="h-3 w-3 me-1" />
                         {t("activities.requiresCompletionApproval")}
                       </Badge>
                     )}

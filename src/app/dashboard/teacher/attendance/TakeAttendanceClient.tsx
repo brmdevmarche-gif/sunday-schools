@@ -241,12 +241,12 @@ export function TakeAttendanceClient({ initialData }: TakeAttendanceClientProps)
           >
             {isSaving ? (
               <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 me-2 animate-spin" />
                 {t("saving")}
               </>
             ) : (
               <>
-                <Save className="h-5 w-5 mr-2" />
+                <Save className="h-5 w-5 me-2" />
                 {t("saveAttendance")}
               </>
             )}

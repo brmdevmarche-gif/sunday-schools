@@ -108,11 +108,11 @@ function AttendanceStudentRow({
       data-slot="attendance-student-row"
       className={cn(
         "transition-all",
-        status && "border-l-4",
-        status === "present" && "border-l-green-500",
-        status === "absent" && "border-l-red-500",
-        status === "excused" && "border-l-amber-500",
-        status === "late" && "border-l-orange-500",
+        status && "border-s-4",
+        status === "present" && "border-s-green-500",
+        status === "absent" && "border-s-red-500",
+        status === "excused" && "border-s-amber-500",
+        status === "late" && "border-s-orange-500",
         className
       )}
     >

@@ -139,7 +139,7 @@ function AnnouncementDetail({
       {/* Announcement Card */}
       <Card
         className={cn(
-          announcement.type === "urgent" && "border-l-4 border-l-red-500"
+          announcement.type === "urgent" && "border-s-4 border-s-red-500"
         )}
       >
         <CardHeader className="pb-3">

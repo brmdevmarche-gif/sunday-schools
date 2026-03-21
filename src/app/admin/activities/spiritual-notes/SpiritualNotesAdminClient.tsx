@@ -296,28 +296,28 @@ export default function SpiritualNotesAdminClient({
       case "approved":
         return (
           <Badge className="bg-green-500/10 text-green-700">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
+            <CheckCircle2 className="h-3 w-3 me-1" />
             {t("common.approved") || "Approved"}
           </Badge>
         );
       case "rejected":
         return (
           <Badge className="bg-red-500/10 text-red-700">
-            <XCircle className="h-3 w-3 mr-1" />
+            <XCircle className="h-3 w-3 me-1" />
             {t("common.rejected") || "Rejected"}
           </Badge>
         );
       case "needs_revision":
         return (
           <Badge className="bg-yellow-500/10 text-yellow-700">
-            <AlertCircle className="h-3 w-3 mr-1" />
+            <AlertCircle className="h-3 w-3 me-1" />
             {t("common.needsRevision") || "Needs Revision"}
           </Badge>
         );
       default:
         return (
           <Badge className="bg-blue-500/10 text-blue-700">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 me-1" />
             {t("common.pending") || "Pending"}
           </Badge>
         );
@@ -358,7 +358,7 @@ export default function SpiritualNotesAdminClient({
             permission="activities.create"
             onClick={() => setShowCreateDialog(true)}
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 me-2" />
             {t("spiritualNotes.admin.createTemplate") || "Create Template"}
           </PermissionButton>
         </div>
@@ -419,14 +419,14 @@ export default function SpiritualNotesAdminClient({
           <TabsList>
             {canViewSubmissions && (
               <TabsTrigger value="submissions">
-                <Heart className="h-4 w-4 mr-2" />
+                <Heart className="h-4 w-4 me-2" />
                 {t("spiritualNotes.admin.submissions") || "Submissions"} (
                 {notes.length})
               </TabsTrigger>
             )}
             {canViewTemplates && (
               <TabsTrigger value="templates">
-                <Sparkles className="h-4 w-4 mr-2" />
+                <Sparkles className="h-4 w-4 me-2" />
                 {t("spiritualNotes.admin.templates") || "Templates"} (
                 {templates.length})
               </TabsTrigger>
@@ -438,7 +438,7 @@ export default function SpiritualNotesAdminClient({
             {/* Filters */}
             <div className="flex flex-wrap gap-4">
               <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={
                     t("spiritualNotes.admin.searchPlaceholder") ||
@@ -446,7 +446,7 @@ export default function SpiritualNotesAdminClient({
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="ps-9"
                 />
               </div>
               <Select
@@ -520,7 +520,7 @@ export default function SpiritualNotesAdminClient({
                   onClick={handleBulkApprove}
                   disabled={isReviewing}
                 >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  <CheckCircle2 className="h-4 w-4 me-2" />
                   {t("spiritualNotes.admin.approveSelected") ||
                     "Approve Selected"}{" "}
                   ({selectedIds.length})
@@ -563,7 +563,7 @@ export default function SpiritualNotesAdminClient({
                     <TableHead>{t("common.date") || "Date"}</TableHead>
                     <TableHead>{t("common.points") || "Points"}</TableHead>
                     <TableHead>{t("common.status") || "Status"}</TableHead>
-                    <TableHead className="text-right">
+                    <TableHead className="text-end">
                       {t("common.actions") || "Actions"}
                     </TableHead>
                   </TableRow>
@@ -611,7 +611,7 @@ export default function SpiritualNotesAdminClient({
                         </TableCell>
                         <TableCell>{note.points_requested}</TableCell>
                         <TableCell>{getStatusBadge(note.status)}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           {canViewSubmissions && (
                             <Button
                               variant="ghost"
@@ -806,7 +806,7 @@ export default function SpiritualNotesAdminClient({
                   onClick={() => handleReview(false)}
                   disabled={isReviewing}
                 >
-                  <XCircle className="h-4 w-4 mr-2" />
+                  <XCircle className="h-4 w-4 me-2" />
                   {t("common.reject") || "Reject"}
                 </PermissionButton>
                 <PermissionButton
@@ -814,7 +814,7 @@ export default function SpiritualNotesAdminClient({
                   onClick={() => handleReview(true)}
                   disabled={isReviewing}
                 >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  <CheckCircle2 className="h-4 w-4 me-2" />
                   {t("common.approve") || "Approve"}
                 </PermissionButton>
               </>

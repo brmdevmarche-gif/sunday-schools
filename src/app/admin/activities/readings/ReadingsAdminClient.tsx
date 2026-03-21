@@ -176,7 +176,7 @@ export default function ReadingsAdminClient({
           permission="activities.create"
           onClick={() => setShowCreateDialog(true)}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 me-2" />
           {t("readings.admin.createSchedule") || "Create Schedule"}
         </PermissionButton>
       </div>
@@ -235,7 +235,7 @@ export default function ReadingsAdminClient({
                 {t("readings.admin.pointsPerDay") || "Points/Day"}
               </TableHead>
               <TableHead>{t("common.status") || "Status"}</TableHead>
-              <TableHead className="text-right">
+              <TableHead className="text-end">
                 {t("common.actions") || "Actions"}
               </TableHead>
             </TableRow>
@@ -294,7 +294,7 @@ export default function ReadingsAdminClient({
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       {canViewReadings && (
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />

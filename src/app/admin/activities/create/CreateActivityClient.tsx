@@ -401,7 +401,7 @@ export default function CreateActivityClient({
                     disabled={isLoading}
                     className="w-full"
                   >
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="me-2 h-4 w-4" />
                     {isLoading ? t("common.saving") : t("common.save")}
                   </PermissionButton>
                   <Button

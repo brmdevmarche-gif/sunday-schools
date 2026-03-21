@@ -185,19 +185,19 @@ export function PermissionSelector({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search permissions (name, code, module)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-9"
+            className="ps-9 pe-9"
           />
           {searchQuery ? (
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+              className="absolute end-1 top-1/2 -translate-y-1/2 h-8 w-8"
               onClick={clearSearch}
               aria-label="Clear search"
             >
@@ -321,7 +321,7 @@ export function PermissionSelector({
                                   >
                                     {permission.name}
                                     {isForbidden ? (
-                                      <span className="ml-2 text-[11px] text-muted-foreground">
+                                      <span className="ms-2 text-[11px] text-muted-foreground">
                                         (restricted)
                                       </span>
                                     ) : null}

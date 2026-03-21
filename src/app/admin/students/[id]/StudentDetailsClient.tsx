@@ -676,7 +676,7 @@ export default function StudentDetailsClient({
                                 }
                                 disabled={isProcessingOrder}
                               >
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
+                                <CheckCircle2 className="h-4 w-4 me-1" />
                                 {t("store.approve")}
                               </Button>
                               <Button
@@ -687,7 +687,7 @@ export default function StudentDetailsClient({
                                 }
                                 disabled={isProcessingOrder}
                               >
-                                <XCircle className="h-4 w-4 mr-1" />
+                                <XCircle className="h-4 w-4 me-1" />
                                 {t("store.reject")}
                               </Button>
                             </>
@@ -700,7 +700,7 @@ export default function StudentDetailsClient({
                               }
                               disabled={isProcessingOrder}
                             >
-                              <Package className="h-4 w-4 mr-1" />
+                              <Package className="h-4 w-4 me-1" />
                               {t("store.markFulfilled")}
                             </Button>
                           )}
@@ -733,7 +733,7 @@ export default function StudentDetailsClient({
                             <CardDescription>
                               {formatDate(order.created_at)}
                               {order.processed_at && (
-                                <span className="ml-2">
+                                <span className="ms-2">
                                   • {t("store.processedAt")} {formatDate(order.processed_at)}
                                 </span>
                               )}

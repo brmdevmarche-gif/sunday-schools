@@ -367,7 +367,7 @@ export default function CompetitionsAdminClient({
           permission="activities.create"
           onClick={() => setShowCreateDialog(true)}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 me-2" />
           {t("competitions.admin.createCompetition") || "Create Competition"}
         </PermissionButton>
       </div>
@@ -427,7 +427,7 @@ export default function CompetitionsAdminClient({
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("common.search") || "Search competitions..."}
             value={searchQuery}
@@ -463,14 +463,14 @@ export default function CompetitionsAdminClient({
         <TabsList>
           {canViewCompetitions && (
             <TabsTrigger value="competitions">
-              <Trophy className="h-4 w-4 mr-2" />
+              <Trophy className="h-4 w-4 me-2" />
               {t("competitions.title") || "Competitions"} (
               {filteredCompetitions.length})
             </TabsTrigger>
           )}
           {canManageParticipants && (
             <TabsTrigger value="submissions">
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 me-2" />
               {t("competitions.admin.pendingSubmissions") ||
                 "Pending Submissions"}{" "}
               ({pendingSubmissions.length})
@@ -493,7 +493,7 @@ export default function CompetitionsAdminClient({
                   </TableHead>
                   <TableHead>{t("common.points") || "Points"}</TableHead>
                   <TableHead>{t("common.status") || "Status"}</TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="text-end">
                     {t("common.actions") || "Actions"}
                   </TableHead>
                 </TableRow>
@@ -534,7 +534,7 @@ export default function CompetitionsAdminClient({
                           {comp.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-end">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -623,7 +623,7 @@ export default function CompetitionsAdminClient({
                     <TableHead>
                       {t("competitions.admin.type") || "Type"}
                     </TableHead>
-                    <TableHead className="text-right">
+                    <TableHead className="text-end">
                       {t("common.actions") || "Actions"}
                     </TableHead>
                   </TableRow>
@@ -655,9 +655,9 @@ export default function CompetitionsAdminClient({
                           {sub.competition?.submission_type?.replace("_", " ") ||
                             "-"}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
+                            <Eye className="h-4 w-4 me-2" />
                             {t("common.review") || "Review"}
                           </Button>
                         </TableCell>

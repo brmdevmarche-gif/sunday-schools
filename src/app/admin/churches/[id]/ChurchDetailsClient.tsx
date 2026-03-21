@@ -130,7 +130,7 @@ export function ChurchDetailsClient({
             permission="churches.update"
             onClick={() => setIsEditing(true)}
           >
-            <Edit className="h-4 w-4 mr-2" />
+            <Edit className="h-4 w-4 me-2" />
             {t("common.edit")}
           </PermissionButton>
         )}
@@ -367,7 +367,7 @@ export function ChurchDetailsClient({
                     <TableHead>{t("common.name")}</TableHead>
                     <TableHead>{t("classes.gradeLevel")}</TableHead>
                     <TableHead>{t("classes.schedule")}</TableHead>
-                    <TableHead className="text-right">
+                    <TableHead className="text-end">
                       {t("classes.capacity")}
                     </TableHead>
                     <TableHead>{t("common.status")}</TableHead>
@@ -381,7 +381,7 @@ export function ChurchDetailsClient({
                       </TableCell>
                       <TableCell>{classItem.grade_level || "-"}</TableCell>
                       <TableCell>{classItem.schedule || "-"}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-end">
                         {classItem.capacity || "-"}
                       </TableCell>
                       <TableCell>

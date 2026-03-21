@@ -109,18 +109,22 @@ export function StudentSelectionGate({
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <label htmlFor="student-search" className="sr-only">{t("common.searchStudents")}</label>
                 <Input
+                  id="student-search"
                   placeholder={t("common.searchStudents")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="ps-10"
                 />
               </div>
             </div>
             {classes.length > 0 && (
               <div className="sm:w-48">
+                <label htmlFor="class-filter" className="sr-only">{t("common.allClasses")}</label>
                 <select
+                  id="class-filter"
                   value={selectedClassId}
                   onChange={(e) => setSelectedClassId(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -159,7 +163,7 @@ export function StudentSelectionGate({
                         {student.full_name ? getInitials(student.full_name) : <Users className="h-6 w-6" />}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 text-left">
+                    <div className="flex-1 text-start">
                       <div className="font-medium">{student.full_name}</div>
                       {student.class_name && (
                         <div className="text-sm text-muted-foreground">

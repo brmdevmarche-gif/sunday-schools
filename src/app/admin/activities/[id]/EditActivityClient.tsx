@@ -147,13 +147,13 @@ export default function EditActivityClient({
           )}
           {canManageParticipants && (
             <TabsTrigger value="participants">
-              <Users className="h-4 w-4 mr-2" />
+              <Users className="h-4 w-4 me-2" />
               {t("activities.participants")}
             </TabsTrigger>
           )}
           {canManageParticipants && (
             <TabsTrigger value="completions">
-              <CheckCircle2 className="h-4 w-4 mr-2" />
+              <CheckCircle2 className="h-4 w-4 me-2" />
               {t("activities.completions")}
             </TabsTrigger>
           )}
@@ -504,7 +504,7 @@ export default function EditActivityClient({
                           disabled={isLoading}
                           className="w-full"
                         >
-                          <Save className="mr-2 h-4 w-4" />
+                          <Save className="me-2 h-4 w-4" />
                           {isLoading ? t("common.saving") : t("common.save")}
                         </Button>
                       )}

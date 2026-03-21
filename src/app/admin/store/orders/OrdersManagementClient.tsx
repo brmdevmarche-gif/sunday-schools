@@ -499,7 +499,7 @@ export default function OrdersManagementClient({
               permission="store.orders_create"
               onClick={() => router.push("/admin/store/orders/create")}
             >
-              <Package className="h-4 w-4 mr-2" />
+              <Package className="h-4 w-4 me-2" />
               {t("store.createOrderForStudent")}
             </PermissionButton>
           </div>
@@ -513,12 +513,12 @@ export default function OrdersManagementClient({
             {/* Search and Filters */}
             <div className="flex flex-1 gap-2 w-full flex-wrap">
               <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t("store.searchOrders")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="ps-9"
                 />
               </div>
               <Select
@@ -528,7 +528,7 @@ export default function OrdersManagementClient({
                 }
               >
                 <SelectTrigger className="w-[140px]">
-                  <Filter className="h-4 w-4 mr-2" />
+                  <Filter className="h-4 w-4 me-2" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -618,9 +618,9 @@ export default function OrdersManagementClient({
                 disabled={isProcessing || selectedOrders.size === 0}
               >
                 {isProcessing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
                 ) : (
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  <CheckCircle2 className="h-4 w-4 me-2" />
                 )}
                 {t("store.approveSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
@@ -633,9 +633,9 @@ export default function OrdersManagementClient({
                 disabled={isProcessing || selectedOrders.size === 0}
               >
                 {isProcessing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
                 ) : (
-                  <XCircle className="h-4 w-4 mr-2" />
+                  <XCircle className="h-4 w-4 me-2" />
                 )}
                 {t("store.rejectSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
@@ -648,9 +648,9 @@ export default function OrdersManagementClient({
                 disabled={isProcessing || selectedOrders.size === 0}
               >
                 {isProcessing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
                 ) : (
-                  <Package className="h-4 w-4 mr-2" />
+                  <Package className="h-4 w-4 me-2" />
                 )}
                 {t("store.fulfillSelected")}{" "}
                 {selectedOrders.size > 0 && `(${selectedOrders.size})`}
@@ -762,7 +762,7 @@ export default function OrdersManagementClient({
                   <div key={group.key} className="space-y-2">
                     <button
                       type="button"
-                      className="flex w-full items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-left hover:bg-muted"
+                      className="flex w-full items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-start hover:bg-muted"
                       onClick={() => toggleMonth(group.key)}
                     >
                       <div className="flex items-center gap-2">
@@ -922,7 +922,7 @@ export default function OrdersManagementClient({
                                     </div>
                                   )}
                                 </div>
-                                <div className="text-right">
+                                <div className="text-end">
                                   <p className="font-bold">
                                     {order.total_points} {t("store.points")}
                                   </p>
@@ -981,7 +981,7 @@ export default function OrdersManagementClient({
                       {selectedOrder.users?.full_name ||
                         selectedOrder.users?.email}
                       {selectedOrder.users?.user_code && (
-                        <span className="font-mono ml-2">
+                        <span className="font-mono ms-2">
                           (ID: {selectedOrder.users.user_code})
                         </span>
                       )}{" "}

@@ -632,7 +632,7 @@ export default function EditStoreItemClient({
                       variant="outline"
                       onClick={addSpecialOffer}
                     >
-                      <Plus className="h-4 w-4 mr-1" />
+                      <Plus className="h-4 w-4 me-1" />
                       {t("common.add")}
                     </Button>
                   </div>
@@ -920,7 +920,7 @@ export default function EditStoreItemClient({
               className="w-full"
               disabled={isLoading}
             >
-              <Save className="mr-2 h-4 w-4" />
+              <Save className="me-2 h-4 w-4" />
               {isLoading ? t("common.saving") : t("common.save")}
             </PermissionButton>
           </div>

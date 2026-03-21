@@ -469,12 +469,12 @@ export default function StoreClient({
         {/* Search */}
         <div className="mb-6">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder={t("store.searchItems")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="ps-9"
             />
           </div>
         </div>

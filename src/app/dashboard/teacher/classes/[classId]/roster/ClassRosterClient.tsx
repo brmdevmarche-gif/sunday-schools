@@ -63,12 +63,12 @@ export function ClassRosterClient({ students }: ClassRosterClientProps) {
     <>
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground rtl:left-auto rtl:right-3" />
+        <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder={t("searchStudents")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 rtl:pl-3 rtl:pr-9"
+          className="ps-9"
           aria-label={t("searchStudents")}
         />
       </div>

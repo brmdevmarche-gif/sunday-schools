@@ -926,8 +926,10 @@ export default function ClassesClient({
           <div className="space-y-4 py-4">
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <label htmlFor="search-class-users" className="sr-only">{t("common.search")}</label>
+              <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
+                id="search-class-users"
                 type="text"
                 placeholder={
                   t("common.search") +
@@ -938,12 +940,12 @@ export default function ClassesClient({
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="ps-9"
               />
             </div>
 
             {/* User Cards */}
-            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pe-2">
               {filteredUsers.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <UserIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />

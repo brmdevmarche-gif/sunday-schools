@@ -336,7 +336,7 @@ export default function TripDetailsClient({
                       <Calendar className="h-4 w-4 text-blue-500" />
                       {t("studentTrips.startDate")}
                     </div>
-                    <p className="text-sm text-muted-foreground pl-6">
+                    <p className="text-sm text-muted-foreground ps-6">
                       {formatDateTime(trip.start_datetime)}
                     </p>
                   </div>
@@ -348,7 +348,7 @@ export default function TripDetailsClient({
                       <Clock className="h-4 w-4 text-green-500" />
                       {t("studentTrips.endDate")}
                     </div>
-                    <p className="text-sm text-muted-foreground pl-6">
+                    <p className="text-sm text-muted-foreground ps-6">
                       {formatDateTime(trip.end_datetime)}
                     </p>
                   </div>
@@ -362,12 +362,12 @@ export default function TripDetailsClient({
                       <Users className="h-4 w-4 text-orange-500" />
                       {t("studentTrips.capacity")}
                     </div>
-                    <p className="text-sm text-muted-foreground pl-6">
+                    <p className="text-sm text-muted-foreground ps-6">
                       {t("studentTrips.maxParticipantsCount", {
                         count: trip.max_participants,
                       })}
                       {trip.participants_count !== undefined && (
-                        <span className="ml-1">
+                        <span className="ms-1">
                           ({trip.participants_count}{" "}
                           {t("studentTrips.registered")})
                         </span>
@@ -383,7 +383,7 @@ export default function TripDetailsClient({
                     <DollarSign className="h-4 w-4 text-green-500" />
                     {t("studentTrips.price")}
                   </div>
-                  <p className="text-2xl font-bold text-primary pl-6">
+                  <p className="text-2xl font-bold text-primary ps-6">
                     {getCurrencySymbol()}
                     {getUserPrice()}
                   </p>
@@ -597,7 +597,7 @@ export default function TripDetailsClient({
                         {t("studentTrips.destinations")}
                       </span>
                     </div>
-                    <div className="pl-5 space-y-1">
+                    <div className="ps-5 space-y-1">
                       {trip.destinations.slice(0, 2).map((dest, idx) => (
                         <p
                           key={dest.id}

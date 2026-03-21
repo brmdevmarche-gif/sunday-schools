@@ -308,12 +308,12 @@ export default function CreateOrderForStudentClient({
                 ) : (
                   <div className="space-y-3">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder={t("store.searchStudentPlaceholder")}
                         value={studentSearchQuery}
                         onChange={(e) => handleSearchStudents(e.target.value)}
-                        className="pl-9"
+                        className="ps-9"
                       />
                     </div>
                     {isSearchingStudents && (
@@ -327,7 +327,7 @@ export default function CreateOrderForStudentClient({
                           <button
                             key={student.id}
                             type="button"
-                            className="w-full text-left p-3 hover:bg-muted border-b last:border-b-0"
+                            className="w-full text-start p-3 hover:bg-muted border-b last:border-b-0"
                             onClick={() => handleSelectStudent(student)}
                           >
                             <p className="font-medium">
@@ -358,12 +358,12 @@ export default function CreateOrderForStudentClient({
               <CardContent>
                 {/* Item Search */}
                 <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t("store.searchItems")}
                     value={itemSearchQuery}
                     onChange={(e) => setItemSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="ps-9"
                   />
                 </div>
 
@@ -383,7 +383,7 @@ export default function CreateOrderForStudentClient({
                         <button
                           key={item.id}
                           type="button"
-                          className={`text-left p-3 border rounded-lg hover:bg-muted flex items-center gap-3 transition-colors ${
+                          className={`text-start p-3 border rounded-lg hover:bg-muted flex items-center gap-3 transition-colors ${
                             inCart ? "border-primary bg-primary/5" : ""
                           }`}
                           onClick={() => addItemToOrder(item)}

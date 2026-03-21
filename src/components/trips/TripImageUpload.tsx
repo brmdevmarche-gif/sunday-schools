@@ -235,7 +235,7 @@ export default function TripImageUpload({
                 type="button"
                 variant="destructive"
                 size="icon"
-                className="absolute top-2 right-2"
+                className="absolute top-2 end-2"
                 onClick={handleClearImage}
                 aria-label="Clear image"
               >

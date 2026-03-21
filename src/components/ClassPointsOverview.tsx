@@ -108,9 +108,9 @@ export default function ClassPointsOverview({ classId }: ClassPointsOverviewProp
               <TableRow>
                 <TableHead className="w-16">{t("rank")}</TableHead>
                 <TableHead>{t("student")}</TableHead>
-                <TableHead className="text-right">{t("availablePoints")}</TableHead>
-                <TableHead className="text-right">{t("totalEarned")}</TableHead>
-                <TableHead className="text-right w-32">Actions</TableHead>
+                <TableHead className="text-end">{t("availablePoints")}</TableHead>
+                <TableHead className="text-end">{t("totalEarned")}</TableHead>
+                <TableHead className="text-end w-32">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -124,7 +124,7 @@ export default function ClassPointsOverview({ classId }: ClassPointsOverviewProp
                     <TableCell className="font-medium">
                       {student.fullName}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <Badge
                         variant={student.availablePoints > 0 ? "default" : "secondary"}
                         className="gap-1"
@@ -133,12 +133,12 @@ export default function ClassPointsOverview({ classId }: ClassPointsOverviewProp
                         {student.availablePoints}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <span className="text-muted-foreground">
                         {student.totalEarned}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <PointsAdjustmentDialog
                         studentId={student.userId}
                         studentName={student.fullName}

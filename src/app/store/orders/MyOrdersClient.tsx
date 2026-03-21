@@ -416,7 +416,7 @@ export default function MyOrdersClient({
                     onClick={() => handleCancelOrder(selectedOrder.id)}
                     disabled={isCancelling}
                   >
-                    <X className="h-4 w-4 mr-2" />
+                    <X className="h-4 w-4 me-2" />
                     {isCancelling
                       ? t("common.cancelling")
                       : t("store.cancelOrder")}

@@ -209,8 +209,8 @@ export default function Leaderboard({
                 <TableRow>
                   <TableHead className="w-16">{t("leaderboard.rank")}</TableHead>
                   <TableHead>{t("leaderboard.student")}</TableHead>
-                  <TableHead className="text-right">{t("leaderboard.points")}</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">
+                  <TableHead className="text-end">{t("leaderboard.points")}</TableHead>
+                  <TableHead className="text-end hidden sm:table-cell">
                     {t("leaderboard.streak")}
                   </TableHead>
                 </TableRow>
@@ -221,7 +221,7 @@ export default function Leaderboard({
                     key={entry.user_id}
                     className={cn(
                       highlightUserId === entry.user_id &&
-                        "bg-primary/5 border-l-2 border-l-primary"
+                        "bg-primary/5 border-s-2 border-s-primary"
                     )}
                   >
                     <TableCell>{getRankDisplay(entry.rank)}</TableCell>
@@ -243,20 +243,20 @@ export default function Leaderboard({
                         >
                           {entry.name}
                           {highlightUserId === entry.user_id && (
-                            <Badge variant="outline" className="ml-2 text-xs">
+                            <Badge variant="outline" className="ms-2 text-xs">
                               {t("leaderboard.you")}
                             </Badge>
                           )}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <div className="flex items-center justify-end gap-1">
                         <Coins className="h-4 w-4 text-yellow-500" />
                         <span className="font-semibold">{entry.points}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right hidden sm:table-cell">
+                    <TableCell className="text-end hidden sm:table-cell">
                       {entry.streak !== undefined && entry.streak > 0 && (
                         <div className="flex items-center justify-end gap-1">
                           <Flame className="h-4 w-4 text-orange-500" />

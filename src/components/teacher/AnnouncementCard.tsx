@@ -20,7 +20,7 @@ const announcementCardVariants = cva(
       type: {
         general: "",
         class: "",
-        urgent: "border-l-4 border-l-red-500",
+        urgent: "border-s-4 border-s-red-500",
       },
       isRead: {
         true: "opacity-80",

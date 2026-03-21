@@ -255,12 +255,12 @@ export default function TripsClient({
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t("studentTrips.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="ps-9"
             />
           </div>
           <Select
@@ -373,7 +373,7 @@ export default function TripsClient({
                             {t("studentTrips.destinations")}:
                           </span>
                         </div>
-                        <div className="pl-6 space-y-1">
+                        <div className="ps-6 space-y-1">
                           {trip.destinations.slice(0, 2).map((dest, idx) => (
                             <p
                               key={dest.id}
@@ -435,7 +435,7 @@ export default function TripsClient({
                               .amount_paid || 0;
                             if (totalPrice <= 0 || amountPaid <= 0) return null;
                             return (
-                              <span className="text-xs text-muted-foreground text-right">
+                              <span className="text-xs text-muted-foreground text-end">
                                 {getCurrencySymbol()}
                                 {amountPaid.toFixed(2)} / {getCurrencySymbol()}
                                 {totalPrice.toFixed(2)}
@@ -456,7 +456,7 @@ export default function TripsClient({
                                 {t("studentTrips.approved")}
                               </span>
                               {trip.my_participation?.payment_status && (
-                                <Badge className="ml-auto">
+                                <Badge className="ms-auto">
                                   {trip.my_participation.payment_status ===
                                   "partially_paid"
                                     ? t("trips.partiallyPaid")

@@ -192,8 +192,9 @@ export default function AttendanceHistoryClient({
             </div>
 
             <div className="space-y-2">
-              <Label>{t("attendance.startDate")}</Label>
+              <Label htmlFor="attendance-start-date">{t("attendance.startDate")}</Label>
               <Input
+                id="attendance-start-date"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -202,8 +203,9 @@ export default function AttendanceHistoryClient({
             </div>
 
             <div className="space-y-2">
-              <Label>{t("attendance.endDate")}</Label>
+              <Label htmlFor="attendance-end-date">{t("attendance.endDate")}</Label>
               <Input
+                id="attendance-end-date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
@@ -215,14 +217,15 @@ export default function AttendanceHistoryClient({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("attendance.searchStudent")}</Label>
+              <Label htmlFor="search-attendance-student">{t("attendance.searchStudent")}</Label>
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute start-3 top-2.5 h-5 w-5 text-muted-foreground" />
                 <Input
+                  id="search-attendance-student"
                   placeholder={t("attendance.searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="ps-10"
                 />
               </div>
             </div>
@@ -341,7 +344,7 @@ export default function AttendanceHistoryClient({
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {record.user.user_code && (
-                                <span className="font-mono mr-2">
+                                <span className="font-mono me-2">
                                   ID: {record.user.user_code}
                                 </span>
                               )}

@@ -518,7 +518,7 @@ export default function StoreClient({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" onClick={() => setShowDemandView(false)}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="me-2 h-4 w-4" />
                 {t("common.back")}
               </Button>
               <div>
@@ -617,7 +617,7 @@ export default function StoreClient({
                 variant="outline"
                 disabled={demandGroups.length === 0}
               >
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="me-2 h-4 w-4" />
                 {t("store.exportExcel")}
               </PermissionButton>
             </div>
@@ -635,7 +635,7 @@ export default function StoreClient({
                   <div key={group.month_key} className="space-y-3">
                     <button
                       type="button"
-                      className="flex w-full items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-left hover:bg-muted"
+                      className="flex w-full items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-start hover:bg-muted"
                       onClick={() =>
                         setExpandedDemandMonths((prev) => {
                           const next = new Set(prev);
@@ -784,12 +784,12 @@ export default function StoreClient({
           {/* Search */}
           <div className="flex items-end gap-4 flex-wrap">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="ps-9"
               />
             </div>
 
@@ -905,7 +905,7 @@ export default function StoreClient({
                   <TableHead>Price (Botl)</TableHead>
                   {userRole === "super_admin" && <TableHead>Church</TableHead>}
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-end">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -981,7 +981,7 @@ export default function StoreClient({
                               {item.is_active ? "Active" : "Inactive"}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-end">
                             <div className="flex justify-end gap-2">
                               <PermissionButton
                                 permission="store.view_detail"

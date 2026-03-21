@@ -170,7 +170,7 @@ export function DioceseAdminList({
                 <TableHead>Assigned</TableHead>
                 <TableHead>Assigned By</TableHead>
                 <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-end">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -217,7 +217,7 @@ export function DioceseAdminList({
                       </span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-end">
                     <Button
                       variant="ghost"
                       size="sm"

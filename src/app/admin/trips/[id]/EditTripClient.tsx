@@ -436,7 +436,7 @@ export default function EditTripClient({
                   variant="outline"
                   size="sm"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 me-2" />
                   Add Destination
                 </Button>
               </CardHeader>
@@ -748,7 +748,7 @@ export default function EditTripClient({
               className="w-full"
               disabled={isLoading}
             >
-              <Save className="mr-2 h-4 w-4" />
+              <Save className="me-2 h-4 w-4" />
               {isLoading ? "Updating..." : "Update Trip"}
             </PermissionButton>
           </div>

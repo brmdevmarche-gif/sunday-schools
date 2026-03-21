@@ -202,7 +202,7 @@ export default function BadgeCard({
 
       {/* Secret badge indicator */}
       {badge.is_secret && !earned && (
-        <Badge variant="outline" className="absolute -top-2 -right-2 text-xs">
+        <Badge variant="outline" className="absolute -top-2 -end-2 text-xs">
           ?
         </Badge>
       )}

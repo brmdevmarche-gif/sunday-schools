@@ -450,8 +450,9 @@ export function ApprovalsClient({
           </AlertDialogHeader>
 
           <div className="py-4">
-            <label className="text-sm font-medium">{t("addNotes")}</label>
+            <label htmlFor="approval-notes" className="text-sm font-medium">{t("addNotes")}</label>
             <Textarea
+              id="approval-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t("notesPlaceholder")}

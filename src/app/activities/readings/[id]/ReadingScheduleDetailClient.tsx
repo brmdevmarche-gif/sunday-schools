@@ -299,7 +299,7 @@ export default function ReadingScheduleDetailClient({
                         <div className="shrink-0">
                           {day.is_completed ? (
                             <Badge className="bg-green-500/10 text-green-700">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              <CheckCircle2 className="h-3 w-3 me-1" />
                               +{schedule.points_per_reading}
                             </Badge>
                           ) : canComplete ? (
@@ -307,7 +307,7 @@ export default function ReadingScheduleDetailClient({
                               size="sm"
                               onClick={() => setSelectedDay(day)}
                             >
-                              <BookOpen className="h-4 w-4 mr-2" />
+                              <BookOpen className="h-4 w-4 me-2" />
                               {t("readings.markAsRead") || "Mark as Read"}
                             </Button>
                           ) : (
@@ -390,7 +390,7 @@ export default function ReadingScheduleDetailClient({
                   <FormItem>
                     <FormLabel>
                       {t("readings.verseText") || "Verse Text"}
-                      <span className="text-muted-foreground text-xs ml-1">({t("common.optional") || "optional"})</span>
+                      <span className="text-muted-foreground text-xs ms-1">({t("common.optional") || "optional"})</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
@@ -411,7 +411,7 @@ export default function ReadingScheduleDetailClient({
                   <FormItem>
                     <FormLabel>
                       {t("readings.reflection") || "Reflection"}
-                      <span className="text-muted-foreground text-xs ml-1">({t("common.optional") || "optional"})</span>
+                      <span className="text-muted-foreground text-xs ms-1">({t("common.optional") || "optional"})</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
@@ -442,7 +442,7 @@ export default function ReadingScheduleDetailClient({
                   t("readings.markingAsRead") || "Marking..."
                 ) : (
                   <>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    <CheckCircle2 className="h-4 w-4 me-2" />
                     {t("readings.confirmComplete") || "I've Read This Chapter"}
                   </>
                 )}

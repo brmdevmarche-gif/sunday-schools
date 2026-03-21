@@ -212,7 +212,7 @@ function ApprovalCard({
                 <button
                   type="button"
                   onClick={onStudentClick}
-                  className="font-medium text-foreground hover:underline focus-visible:outline-none focus-visible:underline truncate block text-left"
+                  className="font-medium text-foreground hover:underline focus-visible:outline-none focus-visible:underline truncate block text-start"
                 >
                   {student.name}
                 </button>

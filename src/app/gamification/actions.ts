@@ -391,7 +391,7 @@ export async function updateStreakAction(
     .eq("streak_type", streakType)
     .single();
 
-  let previousStreak = existing?.current_streak || 0;
+  const previousStreak = existing?.current_streak || 0;
   let newStreak = 1;
   let longestStreak = existing?.longest_streak || 0;
 

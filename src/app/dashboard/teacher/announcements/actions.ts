@@ -50,7 +50,7 @@ export async function getTeacherAnnouncements(
   const now = new Date().toISOString();
 
   // Build query for announcements
-  let query = supabase
+  const query = supabase
     .from("announcements")
     .select(
       `

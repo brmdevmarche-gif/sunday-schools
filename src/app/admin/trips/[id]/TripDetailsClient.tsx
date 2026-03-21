@@ -253,7 +253,7 @@ export default function TripDetailsClient({
 
       // Update stats
       setStats((prev) => {
-        let newStats = { ...prev };
+        const newStats = { ...prev };
 
         selectedParticipants.forEach((participantId) => {
           const participant = participants.find((p) => p.id === participantId);
@@ -352,7 +352,7 @@ export default function TripDetailsClient({
         const participant = participants.find((p) => p.id === participantId);
         if (!participant) return prev;
 
-        let newStats = { ...prev };
+        const newStats = { ...prev };
 
         // Update approval stats
         if (

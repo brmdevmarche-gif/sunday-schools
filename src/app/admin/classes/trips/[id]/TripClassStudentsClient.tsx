@@ -103,7 +103,7 @@ export default function TripClassStudentsClient({
       return cls.id === selectedClass;
     })
     .map((cls) => {
-      let filteredStudents = cls.students.filter((student) => {
+      const filteredStudents = cls.students.filter((student) => {
         // Filter by subscription status
         if (subscriptionFilter === "subscribed" && !student.isSubscribed)
           return false;

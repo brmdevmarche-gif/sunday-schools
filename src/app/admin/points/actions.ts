@@ -244,7 +244,7 @@ export async function addPointsAction(
   const supabase = createAdminClient();
 
   // Get or create balance
-  let balance = await getStudentPointsBalanceAction(userId);
+  const balance = await getStudentPointsBalanceAction(userId);
   if (!balance) {
     throw new Error("Failed to get or create points balance");
   }

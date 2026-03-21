@@ -33,7 +33,7 @@ export function useUnviewedAnnouncementsCount(refreshMs = 30000) {
       alive = false
       if (timer) clearInterval(timer)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [refreshMs])
 
   return count

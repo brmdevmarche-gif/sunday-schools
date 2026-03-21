@@ -1134,12 +1134,24 @@ export default function UsersClient({
                       <div
                         key={student.id}
                         className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer"
+                        role="button"
+                        tabIndex={0}
                         onClick={() => {
                           setSelectedChildrenIds((prev) =>
                             prev.includes(student.id)
                               ? prev.filter((id) => id !== student.id)
                               : [...prev, student.id]
                           );
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedChildrenIds((prev) =>
+                              prev.includes(student.id)
+                                ? prev.filter((id) => id !== student.id)
+                                : [...prev, student.id]
+                            );
+                          }
                         }}
                       >
                         <input

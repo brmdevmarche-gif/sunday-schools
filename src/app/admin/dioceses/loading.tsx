@@ -42,10 +42,10 @@ export default function DiocesesLoading() {
                   <TableHead>
                     <Skeleton className="h-4 w-16" />
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="text-end">
                     <Skeleton className="h-4 w-20 ms-auto" />
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="text-end">
                     <Skeleton className="h-4 w-16 ms-auto" />
                   </TableHead>
                 </TableRow>
@@ -65,10 +65,10 @@ export default function DiocesesLoading() {
                         <Skeleton className="h-4 w-28" />
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <Skeleton className="h-5 w-8 ms-auto" />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <div className="flex gap-1 justify-end">
                         <Skeleton className="h-8 w-8" />
                         <Skeleton className="h-8 w-8" />

@@ -134,7 +134,7 @@ function AttendanceHeader({
           allMarkedPresent && "bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400"
         )}
       >
-        <CheckCheck className="h-4 w-4 mr-2" aria-hidden="true" />
+        <CheckCheck className="h-4 w-4 me-2" aria-hidden="true" />
         {allMarkedPresent ? t("allMarkedPresent") : t("markAllPresent")}
       </Button>
 

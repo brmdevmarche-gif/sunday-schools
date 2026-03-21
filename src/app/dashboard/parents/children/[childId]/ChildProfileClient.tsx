@@ -75,7 +75,7 @@ export function ChildProfileClient({ childData }: ChildProfileClientProps) {
             />
 
             {/* Info */}
-            <div className="flex-1 text-center sm:text-left">
+            <div className="flex-1 text-center sm:text-start">
               <h1 className="text-2xl font-bold">
                 {child.full_name || "Unnamed"}
               </h1>

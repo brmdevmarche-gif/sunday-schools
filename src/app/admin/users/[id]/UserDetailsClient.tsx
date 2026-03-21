@@ -705,10 +705,19 @@ export default function UserDetailsClient({
                       <div
                         key={rel.id}
                         className="border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer"
+                        role="button"
+                        tabIndex={0}
                         onClick={() =>
                           relatedUser &&
                           router.push(`/admin/users/${relatedUser.id}`)
                         }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            relatedUser &&
+                              router.push(`/admin/users/${relatedUser.id}`);
+                          }
+                        }}
                       >
                         <div className="flex items-center justify-between">
                           <div>

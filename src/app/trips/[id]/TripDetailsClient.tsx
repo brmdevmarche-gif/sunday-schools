@@ -223,6 +223,7 @@ export default function TripDetailsClient({
             {trip.image_url && (
               <Card className="overflow-hidden">
                 <img
+                  role="presentation"
                   src={trip.image_url}
                   alt={trip.title}
                   className="w-full h-96 object-cover"

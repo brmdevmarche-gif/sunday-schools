@@ -269,7 +269,7 @@ function StatCard({
             <p className="text-2xl font-bold">
               {prefix}
               {value}
-              {suffix && <span className="text-sm ml-1">{suffix}</span>}
+              {suffix && <span className="text-sm ms-1">{suffix}</span>}
             </p>
             <p className="text-xs text-muted-foreground">{label}</p>
           </div>

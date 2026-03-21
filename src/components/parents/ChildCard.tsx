@@ -49,7 +49,7 @@ export function ChildCard({ child, onClick }: ChildCardProps) {
                 </h3>
                 {child.pending_approvals_count > 0 && (
                   <Badge variant="destructive" className="shrink-0">
-                    <AlertCircle className="h-3 w-3 mr-1" />
+                    <AlertCircle className="h-3 w-3 me-1" />
                     {child.pending_approvals_count}
                   </Badge>
                 )}

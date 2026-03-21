@@ -242,7 +242,7 @@ export default function ChurchPointsConfigComponent({
           </div>
 
           {config.is_trip_points_enabled && (
-            <div className="pl-7 max-w-xs">
+            <div className="ps-7 max-w-xs">
               <Label htmlFor="tripPoints">{t("participationPoints")}</Label>
               <Input
                 id="tripPoints"
@@ -287,7 +287,7 @@ export default function ChurchPointsConfigComponent({
           </div>
 
           {config.is_teacher_adjustment_enabled && (
-            <div className="pl-7 max-w-xs">
+            <div className="ps-7 max-w-xs">
               <Label htmlFor="maxAdjustment">{t("maxAdjustment")}</Label>
               <Input
                 id="maxAdjustment"
@@ -317,7 +317,7 @@ export default function ChurchPointsConfigComponent({
         {/* Save Button */}
         <div className="pt-4 border-t flex justify-end">
           <Button onClick={handleSave} disabled={saving}>
-            {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
             Save Configuration
           </Button>
         </div>

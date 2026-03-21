@@ -189,6 +189,7 @@ export function ResponsiveTable<T>({
                 {renderActions && (
                   <TableCell className="text-end">
                     <div
+                      role="presentation"
                       onClick={(e) => e.stopPropagation()}
                       className="flex justify-end gap-1"
                     >
@@ -259,6 +260,7 @@ export function ResponsiveTable<T>({
                 </div>
                 {renderActions && (
                   <div
+                    role="presentation"
                     onClick={(e) => e.stopPropagation()}
                     className="flex gap-1 shrink-0"
                   >

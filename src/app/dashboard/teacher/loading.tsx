@@ -47,7 +47,7 @@ export default function TeacherDashboardLoading() {
       </main>
 
       {/* Bottom Nav Skeleton */}
-      <div className="fixed bottom-0 left-0 right-0 border-t bg-background">
+      <div className="fixed bottom-0 inset-x-0 border-t bg-background">
         <div className="flex h-16 items-center justify-around px-2">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex flex-col items-center gap-1">

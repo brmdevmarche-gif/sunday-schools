@@ -256,7 +256,7 @@ export default function AttendanceClient({
                           ? ` - ${classes.find((cls) => cls.id === selectedClassId)?.churches?.name}`
                           : "")
                       : t("attendance.selectClass")}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0" align="start">
@@ -276,7 +276,7 @@ export default function AttendanceClient({
                           >
                             <Check
                               className={cn(
-                                "mr-2 h-4 w-4",
+                                "me-2 h-4 w-4",
                                 selectedClassId === cls.id ? "opacity-100" : "opacity-0"
                               )}
                             />
@@ -299,7 +299,7 @@ export default function AttendanceClient({
                   onChange={(e) => setSelectedDate(e.target.value)}
                   max={new Date().toISOString().split("T")[0]}
                 />
-                <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+                <Calendar className="absolute end-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
               </div>
             </div>
           </div>
@@ -435,7 +435,7 @@ export default function AttendanceClient({
                             {student.full_name || student.email}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {student.user_code && <span className="font-mono mr-2">ID: {student.user_code}</span>}
+                            {student.user_code && <span className="font-mono me-2">ID: {student.user_code}</span>}
                             {student.email}
                           </p>
                         </div>

@@ -501,6 +501,7 @@ export default function StudentsClient({
                       <TableCell className="text-end">
                         <div
                           className="flex gap-1 justify-end"
+                          role="presentation"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {canEdit && (

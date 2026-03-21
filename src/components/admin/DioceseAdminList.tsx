@@ -141,7 +141,7 @@ export function DioceseAdminList({
             </CardDescription>
           </div>
           <Button onClick={onAssignClick} size="sm">
-            <UserPlus className="h-4 w-4 mr-2" />
+            <UserPlus className="h-4 w-4 me-2" />
             Assign Admin
           </Button>
         </div>
@@ -157,7 +157,7 @@ export function DioceseAdminList({
               size="sm"
               className="mt-4"
             >
-              <UserPlus className="h-4 w-4 mr-2" />
+              <UserPlus className="h-4 w-4 me-2" />
               Assign First Admin
             </Button>
           </div>

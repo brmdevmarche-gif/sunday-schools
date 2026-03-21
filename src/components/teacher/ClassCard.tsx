@@ -142,7 +142,7 @@ function ClassCard({
               variant="secondary"
               className="shrink-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
             >
-              <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden="true" />
+              <CheckCircle2 className="me-1 h-3 w-3" aria-hidden="true" />
               {t("attendanceDone")}
             </Badge>
           ) : (
@@ -150,7 +150,7 @@ function ClassCard({
               variant="secondary"
               className="shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
             >
-              <AlertTriangle className="mr-1 h-3 w-3" aria-hidden="true" />
+              <AlertTriangle className="me-1 h-3 w-3" aria-hidden="true" />
               {t("attendancePending")}
             </Badge>
           )}
@@ -180,7 +180,7 @@ function ClassCard({
             onClick={handleRoster}
             className="min-h-11 flex-1"
           >
-            <Users className="mr-2 h-4 w-4" aria-hidden="true" />
+            <Users className="me-2 h-4 w-4" aria-hidden="true" />
             {t("roster")}
           </Button>
           <Button
@@ -189,7 +189,7 @@ function ClassCard({
             onClick={handleAttendance}
             className="min-h-11 flex-1"
           >
-            <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
+            <Calendar className="me-2 h-4 w-4" aria-hidden="true" />
             {t("attendance")}
           </Button>
           <Button
@@ -198,7 +198,7 @@ function ClassCard({
             onClick={handleStats}
             className="min-h-11 flex-1"
           >
-            <BarChart3 className="mr-2 h-4 w-4" aria-hidden="true" />
+            <BarChart3 className="me-2 h-4 w-4" aria-hidden="true" />
             {t("stats")}
           </Button>
         </div>

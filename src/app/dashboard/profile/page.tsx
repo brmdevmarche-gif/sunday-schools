@@ -151,7 +151,7 @@ export default function ProfileEditPage() {
               <div className="space-y-2">
                 <Label htmlFor="username">{t("profile.username")}</Label>
                 <div className="flex items-center">
-                  <span className="text-muted-foreground mr-1">@</span>
+                  <span className="text-muted-foreground me-1">@</span>
                   <Input
                     id="username"
                     type="text"
@@ -201,6 +201,7 @@ export default function ProfileEditPage() {
                   <div className="mt-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
+                      role="presentation"
                       src={avatarUrl}
                       alt={t("profile.avatarPreview")}
                       className="w-20 h-20 rounded-full object-cover border-2 border-border"
@@ -224,7 +225,7 @@ export default function ProfileEditPage() {
                   rows={4}
                   className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <p className="text-xs text-muted-foreground text-right">
+                <p className="text-xs text-muted-foreground text-end">
                   {bio.length}/500 {t("profile.characters")}
                 </p>
               </div>

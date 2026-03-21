@@ -134,7 +134,7 @@ export function ApprovalsClient({
             <Clock className="h-4 w-4" />
             {t("title")}
             {pendingApprovals.length > 0 && (
-              <Badge variant="destructive" className="ml-1">
+              <Badge variant="destructive" className="ms-1">
                 {pendingApprovals.length}
               </Badge>
             )}
@@ -327,7 +327,7 @@ export function ApprovalsClient({
                         <p className="text-sm text-muted-foreground">
                           {selectedApproval.price} EGP
                           {selectedApproval.price_tier !== "normal" && (
-                            <Badge variant="outline" className="ml-2">
+                            <Badge variant="outline" className="ms-2">
                               {selectedApproval.price_tier}
                             </Badge>
                           )}
@@ -404,7 +404,7 @@ export function ApprovalsClient({
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        <XCircle className="h-4 w-4 mr-2" />
+                        <XCircle className="h-4 w-4 me-2" />
                         {t("reject")}
                       </>
                     )}
@@ -418,7 +418,7 @@ export function ApprovalsClient({
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
+                        <CheckCircle className="h-4 w-4 me-2" />
                         {t("approve")}
                       </>
                     )}

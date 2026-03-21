@@ -95,7 +95,7 @@ export function PermissionGuard({
             </code>
           </p>
           <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="me-2 h-4 w-4" />
             Go Back
           </Button>
         </CardContent>

@@ -346,6 +346,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Mobile Sidebar Overlay */}
       {isMobileOpen && (
         <div
+          role="presentation"
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setIsMobileOpen(false)}
         />

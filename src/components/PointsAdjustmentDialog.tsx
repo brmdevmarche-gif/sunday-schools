@@ -178,15 +178,15 @@ export default function PointsAdjustmentDialog({
             disabled={loading || !points || !note}
             className={adjustmentType === "add" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
           >
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {loading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
             {adjustmentType === "add" ? (
               <>
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4 me-1" />
                 {t("addPoints")} ({points || 0})
               </>
             ) : (
               <>
-                <Minus className="h-4 w-4 mr-1" />
+                <Minus className="h-4 w-4 me-1" />
                 {t("deductPoints")} ({points || 0})
               </>
             )}

@@ -275,7 +275,7 @@ export default function AnnouncementForm(props: {
                 {tag}
                 <button
                   type="button"
-                  className="ml-1 text-xs opacity-70 hover:opacity-100"
+                  className="ms-1 text-xs opacity-70 hover:opacity-100"
                   onClick={() => setTypes(prev => prev.filter(tg => tg !== tag))}
                   aria-label="Remove"
                 >

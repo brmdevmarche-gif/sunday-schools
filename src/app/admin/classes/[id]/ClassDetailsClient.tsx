@@ -1120,7 +1120,7 @@ export default function ClassDetailsClient({
                                 </div>
                                 {/* Price and Category */}
                                 {tripDetails?.trip && (
-                                  <div className="text-xs text-right mt-1">
+                                  <div className="text-xs text-end mt-1">
                                     {(() => {
                                       const { tier, price } = getStudentPrice(student, tripDetails.trip);
                                       return (

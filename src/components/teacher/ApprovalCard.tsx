@@ -239,7 +239,7 @@ function ApprovalCard({
               </span>
               {parentInitiated && (
                 <Badge variant="secondary" className="text-xs">
-                  <UserCircle className="h-3 w-3 mr-1" aria-hidden="true" />
+                  <UserCircle className="h-3 w-3 me-1" aria-hidden="true" />
                   {t("parentRequested")}
                 </Badge>
               )}
@@ -258,7 +258,7 @@ function ApprovalCard({
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    <Check className="h-4 w-4 mr-1" aria-hidden="true" />
+                    <Check className="h-4 w-4 me-1" aria-hidden="true" />
                     {t("approve")}
                   </>
                 )}
@@ -274,7 +274,7 @@ function ApprovalCard({
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    <X className="h-4 w-4 mr-1" aria-hidden="true" />
+                    <X className="h-4 w-4 me-1" aria-hidden="true" />
                     {t("reject")}
                   </>
                 )}

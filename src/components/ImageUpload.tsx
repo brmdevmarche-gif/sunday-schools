@@ -165,7 +165,7 @@ export default function ImageUpload({
           }`}
           onClick={() => setUploadMethod('file')}
         >
-          <Upload className="h-4 w-4 inline mr-1" />
+          <Upload className="h-4 w-4 inline me-1" />
           Upload File
         </button>
         <button
@@ -177,7 +177,7 @@ export default function ImageUpload({
           }`}
           onClick={() => setUploadMethod('url')}
         >
-          <Link2 className="h-4 w-4 inline mr-1" />
+          <Link2 className="h-4 w-4 inline me-1" />
           Image URL
         </button>
         <button
@@ -189,7 +189,7 @@ export default function ImageUpload({
           }`}
           onClick={() => setUploadMethod('google')}
         >
-          <Cloud className="h-4 w-4 inline mr-1" />
+          <Cloud className="h-4 w-4 inline me-1" />
           Google Drive
         </button>
       </div>
@@ -250,7 +250,7 @@ export default function ImageUpload({
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
               >
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4 me-2" />
                 {uploading ? 'Uploading...' : previewUrl ? 'Change Image' : 'Upload Image'}
               </Button>
               <p className="text-xs text-muted-foreground">
@@ -274,7 +274,7 @@ export default function ImageUpload({
                 size="sm"
                 onClick={handleUrlSubmit}
               >
-                <Link2 className="h-4 w-4 mr-2" />
+                <Link2 className="h-4 w-4 me-2" />
                 Set Image URL
               </Button>
               <p className="text-xs text-muted-foreground">
@@ -298,7 +298,7 @@ export default function ImageUpload({
                 size="sm"
                 onClick={handleGoogleIdSubmit}
               >
-                <Cloud className="h-4 w-4 mr-2" />
+                <Cloud className="h-4 w-4 me-2" />
                 Use Google Drive Image
               </Button>
               <p className="text-xs text-muted-foreground">

@@ -97,6 +97,7 @@ export function DateInput({
           "transition-colors",
           !disabled && "cursor-pointer"
         )}
+        role="presentation"
         onClick={!disabled ? handleContainerClick : undefined}
       >
         {/* Calendar/Clock icon */}
@@ -317,7 +318,7 @@ export function DateTimePicker({
     return (
       <div className="grid gap-2">
         {label && <label className="text-sm font-medium">{label}</label>}
-        <div onClick={() => !disabled && setOpen(true)}>
+        <div role="presentation" onClick={() => !disabled && setOpen(true)}>
           {triggerButton}
         </div>
         <Sheet open={open} onOpenChange={setOpen}>

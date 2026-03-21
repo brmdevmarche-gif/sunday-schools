@@ -157,7 +157,7 @@ export function TripDetailsClient({ tripDetails }: TripDetailsClientProps) {
           <TabsTrigger value="participants" className="gap-1.5">
             <Users className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{t("tabs.participants")}</span>
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+            <Badge variant="secondary" className="ms-1 h-5 px-1.5">
               {approvedParticipants.length}
             </Badge>
           </TabsTrigger>

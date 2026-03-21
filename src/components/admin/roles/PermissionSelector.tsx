@@ -219,7 +219,7 @@ export function PermissionSelector({
         </div>
       </div>
 
-      <div className="max-h-[600px] overflow-y-auto pr-1">
+      <div className="max-h-[600px] overflow-y-auto pe-1">
         {visibleByModule.length === 0 ? (
           <div className="rounded-lg border p-6 text-sm text-muted-foreground">
             No permissions match your search.

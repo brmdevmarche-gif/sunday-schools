@@ -78,7 +78,7 @@ export default function ClassesLoading() {
                   <TableHead className="text-center">
                     <Skeleton className="h-4 w-14 mx-auto" />
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="text-end">
                     <Skeleton className="h-4 w-16 ms-auto" />
                   </TableHead>
                 </TableRow>
@@ -107,7 +107,7 @@ export default function ClassesLoading() {
                     <TableCell className="text-center">
                       <Skeleton className="h-6 w-16 mx-auto rounded-full" />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <div className="flex gap-1 justify-end">
                         <Skeleton className="h-8 w-8" />
                         <Skeleton className="h-8 w-8" />

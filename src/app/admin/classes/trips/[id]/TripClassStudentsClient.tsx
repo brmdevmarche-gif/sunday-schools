@@ -380,7 +380,7 @@ export default function TripClassStudentsClient({
                         {student.isSubscribed ? (
                           <>
                             <CheckCircle2 className="h-5 w-5 text-green-600" />
-                            <div className="text-xs text-right">
+                            <div className="text-xs text-end">
                               <p className="font-medium text-green-600">
                                 {t("tripClassStudents.subscribed")}
                               </p>

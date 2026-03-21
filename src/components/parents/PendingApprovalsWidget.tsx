@@ -119,7 +119,7 @@ export function PendingApprovalsWidget({
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
               {t("title")}
-              <Badge variant="destructive" className="ml-2">
+              <Badge variant="destructive" className="ms-2">
                 {approvals.length}
               </Badge>
             </CardTitle>
@@ -171,7 +171,7 @@ export function PendingApprovalsWidget({
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
-                      <XCircle className="h-4 w-4 mr-1" />
+                      <XCircle className="h-4 w-4 me-1" />
                       {t("reject")}
                     </>
                   )}
@@ -185,7 +185,7 @@ export function PendingApprovalsWidget({
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
-                      <CheckCircle className="h-4 w-4 mr-1" />
+                      <CheckCircle className="h-4 w-4 me-1" />
                       {t("approve")}
                     </>
                   )}

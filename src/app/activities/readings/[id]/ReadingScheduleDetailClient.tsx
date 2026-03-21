@@ -228,7 +228,7 @@ export default function ReadingScheduleDetailClient({
           {Object.entries(groupedDays).map(([weekStart, days]) => (
             <AccordionItem key={weekStart} value={weekStart} className="border rounded-lg overflow-hidden">
               <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50">
-                <div className="flex items-center justify-between w-full pr-4">
+                <div className="flex items-center justify-between w-full pe-4">
                   <span className="font-medium">{formatWeekLabel(weekStart)}</span>
                   <Badge variant="outline">
                     {days.filter(d => d.is_completed).length}/{days.length} {t("readings.complete") || "complete"}

@@ -256,7 +256,7 @@ export default async function DashboardPage() {
             />
 
             {/* Name and Info */}
-            <div className="flex-1 text-center sm:text-left pb-2">
+            <div className="flex-1 text-center sm:text-start pb-2">
               <h1 className="text-2xl sm:text-3xl font-bold">
                 {profile.full_name ||
                   profile.username ||
@@ -308,7 +308,7 @@ export default async function DashboardPage() {
               </div>
               <div className="flex gap-6">
                 {pointsBalance.suspended_points > 0 && (
-                  <div className="text-right">
+                  <div className="text-end">
                     <p className="text-xs text-white/70 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {t("studentHome.suspended")}
@@ -318,7 +318,7 @@ export default async function DashboardPage() {
                     </p>
                   </div>
                 )}
-                <div className="text-right">
+                <div className="text-end">
                   <p className="text-xs text-white/70 flex items-center gap-1">
                     <TrendingUp className="h-3 w-3" />
                     {t("studentHome.totalEarned")}

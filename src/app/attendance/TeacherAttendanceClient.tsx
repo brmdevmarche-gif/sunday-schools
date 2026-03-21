@@ -332,7 +332,7 @@ export default function TeacherAttendanceClient({
                             ? ` - ${classes.find((cls) => cls.id === selectedClassId)?.churches?.name}`
                             : "")
                         : t("attendance.selectClass")}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0" align="start">
@@ -352,7 +352,7 @@ export default function TeacherAttendanceClient({
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
+                                  "me-2 h-4 w-4",
                                   selectedClassId === cls.id ? "opacity-100" : "opacity-0"
                                 )}
                               />
@@ -376,7 +376,7 @@ export default function TeacherAttendanceClient({
                     max={new Date().toISOString().split("T")[0]}
                     className="h-12 text-base"
                   />
-                  <Calendar className="absolute right-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+                  <Calendar className="absolute end-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -648,7 +648,7 @@ export default function TeacherAttendanceClient({
 
       {/* Floating Save Button for Mobile */}
       {selectedClassId && attendance.size > 0 && (
-        <div className="fixed bottom-6 right-6 md:hidden">
+        <div className="fixed bottom-6 end-6 md:hidden">
           <Button
             onClick={handleSave}
             disabled={isSaving}

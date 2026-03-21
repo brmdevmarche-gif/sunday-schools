@@ -239,11 +239,23 @@ export default function BirthdaysClient({
                     <div
                       key={user.id}
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => {
                         if (user.assignment_type === "student") {
                           router.push(`/admin/students/${user.id}`);
                         } else {
                           router.push(`/admin/users/${user.id}`);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          if (user.assignment_type === "student") {
+                            router.push(`/admin/students/${user.id}`);
+                          } else {
+                            router.push(`/admin/users/${user.id}`);
+                          }
                         }
                       }}
                     >

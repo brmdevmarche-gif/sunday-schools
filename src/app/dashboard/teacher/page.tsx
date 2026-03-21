@@ -144,7 +144,7 @@ export default async function TeacherDashboardPage() {
             <h2 id="action-required-heading" className="text-lg font-semibold">
               {t("teacher.dashboard.actionRequired") || "Action Required"}
               {stats.pendingCount > 0 && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                <span className="ms-2 text-sm font-normal text-muted-foreground">
                   ({stats.pendingCount})
                 </span>
               )}

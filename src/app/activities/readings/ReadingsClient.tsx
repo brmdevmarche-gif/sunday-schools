@@ -268,12 +268,12 @@ function ReadingScheduleCard({
             >
               {progress.percentage === 100 ? (
                 <>
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  <CheckCircle2 className="h-3 w-3 me-1" />
                   {t("readings.complete") || "Complete"}
                 </>
               ) : (
                 <>
-                  <Flame className="h-3 w-3 mr-1" />
+                  <Flame className="h-3 w-3 me-1" />
                   {progress.percentage}%
                 </>
               )}
@@ -281,7 +281,7 @@ function ReadingScheduleCard({
           )}
           {isUpcoming && (
             <Badge variant="outline" className="bg-purple-500/10 text-purple-700 border-purple-200">
-              <Calendar className="h-3 w-3 mr-1" />
+              <Calendar className="h-3 w-3 me-1" />
               {t("readings.upcoming") || "Upcoming"}
             </Badge>
           )}
@@ -328,7 +328,7 @@ function ReadingScheduleCard({
         {!isUpcoming && !isPast && onViewDetails && (
           <Button variant="outline" className="w-full" onClick={onViewDetails}>
             {t("readings.viewSchedule") || "View Schedule"}
-            <ChevronRight className="h-4 w-4 ml-2 rtl:rotate-180" />
+            <ChevronRight className="h-4 w-4 ms-2 rtl:rotate-180" />
           </Button>
         )}
 

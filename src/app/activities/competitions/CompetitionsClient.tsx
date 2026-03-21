@@ -84,9 +84,9 @@ export default function CompetitionsClient({
         3: "bg-amber-600/20 text-amber-700 border-amber-300",
       };
       const icons = {
-        1: <Medal className="h-3 w-3 mr-1" />,
-        2: <Medal className="h-3 w-3 mr-1" />,
-        3: <Medal className="h-3 w-3 mr-1" />,
+        1: <Medal className="h-3 w-3 me-1" />,
+        2: <Medal className="h-3 w-3 me-1" />,
+        3: <Medal className="h-3 w-3 me-1" />,
       };
       return (
         <Badge className={colors[ranking as 1 | 2 | 3]}>
@@ -104,28 +104,28 @@ export default function CompetitionsClient({
       case "approved":
         return (
           <Badge className="bg-green-500/10 text-green-700">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
+            <CheckCircle2 className="h-3 w-3 me-1" />
             {t("status.approved") || "Approved"}
           </Badge>
         );
       case "rejected":
         return (
           <Badge className="bg-red-500/10 text-red-700">
-            <XCircle className="h-3 w-3 mr-1" />
+            <XCircle className="h-3 w-3 me-1" />
             {t("status.rejected") || "Rejected"}
           </Badge>
         );
       case "needs_revision":
         return (
           <Badge className="bg-yellow-500/10 text-yellow-700">
-            <AlertCircle className="h-3 w-3 mr-1" />
+            <AlertCircle className="h-3 w-3 me-1" />
             {t("status.needsRevision") || "Needs Revision"}
           </Badge>
         );
       default:
         return (
           <Badge className="bg-blue-500/10 text-blue-700">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 me-1" />
             {t("status.pending") || "Under Review"}
           </Badge>
         );
@@ -279,7 +279,7 @@ export default function CompetitionsClient({
                             </p>
                           )}
                         </div>
-                        <div className="text-right space-y-2">
+                        <div className="text-end space-y-2">
                           {getStatusBadge(submission.status, submission.ranking)}
                           {submission.status === "approved" && submission.points_awarded > 0 && (
                             <p className="text-sm font-medium text-green-600">
@@ -334,6 +334,7 @@ function CompetitionCard({
       <div className="aspect-video bg-muted overflow-hidden">
         {competition.image_url && !imageError ? (
           <img
+            role="presentation"
             src={competition.image_url}
             alt={competition.name}
             className="h-full w-full object-cover"
@@ -352,7 +353,7 @@ function CompetitionCard({
             <CardDescription className="mt-1">{competition.description}</CardDescription>
           </div>
           <Badge variant="outline" className="shrink-0">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 me-1" />
             {timeRemaining}
           </Badge>
         </div>
@@ -373,14 +374,14 @@ function CompetitionCard({
 
         {hasSubmitted ? (
           <Badge className="w-full justify-center py-2 bg-green-500/10 text-green-700">
-            <CheckCircle2 className="h-4 w-4 mr-2" />
+            <CheckCircle2 className="h-4 w-4 me-2" />
             {t("competitions.submitted") || "Already Submitted"}
           </Badge>
         ) : (
           <Badge className="w-full justify-center py-2" variant="outline">
-            {competition.submission_type === "text" && <FileText className="h-4 w-4 mr-2" />}
-            {competition.submission_type === "pdf_upload" && <Upload className="h-4 w-4 mr-2" />}
-            {competition.submission_type === "google_form" && <ExternalLink className="h-4 w-4 mr-2" />}
+            {competition.submission_type === "text" && <FileText className="h-4 w-4 me-2" />}
+            {competition.submission_type === "pdf_upload" && <Upload className="h-4 w-4 me-2" />}
+            {competition.submission_type === "google_form" && <ExternalLink className="h-4 w-4 me-2" />}
             {t("competitions.clickToParticipate") || "Click to participate"}
           </Badge>
         )}

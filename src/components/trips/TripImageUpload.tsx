@@ -127,15 +127,15 @@ export default function TripImageUpload({
       >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upload">
-            <Upload className="h-4 w-4 mr-2" />
+            <Upload className="h-4 w-4 me-2" />
             Upload
           </TabsTrigger>
           <TabsTrigger value="url">
-            <Link className="h-4 w-4 mr-2" />
+            <Link className="h-4 w-4 me-2" />
             URL
           </TabsTrigger>
           <TabsTrigger value="drive">
-            <HardDrive className="h-4 w-4 mr-2" />
+            <HardDrive className="h-4 w-4 me-2" />
             Google Drive
           </TabsTrigger>
         </TabsList>
@@ -223,6 +223,7 @@ export default function TripImageUpload({
           <CardContent className="p-4">
             <div className="relative">
               <img
+                role="presentation"
                 src={imageUrl}
                 alt="Trip preview"
                 className="w-full h-48 object-cover rounded-lg"

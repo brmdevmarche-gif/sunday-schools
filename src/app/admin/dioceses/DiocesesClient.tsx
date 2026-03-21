@@ -298,8 +298,8 @@ export default function DiocesesClient({
                   ),
                   mobileLabel: t("dioceses.churches"),
                   cell: (diocese) => diocese.churchCount,
-                  headerClassName: "text-right",
-                  cellClassName: "text-right",
+                  headerClassName: "text-end",
+                  cellClassName: "text-end",
                 },
               ]}
               getRowKey={(diocese) => diocese.id}

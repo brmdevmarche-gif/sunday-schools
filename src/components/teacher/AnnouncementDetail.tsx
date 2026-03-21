@@ -90,7 +90,7 @@ function AnnouncementDetail({
       <div className={cn("text-center py-12", className)}>
         <p className="text-muted-foreground">{t("notFound")}</p>
         <Button variant="ghost" onClick={onBack} className="mt-4">
-          <ArrowLeft className="h-4 w-4 mr-2 rtl:rotate-180" />
+          <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" />
           {t("backToList")}
         </Button>
       </div>

@@ -303,6 +303,7 @@ export default function TripsManagementClient({
               {trip.image_url && (
                 <div className="w-full h-48 overflow-hidden">
                   <img
+                    role="presentation"
                     src={trip.image_url}
                     alt={trip.title}
                     className="w-full h-full object-cover"

@@ -180,7 +180,7 @@ function StudentAttendanceTab({
           <CardContent className="py-2 px-1">
             <div className="flex items-center justify-center text-green-600 dark:text-green-400">
               <Check className="h-4 w-4" aria-hidden="true" />
-              <span className="font-bold ml-1">{data.presentDays}</span>
+              <span className="font-bold ms-1">{data.presentDays}</span>
             </div>
             <p className="text-[10px] text-muted-foreground">{t("present")}</p>
           </CardContent>
@@ -189,7 +189,7 @@ function StudentAttendanceTab({
           <CardContent className="py-2 px-1">
             <div className="flex items-center justify-center text-red-600 dark:text-red-400">
               <X className="h-4 w-4" aria-hidden="true" />
-              <span className="font-bold ml-1">{data.absentDays}</span>
+              <span className="font-bold ms-1">{data.absentDays}</span>
             </div>
             <p className="text-[10px] text-muted-foreground">{t("absent")}</p>
           </CardContent>
@@ -198,7 +198,7 @@ function StudentAttendanceTab({
           <CardContent className="py-2 px-1">
             <div className="flex items-center justify-center text-orange-600 dark:text-orange-400">
               <Clock className="h-4 w-4" aria-hidden="true" />
-              <span className="font-bold ml-1">{data.lateDays}</span>
+              <span className="font-bold ms-1">{data.lateDays}</span>
             </div>
             <p className="text-[10px] text-muted-foreground">{t("late")}</p>
           </CardContent>
@@ -207,7 +207,7 @@ function StudentAttendanceTab({
           <CardContent className="py-2 px-1">
             <div className="flex items-center justify-center text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-              <span className="font-bold ml-1">{data.excusedDays}</span>
+              <span className="font-bold ms-1">{data.excusedDays}</span>
             </div>
             <p className="text-[10px] text-muted-foreground">{t("excused")}</p>
           </CardContent>

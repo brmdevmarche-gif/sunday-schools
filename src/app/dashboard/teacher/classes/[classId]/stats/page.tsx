@@ -165,7 +165,7 @@ export default async function ClassStatsPage({ params }: PageProps) {
                     />
                   </div>
                   <span
-                    className={`w-12 text-right text-sm font-medium ${getAttendanceTextColor(
+                    className={`w-12 text-end text-sm font-medium ${getAttendanceTextColor(
                       day.rate
                     )}`}
                   >

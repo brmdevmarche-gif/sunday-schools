@@ -446,13 +446,13 @@ export default function CompetitionDetailClient({
                   {competition.submission_type === "google_form" && competition.google_form_url ? (
                     <Button asChild>
                       <a href={competition.google_form_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
+                        <ExternalLink className="h-4 w-4 me-2" />
                         {t("competitions.openForm") || "Open Form"}
                       </a>
                     </Button>
                   ) : (
                     <Button onClick={() => setShowSubmitDialog(true)}>
-                      <Send className="h-4 w-4 mr-2" />
+                      <Send className="h-4 w-4 me-2" />
                       {t("competitions.submit") || "Submit"}
                     </Button>
                   )}
@@ -558,7 +558,7 @@ export default function CompetitionDetailClient({
                       t("competitions.submitting") || "Submitting..."
                     ) : (
                       <>
-                        <Send className="h-4 w-4 mr-2" />
+                        <Send className="h-4 w-4 me-2" />
                         {t("competitions.submitNow") || "Submit Now"}
                       </>
                     )}
@@ -596,7 +596,7 @@ export default function CompetitionDetailClient({
                     {selectedFile ? (
                       <div className="flex items-center justify-center gap-2">
                         <FileText className="h-8 w-8 text-primary" />
-                        <div className="text-left">
+                        <div className="text-start">
                           <p className="font-medium">{selectedFile.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
@@ -635,7 +635,7 @@ export default function CompetitionDetailClient({
                   className="w-full"
                   onClick={handlePdfSubmit}
                 >
-                  <Send className="h-4 w-4 mr-2" />
+                  <Send className="h-4 w-4 me-2" />
                   {t("competitions.submitNow") || "Submit Now"}
                 </Button>
               </div>

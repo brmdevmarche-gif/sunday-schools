@@ -186,7 +186,7 @@ export function ActionRequiredContent({
             {option.count > 0 && (
               <span
                 className={cn(
-                  "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
+                  "ms-1.5 rounded-full px-1.5 py-0.5 text-xs",
                   filter === option.value
                     ? "bg-primary-foreground/20"
                     : "bg-muted"

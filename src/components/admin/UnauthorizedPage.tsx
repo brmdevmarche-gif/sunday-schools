@@ -72,7 +72,7 @@ export function UnauthorizedPage({
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button variant="outline" className="flex-1" asChild>
               <Link href="/admin">
-                <Home className="mr-2 h-4 w-4" />
+                <Home className="me-2 h-4 w-4" />
                 Go to Admin Dashboard
               </Link>
             </Button>
@@ -81,7 +81,7 @@ export function UnauthorizedPage({
               className="flex-1"
               onClick={() => router.back()}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="me-2 h-4 w-4" />
               Go Back
             </Button>
           </div>

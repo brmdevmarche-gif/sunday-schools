@@ -207,28 +207,28 @@ export default function SpiritualNotesClient({
       case "approved":
         return (
           <Badge className="bg-green-500/10 text-green-700">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
+            <CheckCircle2 className="h-3 w-3 me-1" />
             {t("status.approved") || "Approved"}
           </Badge>
         );
       case "rejected":
         return (
           <Badge className="bg-red-500/10 text-red-700">
-            <XCircle className="h-3 w-3 mr-1" />
+            <XCircle className="h-3 w-3 me-1" />
             {t("status.rejected") || "Rejected"}
           </Badge>
         );
       case "needs_revision":
         return (
           <Badge className="bg-yellow-500/10 text-yellow-700">
-            <AlertCircle className="h-3 w-3 mr-1" />
+            <AlertCircle className="h-3 w-3 me-1" />
             {t("status.needsRevision") || "Needs Revision"}
           </Badge>
         );
       default:
         return (
           <Badge className="bg-blue-500/10 text-blue-700">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 me-1" />
             {t("status.pending") || "Pending"}
           </Badge>
         );
@@ -279,7 +279,7 @@ export default function SpiritualNotesClient({
             <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
               <DialogTrigger asChild>
                 <Button className="flex items-center justify-center w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 me-2" />
                   {t("spiritualNotes.addNote") || "Add Note"}
                 </Button>
               </DialogTrigger>
@@ -560,7 +560,7 @@ export default function SpiritualNotesClient({
                   "Start tracking your spiritual journey"}
               </p>
               <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 me-2" />
                 {t("spiritualNotes.addFirst") || "Add Your First Note"}
               </Button>
             </CardContent>

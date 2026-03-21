@@ -384,7 +384,7 @@ export default function SettingsClient({
 
               <div className="flex items-center gap-2">
                 <Button onClick={handleCreateBackup} disabled={isCreatingBackup}>
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="me-2 h-4 w-4" />
                   {isCreatingBackup ? t('common.loading') : t('settings.createBackup')}
                 </Button>
                 <p className="text-sm text-muted-foreground">

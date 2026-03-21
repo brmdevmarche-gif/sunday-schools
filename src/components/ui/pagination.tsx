@@ -209,6 +209,8 @@ export function Pagination({
                 variant={pageNum === currentPage ? "default" : "outline"}
                 size="icon"
                 onClick={() => onPageChange(pageNum)}
+                aria-label={`Page ${pageNum}`}
+                aria-current={pageNum === currentPage ? "page" : undefined}
                 className="h-9 w-9"
               >
                 {pageNum}

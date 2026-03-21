@@ -105,7 +105,8 @@
     "roles": "Roles",
     "settings": "Settings",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "menu": "Menu"
   },
   "roles": {
     "super_admin": "Super Admin",
@@ -748,7 +749,7 @@
     "availablePoints": "Available Points",
     "cartTotal": "Cart Total",
     "remaining": "Remaining",
-    "insufficientPoints": "Insufficient points. Available: {available}, Required: {required}",
+    "insufficientPoints": "Insufficient points. This order requires {required} points but the student only has {available} points available.",
     "insufficientPointsWarning": "You don't have enough points. Available: {available}, Required: {required}. You need {shortfall} more points.",
     "remainingPoints": "You will have {remaining} points remaining after this order",
     "deselectAll": "Deselect all",
@@ -796,10 +797,7 @@
     "searchStudentDescription": "Search for a student by name, email, or user ID to create an order for them.",
     "selectItemsDescription": "Click on items to add them to the order.",
     "orderSummary": "Order Summary",
-    "availablePoints": "Available Points",
-    "insufficientPoints": "Insufficient points. This order requires {required} points but the student only has {available} points available.",
     "totalOrders": "Total Orders",
-    "totalQuantity": "Total Quantity",
     "totalRevenue": "Total Revenue",
     "fulfillmentRate": "Fulfillment Rate",
     "itemsSold": "items sold",

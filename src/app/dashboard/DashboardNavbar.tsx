@@ -175,6 +175,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
               <Button
                 variant={isScrolled ? "outline" : "secondary"}
                 size="icon"
+                aria-label={t("nav.announcements")}
                 className={`relative shrink-0 ${
                   !isScrolled
                     ? "bg-white/20 hover:bg-white/30 border-white/30"
@@ -202,6 +203,7 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
                 <Button
                   variant={isScrolled ? "outline" : "secondary"}
                   size="icon"
+                  aria-label={t("nav.menu")}
                   className={`shrink-0 ${
                     !isScrolled
                       ? "bg-white/20 hover:bg-white/30 border-white/30"

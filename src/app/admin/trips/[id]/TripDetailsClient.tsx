@@ -1311,7 +1311,6 @@ export default function TripDetailsClient({
                             const amountPaid = participant.amount_paid || 0;
                             const amountRemaining = Math.max(0, tripPrice - amountPaid);
                             const progressPercentage = tripPrice > 0 ? (amountPaid / tripPrice) * 100 : 0;
-                            const locale = useLocale();
                             const currencySymbol = locale === "ar" ? "ج.م" : "E.L";
                             
                             return (

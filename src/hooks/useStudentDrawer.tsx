@@ -94,7 +94,7 @@ export function useStudentDrawer(): UseStudentDrawerReturn {
 }
 
 // Context for sharing drawer state across components
-interface StudentDrawerContextValue extends UseStudentDrawerReturn {}
+type StudentDrawerContextValue = UseStudentDrawerReturn;
 
 const StudentDrawerContext = React.createContext<StudentDrawerContextValue | null>(
   null

@@ -16,7 +16,7 @@ import type { ParentChild, PendingApproval, Notification } from "@/lib/types";
 interface ParentDashboardClientProps {
   parentName: string | null;
   parentAvatar: string | null;
-  children: ParentChild[];
+  parentChildren: ParentChild[];
   pendingApprovals: PendingApproval[];
   notifications: Notification[];
   unreadNotificationsCount: number;
@@ -25,7 +25,7 @@ interface ParentDashboardClientProps {
 export function ParentDashboardClient({
   parentName,
   parentAvatar,
-  children,
+  parentChildren,
   pendingApprovals,
   notifications,
   unreadNotificationsCount,
@@ -76,7 +76,7 @@ export function ParentDashboardClient({
                 <Users className="h-6 w-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{children.length}</p>
+                <p className="text-2xl font-bold">{parentChildren.length}</p>
                 <p className="text-sm text-muted-foreground">
                   {t("children.title")}
                 </p>
@@ -130,7 +130,7 @@ export function ParentDashboardClient({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {children.length === 0 ? (
+              {parentChildren.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p className="font-medium">{t("dashboard.noChildren")}</p>
@@ -140,7 +140,7 @@ export function ParentDashboardClient({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {children.map((child) => (
+                  {parentChildren.map((child) => (
                     <ChildCard
                       key={child.id}
                       child={child}

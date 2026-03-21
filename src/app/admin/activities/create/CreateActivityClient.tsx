@@ -41,18 +41,6 @@ export default function CreateActivityClient({
   const router = useRouter();
   const canCreate = useHasPermission("activities.create");
   const [isLoading, setIsLoading] = useState(false);
-
-  // Redirect if no permission
-  useEffect(() => {
-    if (!canCreate) {
-      router.push("/admin/activities");
-    }
-  }, [canCreate, router]);
-
-  if (!canCreate) {
-    return null;
-  }
-
   const [formData, setFormData] = useState<Partial<CreateActivityInput>>({
     name: "",
     description: "",
@@ -64,6 +52,17 @@ export default function CreateActivityClient({
     is_time_sensitive: false,
     status: "draft" as ActivityStatus,
   });
+
+  // Redirect if no permission
+  useEffect(() => {
+    if (!canCreate) {
+      router.push("/admin/activities");
+    }
+  }, [canCreate, router]);
+
+  if (!canCreate) {
+    return null;
+  }
 
   function handleInputChange(
     field: string,

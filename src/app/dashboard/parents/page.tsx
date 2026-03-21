@@ -63,7 +63,7 @@ export default async function ParentDashboardPage() {
       <ParentDashboardClient
         parentName={profile.full_name}
         parentAvatar={profile.avatar_url}
-        children={children}
+        parentChildren={children}
         pendingApprovals={pendingApprovals}
         notifications={notifications}
         unreadNotificationsCount={unreadCount}

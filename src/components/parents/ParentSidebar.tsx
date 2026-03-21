@@ -41,11 +41,185 @@ import {
   ChevronLeft,
   Plus,
   Star,
-  Check,
 } from "lucide-react";
 import type { ParentChild } from "@/lib/types";
 
 type ChildRequiredAction = "store" | "trips" | "activities" | null;
+
+// --- Extracted sub-components (moved outside ParentSidebar to avoid "Cannot create components during render") ---
+
+function NavLink({
+  href,
+  icon: Icon,
+  label,
+  badge,
+  disabled,
+  onClose,
+  active,
+  chevronIcon: ChevronIcon,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  badge?: number;
+  disabled?: boolean;
+  onClose: () => void;
+  active: boolean;
+  chevronIcon: React.ElementType;
+}) {
+  return (
+    <Link
+      href={disabled ? "#" : href}
+      onClick={() => !disabled && onClose()}
+      className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+        active
+          ? "bg-primary/10 text-primary"
+          : disabled
+          ? "opacity-50 cursor-not-allowed text-muted-foreground"
+          : "hover:bg-accent hover:text-accent-foreground"
+      }`}
+    >
+      <span className="flex items-center gap-3">
+        <Icon className="h-5 w-5" />
+        <span>{label}</span>
+      </span>
+      <span className="flex items-center gap-2">
+        {badge !== undefined && badge > 0 && (
+          <Badge variant="destructive" className="text-xs px-2 py-0.5">
+            {badge > 99 ? "99+" : badge}
+          </Badge>
+        )}
+        {!disabled && <ChevronIcon className="h-4 w-4 text-muted-foreground" />}
+      </span>
+    </Link>
+  );
+}
+
+function ChildRequiredNavButton({
+  icon: Icon,
+  label,
+  action,
+  onAction,
+  chevronIcon: ChevronIcon,
+}: {
+  icon: React.ElementType;
+  label: string;
+  action: ChildRequiredAction;
+  onAction: (action: ChildRequiredAction) => void;
+  chevronIcon: React.ElementType;
+}) {
+  return (
+    <button
+      onClick={() => onAction(action)}
+      className="flex items-center justify-between px-3 py-2.5 w-full rounded-lg transition-colors hover:bg-accent hover:text-accent-foreground"
+    >
+      <span className="flex items-center gap-3">
+        <Icon className="h-5 w-5" />
+        <span>{label}</span>
+      </span>
+      <ChevronIcon className="h-4 w-4 text-muted-foreground" />
+    </button>
+  );
+}
+
+function ChildNavItem({
+  child,
+  onClose,
+  active,
+  initials,
+  noClassLabel,
+  chevronIcon: ChevronIcon,
+}: {
+  child: ParentChild;
+  onClose: () => void;
+  active: boolean;
+  initials: string;
+  noClassLabel: string;
+  chevronIcon: React.ElementType;
+}) {
+  return (
+    <Link
+      href={`/dashboard/parents/children/${child.id}`}
+      onClick={() => onClose()}
+      className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+        active
+          ? "bg-primary/10 text-primary"
+          : "hover:bg-accent hover:text-accent-foreground"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <OptimizedAvatar
+          src={child.avatar_url}
+          alt={child.full_name}
+          fallback={initials}
+          size="sm"
+          className="h-8 w-8 border border-primary/20"
+          fallbackClassName="text-xs bg-primary/20 text-primary"
+        />
+        <div className="flex flex-col">
+          <span className="font-medium text-sm">{child.full_name}</span>
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            {child.class_name || noClassLabel}
+            <span className="text-amber-600 flex items-center gap-0.5">
+              <Star className="h-3 w-3 fill-current" />
+              {child.points_balance}
+            </span>
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {child.pending_approvals_count > 0 && (
+          <Badge variant="destructive" className="text-xs">
+            {child.pending_approvals_count}
+          </Badge>
+        )}
+        <ChevronIcon className="h-4 w-4 text-muted-foreground" />
+      </div>
+    </Link>
+  );
+}
+
+function ChildSelectorItem({
+  child,
+  onSelect,
+  initials,
+  chevronIcon: ChevronIcon,
+}: {
+  child: ParentChild;
+  onSelect: (childId: string) => void;
+  initials: string;
+  chevronIcon: React.ElementType;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(child.id)}
+      className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <OptimizedAvatar
+          src={child.avatar_url}
+          alt={child.full_name}
+          fallback={initials}
+          size="md"
+          className="h-10 w-10"
+        />
+        <div className="text-start">
+          <p className="font-medium">{child.full_name}</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {child.class_name && <span>{child.class_name}</span>}
+            <span className="flex items-center gap-1 text-amber-600">
+              <Star className="h-3 w-3 fill-current" />
+              {child.points_balance}
+            </span>
+          </div>
+        </div>
+      </div>
+      <ChevronIcon className="h-5 w-5 text-muted-foreground" />
+    </button>
+  );
+}
+
+// --- End extracted sub-components ---
 
 interface ParentSidebarProps {
   parentName: string | null;
@@ -151,136 +325,7 @@ export function ParentSidebar({
     }
   };
 
-  const NavLink = ({
-    href,
-    icon: Icon,
-    label,
-    badge,
-    disabled,
-  }: {
-    href: string;
-    icon: React.ElementType;
-    label: string;
-    badge?: number;
-    disabled?: boolean;
-  }) => (
-    <Link
-      href={disabled ? "#" : href}
-      onClick={() => !disabled && setIsOpen(false)}
-      className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-        isActive(href)
-          ? "bg-primary/10 text-primary"
-          : disabled
-          ? "opacity-50 cursor-not-allowed text-muted-foreground"
-          : "hover:bg-accent hover:text-accent-foreground"
-      }`}
-    >
-      <span className="flex items-center gap-3">
-        <Icon className="h-5 w-5" />
-        <span>{label}</span>
-      </span>
-      <span className="flex items-center gap-2">
-        {badge !== undefined && badge > 0 && (
-          <Badge variant="destructive" className="text-xs px-2 py-0.5">
-            {badge > 99 ? "99+" : badge}
-          </Badge>
-        )}
-        {!disabled && <ChevronIcon className="h-4 w-4 text-muted-foreground" />}
-      </span>
-    </Link>
-  );
-
-  // Button that requires child selection
-  const ChildRequiredNavButton = ({
-    icon: Icon,
-    label,
-    action,
-  }: {
-    icon: React.ElementType;
-    label: string;
-    action: ChildRequiredAction;
-  }) => (
-    <button
-      onClick={() => handleChildRequiredNav(action)}
-      className="flex items-center justify-between px-3 py-2.5 w-full rounded-lg transition-colors hover:bg-accent hover:text-accent-foreground"
-    >
-      <span className="flex items-center gap-3">
-        <Icon className="h-5 w-5" />
-        <span>{label}</span>
-      </span>
-      <ChevronIcon className="h-4 w-4 text-muted-foreground" />
-    </button>
-  );
-
-  const ChildNavItem = ({ child }: { child: ParentChild }) => (
-    <Link
-      href={`/dashboard/parents/children/${child.id}`}
-      onClick={() => setIsOpen(false)}
-      className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-        isChildActive(child.id)
-          ? "bg-primary/10 text-primary"
-          : "hover:bg-accent hover:text-accent-foreground"
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <OptimizedAvatar
-          src={child.avatar_url}
-          alt={child.full_name}
-          fallback={getInitials(child.full_name)}
-          size="sm"
-          className="h-8 w-8 border border-primary/20"
-          fallbackClassName="text-xs bg-primary/20 text-primary"
-        />
-        <div className="flex flex-col">
-          <span className="font-medium text-sm">{child.full_name}</span>
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            {child.class_name || t("parents.children.noClass")}
-            <span className="text-amber-600 flex items-center gap-0.5">
-              <Star className="h-3 w-3 fill-current" />
-              {child.points_balance}
-            </span>
-          </span>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {child.pending_approvals_count > 0 && (
-          <Badge variant="destructive" className="text-xs">
-            {child.pending_approvals_count}
-          </Badge>
-        )}
-        <ChevronIcon className="h-4 w-4 text-muted-foreground" />
-      </div>
-    </Link>
-  );
-
-  // Child selector item for the dialog
-  const ChildSelectorItem = ({ child }: { child: ParentChild }) => (
-    <button
-      onClick={() => handleChildSelect(child.id)}
-      className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        <OptimizedAvatar
-          src={child.avatar_url}
-          alt={child.full_name}
-          fallback={getInitials(child.full_name)}
-          size="md"
-          className="h-10 w-10"
-        />
-        <div className="text-start">
-          <p className="font-medium">{child.full_name}</p>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {child.class_name && <span>{child.class_name}</span>}
-            <span className="flex items-center gap-1 text-amber-600">
-              <Star className="h-3 w-3 fill-current" />
-              {child.points_balance}
-            </span>
-          </div>
-        </div>
-      </div>
-      <ChevronIcon className="h-5 w-5 text-muted-foreground" />
-    </button>
-  );
+  const closeSheet = () => setIsOpen(false);
 
   return (
     <>
@@ -324,6 +369,9 @@ export function ParentSidebar({
                 href="/dashboard/parents"
                 icon={Home}
                 label={t("nav.dashboard")}
+                onClose={closeSheet}
+                active={isActive("/dashboard/parents")}
+                chevronIcon={ChevronIcon}
               />
             </div>
 
@@ -339,7 +387,15 @@ export function ParentSidebar({
                   </p>
                 ) : (
                   children.map((child) => (
-                    <ChildNavItem key={child.id} child={child} />
+                    <ChildNavItem
+                      key={child.id}
+                      child={child}
+                      onClose={closeSheet}
+                      active={isChildActive(child.id)}
+                      initials={getInitials(child.full_name)}
+                      noClassLabel={t("parents.children.noClass")}
+                      chevronIcon={ChevronIcon}
+                    />
                   ))
                 )}
                 <button
@@ -369,18 +425,27 @@ export function ParentSidebar({
                   icon={AlertCircle}
                   label={t("parents.approvals.title")}
                   badge={pendingApprovalsCount}
+                  onClose={closeSheet}
+                  active={isActive("/dashboard/parents/approvals")}
+                  chevronIcon={ChevronIcon}
                 />
                 <NavLink
                   href="/dashboard/parents/notifications"
                   icon={Bell}
                   label={t("parents.notifications.title")}
                   badge={unreadNotificationsCount}
+                  onClose={closeSheet}
+                  active={isActive("/dashboard/parents/notifications")}
+                  chevronIcon={ChevronIcon}
                 />
                 <NavLink
                   href="/announcements"
                   icon={Megaphone}
                   label={t("nav.announcements")}
                   badge={unreadAnnouncementsCount}
+                  onClose={closeSheet}
+                  active={isActive("/announcements")}
+                  chevronIcon={ChevronIcon}
                 />
               </div>
             </div>
@@ -395,21 +460,30 @@ export function ParentSidebar({
                   icon={ShoppingBag}
                   label={t("parents.nav.store")}
                   action="store"
+                  onAction={handleChildRequiredNav}
+                  chevronIcon={ChevronIcon}
                 />
                 <NavLink
                   href="/dashboard/parents/orders"
                   icon={ShoppingCart}
                   label={t("parents.nav.orders")}
+                  onClose={closeSheet}
+                  active={isActive("/dashboard/parents/orders")}
+                  chevronIcon={ChevronIcon}
                 />
                 <ChildRequiredNavButton
                   icon={Bus}
                   label={t("parents.nav.trips")}
                   action="trips"
+                  onAction={handleChildRequiredNav}
+                  chevronIcon={ChevronIcon}
                 />
                 <ChildRequiredNavButton
                   icon={Activity}
                   label={t("parents.nav.activities")}
                   action="activities"
+                  onAction={handleChildRequiredNav}
+                  chevronIcon={ChevronIcon}
                 />
               </div>
             </div>
@@ -426,11 +500,17 @@ export function ParentSidebar({
                   href="/dashboard/profile"
                   icon={User}
                   label={t("nav.profile")}
+                  onClose={closeSheet}
+                  active={isActive("/dashboard/profile")}
+                  chevronIcon={ChevronIcon}
                 />
                 <NavLink
                   href="/dashboard/settings"
                   icon={Settings}
                   label={t("nav.settings")}
+                  onClose={closeSheet}
+                  active={isActive("/dashboard/settings")}
+                  chevronIcon={ChevronIcon}
                 />
               </div>
             </div>
@@ -458,7 +538,13 @@ export function ParentSidebar({
           </DialogHeader>
           <div className="space-y-2 mt-4">
             {children.map((child) => (
-              <ChildSelectorItem key={child.id} child={child} />
+              <ChildSelectorItem
+                key={child.id}
+                child={child}
+                onSelect={handleChildSelect}
+                initials={getInitials(child.full_name)}
+                chevronIcon={ChevronIcon}
+              />
             ))}
           </div>
         </DialogContent>

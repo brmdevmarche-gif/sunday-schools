@@ -43,10 +43,8 @@ interface UsePermissionsResult {
 export function usePermissions(): UsePermissionsResult {
   // Try to use context first (if PermissionsProvider is available)
   const context = useContext(PermissionsContext)
-  if (context) {
-    return context
-  }
 
+  // Always call hooks unconditionally (React rules-of-hooks)
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [permissionCodes, setPermissionCodes] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -65,17 +63,25 @@ export function usePermissions(): UsePermissionsResult {
       setPermissionCodes(codes)
       setPermissions(perms)
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to load permissions')
-      setError(error)
-      clientLogger.error('Error loading permissions', error)
+      const loadError = err instanceof Error ? err : new Error('Failed to load permissions')
+      setError(loadError)
+      clientLogger.error('Error loading permissions', loadError)
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    loadPermissions()
-  }, [])
+    // Only load locally if context is not available
+    if (!context) {
+      loadPermissions()
+    }
+  }, [context])
+
+  // If context is available, use it instead of local state
+  if (context) {
+    return context
+  }
 
   const hasPermission = (code: string): boolean => {
     return permissionCodes.includes(code)

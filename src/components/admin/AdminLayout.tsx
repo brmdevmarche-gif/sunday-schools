@@ -257,7 +257,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     if (!path.startsWith("/admin")) return;
 
     const match = NAVIGATION_ITEMS
-      .filter((item) => path === item.href || path.startsWith(item.href + "/"))
+      .filter((item) => {
+        // Exact match for /admin (dashboard) — don't let it match all /admin/* routes
+        if (item.href === "/admin") return path === "/admin";
+        return path === item.href || path.startsWith(item.href + "/");
+      })
       .sort((a, b) => b.href.length - a.href.length)[0];
 
     if (!match?.permission) return;

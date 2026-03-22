@@ -87,6 +87,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: 'shield',
     permission: 'roles.view',
   },
+  {
+    name: 'Settings',
+    href: '/admin/settings',
+    icon: 'settings',
+    // No permission required — accessible to all admin users
+  },
 ]
 
 /**

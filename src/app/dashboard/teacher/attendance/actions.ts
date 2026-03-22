@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -97,7 +98,7 @@ export async function getClassAttendance(
     .eq("status", "active");
 
   if (studentsError || !classStudents) {
-    console.error("Error fetching class students:", studentsError);
+    logger.error("Error fetching class students:", studentsError);
     return null;
   }
 
@@ -211,7 +212,7 @@ export async function saveAttendance(
     );
 
   if (deleteError) {
-    console.error("Error deleting existing records:", deleteError);
+    logger.error("Error deleting existing records:", deleteError);
     return { success: false, error: "Failed to update attendance" };
   }
 
@@ -231,7 +232,7 @@ export async function saveAttendance(
     .insert(recordsToInsert);
 
   if (insertError) {
-    console.error("Error inserting attendance records:", insertError);
+    logger.error("Error inserting attendance records:", insertError);
     return { success: false, error: "Failed to save attendance" };
   }
 

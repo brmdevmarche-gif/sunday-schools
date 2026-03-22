@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { Permission } from '@/lib/types/modules/permissions'
 
 /**
@@ -24,7 +25,7 @@ export async function GET() {
     )
 
     if (codesError) {
-      console.error('Error fetching permissions:', codesError)
+      logger.error('Error fetching permissions:', codesError)
       return NextResponse.json(
         { error: 'Failed to fetch permissions' },
         { status: 500 }
@@ -47,7 +48,7 @@ export async function GET() {
       .eq('is_active', true)
 
     if (permsError) {
-      console.error('Error fetching permission details:', permsError)
+      logger.error('Error fetching permission details:', permsError)
       return NextResponse.json({
         permissionCodes,
         permissions: [] as Permission[],
@@ -59,7 +60,7 @@ export async function GET() {
       permissions: (perms || []) as Permission[],
     })
   } catch (err) {
-    console.error('Permissions API error:', err)
+    logger.error('Permissions API error:', err)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -14,6 +14,7 @@ import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { Badge } from "@/components/ui/badge";
 import DashboardNavbar from "./DashboardNavbar";
 import AnnouncementsWidget from "@/components/announcements/AnnouncementsWidget";
+import { logger } from "@/lib/logger";
 import { GamificationDashboard } from "@/components/gamification";
 import {
   Bus,
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
 
   // If profile doesn't exist, create it (for users created before trigger was set up)
   if (!profile || profileError) {
-    console.log("Creating profile for user:", user.id, user.email);
+    logger.info("Creating profile for user:", { id: user.id, email: user.email });
     const adminClient = createAdminClient();
 
     // First try to insert
@@ -71,11 +72,7 @@ export default async function DashboardPage() {
 
     if (insertError && insertError.code !== "23505") {
       // 23505 = unique violation (already exists)
-      console.error(
-        "Error inserting profile:",
-        insertError.message,
-        insertError.code
-      );
+      logger.error("Error inserting profile:", { message: insertError.message, code: insertError.code });
     }
 
     // Now fetch the profile
@@ -92,7 +89,7 @@ export default async function DashboardPage() {
       .single();
 
     if (fetchError) {
-      console.error("Error fetching profile after create:", fetchError.message);
+      logger.error("Error fetching profile after create:", fetchError.message);
       redirect("/login");
     }
 

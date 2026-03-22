@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { CreateDioceseInput } from '@/lib/types/sunday-school'
 
 export async function getDiocesesData() {
@@ -13,7 +14,7 @@ export async function getDiocesesData() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching dioceses:', error)
+    logger.error('Error fetching dioceses:', error)
     return []
   }
 
@@ -29,7 +30,7 @@ export async function getDioceseChurchesCountData(dioceseId: string) {
     .eq('diocese_id', dioceseId)
 
   if (error) {
-    console.error('Error fetching church count:', error)
+    logger.error('Error fetching church count:', error)
     return 0
   }
 
@@ -63,7 +64,7 @@ export async function createDioceseAction(input: CreateDioceseInput) {
   })
 
   if (error) {
-    console.error('Error creating diocese:', error)
+    logger.error('Error creating diocese:', error)
     throw new Error('Failed to create diocese')
   }
 
@@ -83,7 +84,7 @@ export async function updateDioceseAction(
     .eq('id', id)
 
   if (error) {
-    console.error('Error updating diocese:', error)
+    logger.error('Error updating diocese:', error)
     throw new Error('Failed to update diocese')
   }
 
@@ -97,7 +98,7 @@ export async function deleteDioceseAction(id: string) {
   const { error } = await supabase.from('dioceses').delete().eq('id', id)
 
   if (error) {
-    console.error('Error deleting diocese:', error)
+    logger.error('Error deleting diocese:', error)
     throw new Error('Failed to delete diocese')
   }
 

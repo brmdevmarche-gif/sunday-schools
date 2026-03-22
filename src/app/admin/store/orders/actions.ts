@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import { revalidatePath } from 'next/cache'
 import {
   suspendPointsForOrderAction,
@@ -463,7 +464,7 @@ export async function updateOrderStatusAction(input: UpdateOrderStatusInput) {
       }
     }
   } catch (pointsError) {
-    console.error('Points operation failed:', pointsError)
+    logger.error('Points operation failed:', pointsError)
     // Don't fail the order update, but log the error
   }
 
@@ -558,7 +559,7 @@ export async function cancelOrderAction(order_id: string) {
   try {
     await returnSuspendedPointsAction(user.id, order.total_points, order_id, 'cancelled')
   } catch (pointsError) {
-    console.error('Failed to return points:', pointsError)
+    logger.error('Failed to return points:', pointsError)
     // Don't fail the cancellation, but log the error
   }
 

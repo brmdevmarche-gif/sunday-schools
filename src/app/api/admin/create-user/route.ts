@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // Mark this route as dynamic to prevent evaluation during build
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.SUPABASE_SERVICE_ROLE_KEY
   ) {
-    console.error("Missing required environment variables");
+    logger.error("Missing required environment variables");
     return NextResponse.json(
       { error: "Server configuration error" },
       { status: 500 }
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (authError) {
-      console.error("Auth error:", authError);
+      logger.error("Auth error:", authError);
       return NextResponse.json({ error: authError.message }, { status: 400 });
     }
 
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
       .eq("id", authData.user.id);
 
     if (updateError) {
-      console.error("Update error:", updateError);
+      logger.error("Update error:", updateError);
       // User was created but profile update failed - still return success
       // The admin can update the role manually if needed
     }
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError) {
-      console.error("Fetch error:", fetchError);
+      logger.error("Fetch error:", fetchError);
     }
 
     return NextResponse.json({
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
       user: userData || { id: authData.user.id, email, role },
     });
   } catch (error) {
-    console.error("Create user error:", error);
+    logger.error("Create user error:", error);
     return NextResponse.json(
       { error: "Failed to create user" },
       { status: 500 }

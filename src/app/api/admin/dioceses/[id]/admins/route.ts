@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // GET /api/admin/dioceses/[id]/admins - Get all admins for a diocese
 export async function GET(
@@ -43,7 +44,7 @@ export async function GET(
       .order("assigned_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching diocese admins:", error);
+      logger.error("Error fetching diocese admins:", error);
       return NextResponse.json(
         { error: "Failed to fetch diocese admins" },
         { status: 500 }
@@ -52,7 +53,7 @@ export async function GET(
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error("Error in GET /api/admin/dioceses/[id]/admins:", error);
+    logger.error("Error in GET /api/admin/dioceses/[id]/admins:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -112,7 +113,7 @@ export async function POST(
       .single();
 
     if (error) {
-      console.error("Error assigning diocese admin:", error);
+      logger.error("Error assigning diocese admin:", error);
 
       // Handle unique constraint violation
       if (error.code === "23505") {
@@ -130,7 +131,7 @@ export async function POST(
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    console.error("Error in POST /api/admin/dioceses/[id]/admins:", error);
+    logger.error("Error in POST /api/admin/dioceses/[id]/admins:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

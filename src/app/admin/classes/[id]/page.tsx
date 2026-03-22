@@ -5,6 +5,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import ClassDetailsClient from "./ClassDetailsClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = {
   title: "Class Details",
@@ -69,7 +70,7 @@ export default async function ClassDetailsPage({ params }: PageProps) {
     .order("assignment_type", { ascending: false });
 
   if (rosterError) {
-    console.error("Error fetching roster:", rosterError);
+    logger.error("Error fetching roster:", rosterError);
   }
 
   // Fetch activities for this class, church, and diocese

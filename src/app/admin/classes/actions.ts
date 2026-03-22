@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { CreateClassInput } from '@/lib/types/sunday-school'
 
 export async function getClassesData(churchId?: string) {
@@ -19,7 +20,7 @@ export async function getClassesData(churchId?: string) {
   const { data, error } = await query
 
   if (error) {
-    console.error('Error fetching classes:', error)
+    logger.error('Error fetching classes:', error)
     return []
   }
 
@@ -30,7 +31,7 @@ export async function getClassStudentsCountData(classId: string) {
   try {
     // Check if Supabase environment variables are configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.warn('Supabase environment variables not configured')
+      logger.warn('Supabase environment variables not configured')
       return 0
     }
 
@@ -46,7 +47,7 @@ export async function getClassStudentsCountData(classId: string) {
     if (error) {
       // Only log if it's not a network error (to reduce noise)
       if (error.code !== 'PGRST116' && !error.message?.includes('fetch')) {
-        console.error('Error fetching student count:', {
+        logger.error('Error fetching student count:', {
           message: error.message,
           details: error.details,
           hint: error.hint,
@@ -62,7 +63,7 @@ export async function getClassStudentsCountData(classId: string) {
     // Handle network/fetch errors gracefully - only log if it's not a fetch error
     const errorMessage = err instanceof Error ? err.message : String(err)
     if (!errorMessage.includes('fetch failed') && !errorMessage.includes('TypeError')) {
-      console.error('Error fetching student count (exception):', {
+      logger.error('Error fetching student count (exception):', {
         error: errorMessage,
         classId,
         errorType: err instanceof Error ? err.constructor.name : typeof err,
@@ -95,7 +96,7 @@ export async function getChurchesData() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching churches:', error)
+    logger.error('Error fetching churches:', error)
     return []
   }
 
@@ -111,7 +112,7 @@ export async function getDiocesesData() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching dioceses:', error)
+    logger.error('Error fetching dioceses:', error)
     return []
   }
 
@@ -132,7 +133,7 @@ export async function createClassAction(input: CreateClassInput) {
   })
 
   if (error) {
-    console.error('Error creating class:', error)
+    logger.error('Error creating class:', error)
     throw new Error('Failed to create class')
   }
 
@@ -146,7 +147,7 @@ export async function updateClassAction(id: string, updates: Partial<CreateClass
   const { error } = await supabase.from('classes').update(updates).eq('id', id)
 
   if (error) {
-    console.error('Error updating class:', error)
+    logger.error('Error updating class:', error)
     throw new Error('Failed to update class')
   }
 
@@ -160,7 +161,7 @@ export async function deleteClassAction(id: string) {
   const { error } = await supabase.from('classes').delete().eq('id', id)
 
   if (error) {
-    console.error('Error deleting class:', error)
+    logger.error('Error deleting class:', error)
     throw new Error('Failed to delete class')
   }
 
@@ -189,7 +190,7 @@ export async function getClassAssignmentsData(classId: string) {
     .order('assignment_type', { ascending: false })
 
   if (error) {
-    console.error('Error fetching class assignments:', error)
+    logger.error('Error fetching class assignments:', error)
     return []
   }
 
@@ -208,7 +209,7 @@ export async function getAvailableTeachersData(churchId: string) {
     .order('full_name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching teachers:', error)
+    logger.error('Error fetching teachers:', error)
     return []
   }
 
@@ -227,7 +228,7 @@ export async function getAvailableStudentsData(churchId: string) {
     .order('full_name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching students:', error)
+    logger.error('Error fetching students:', error)
     return []
   }
 
@@ -281,7 +282,7 @@ export async function assignUserToClassAction(
         .eq('id', existing.id)
 
       if (error) {
-        console.error('Error reactivating user assignment:', error)
+        logger.error('Error reactivating user assignment:', error)
         throw new Error('Failed to assign user to class')
       }
     }
@@ -297,7 +298,7 @@ export async function assignUserToClassAction(
     })
 
     if (error) {
-      console.error('Error assigning user to class:', error)
+      logger.error('Error assigning user to class:', error)
       throw new Error('Failed to assign user to class')
     }
   }
@@ -328,7 +329,7 @@ export async function removeUserFromClassAction(assignmentId: string, classId?: 
     .single()
 
   if (fetchError) {
-    console.error('Error fetching assignment:', fetchError)
+    logger.error('Error fetching assignment:', fetchError)
     throw new Error('Failed to fetch assignment')
   }
 
@@ -355,7 +356,7 @@ export async function removeUserFromClassAction(assignmentId: string, classId?: 
     .eq('id', assignmentId)
 
   if (error) {
-    console.error('Error removing user from class:', error)
+    logger.error('Error removing user from class:', error)
     throw new Error('Failed to remove user from class')
   }
 
@@ -381,7 +382,7 @@ export async function getCurrentUserProfile() {
     .single()
 
   if (error) {
-    console.error('Error fetching user profile:', error)
+    logger.error('Error fetching user profile:', error)
     return null
   }
 
@@ -403,7 +404,7 @@ export async function getAllTripsAction(classId?: string) {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching trips:', error)
+    logger.error('Error fetching trips:', error)
     throw new Error(`Failed to fetch trips: ${error.message}`)
   }
 
@@ -473,7 +474,7 @@ export async function getAllTripsAction(classId?: string) {
             classPaid = classStudents.filter((s: any) => s.isSubscribed && s.payment_status === 'paid').length
             classPendingPayment = classStudents.filter((s: any) => s.isSubscribed && (s.payment_status === 'pending' || s.payment_status === null)).length
           } catch (error) {
-            console.error(`Error getting class students for trip ${trip.id}:`, error)
+            logger.error(`Error getting class students for trip ${trip.id}:`, error)
             classSubscribed = 0
             classPaid = 0
             classPendingPayment = 0
@@ -527,7 +528,7 @@ export async function getClassStudentsWithTripStatusAction(classId: string, trip
     .eq('is_active', true)
 
   if (assignmentsError) {
-    console.error('Error fetching class students:', assignmentsError)
+    logger.error('Error fetching class students:', assignmentsError)
     return []
   }
 
@@ -538,7 +539,7 @@ export async function getClassStudentsWithTripStatusAction(classId: string, trip
     .eq('trip_id', tripId)
 
   if (participantsError) {
-    console.error('Error fetching trip participants:', participantsError)
+    logger.error('Error fetching trip participants:', participantsError)
   }
 
   // Create a map of user_id to participation status
@@ -595,7 +596,7 @@ export async function getTripDetailsForClassAction(tripId: string, classId: stri
     .single()
 
   if (tripError) {
-    console.error('Error fetching trip:', tripError)
+    logger.error('Error fetching trip:', tripError)
     return null
   }
 
@@ -646,7 +647,7 @@ export async function getTripDetailsForAllClassesAction(tripId: string) {
     .single()
 
   if (tripError) {
-    console.error('Error fetching trip:', tripError)
+    logger.error('Error fetching trip:', tripError)
     return null
   }
 
@@ -679,7 +680,7 @@ export async function getTripDetailsForAllClassesAction(tripId: string) {
     .eq('is_active', true)
 
   if (assignmentsError) {
-    console.error('Error fetching class students:', assignmentsError)
+    logger.error('Error fetching class students:', assignmentsError)
   }
 
   // Get trip participants for this trip
@@ -689,7 +690,7 @@ export async function getTripDetailsForAllClassesAction(tripId: string) {
     .eq('trip_id', tripId)
 
   if (participantsError) {
-    console.error('Error fetching trip participants:', participantsError)
+    logger.error('Error fetching trip participants:', participantsError)
   }
 
   // Create a map of user_id to participation status

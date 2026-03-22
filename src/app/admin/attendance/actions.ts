@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import { revalidatePath } from 'next/cache'
 import type { CreateAttendanceInput } from '@/lib/types/sunday-school'
 import { awardAttendancePointsAction } from '@/app/admin/points/actions'
@@ -86,7 +87,7 @@ export async function markAttendanceAction(input: CreateAttendanceInput) {
           attendanceId
         )
       } catch (pointsError) {
-        console.error('Failed to award attendance points:', pointsError)
+        logger.error('Failed to award attendance points:', pointsError)
         // Don't fail the attendance marking if points fail
       }
     }
@@ -113,7 +114,7 @@ export async function bulkMarkAttendanceAction(records: CreateAttendanceInput[])
     try {
       await markAttendanceAction(record)
     } catch (error) {
-      console.error(`Failed to mark attendance for user ${record.user_id}:`, error)
+      logger.error(`Failed to mark attendance for user ${record.user_id}:`, error)
       // Continue with other records even if one fails
     }
   }
@@ -277,7 +278,7 @@ export async function getClassStudentsAction(classId: string) {
     .order('users(full_name)', { ascending: true })
 
   if (error) {
-    console.error('Error fetching class students:', error)
+    logger.error('Error fetching class students:', error)
     throw new Error(`Failed to fetch students: ${error.message}`)
   }
 

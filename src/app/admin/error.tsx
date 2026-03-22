@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { clientLogger } from '@/lib/client-logger'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle } from 'lucide-react'
@@ -16,7 +17,7 @@ export default function AdminError({
   const t = useTranslations('errors')
 
   useEffect(() => {
-    console.error('Admin error:', error)
+    clientLogger.error('Admin error:', error)
   }, [error])
 
   return (

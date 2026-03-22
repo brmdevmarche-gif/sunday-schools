@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // GET /api/admin/users - Get all users with optional search
 export async function GET(request: NextRequest) {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching users:", error);
+      logger.error("Error fetching users:", error);
       return NextResponse.json(
         { error: "Failed to fetch users" },
         { status: 500 }
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error("Error in GET /api/admin/users:", error);
+    logger.error("Error in GET /api/admin/users:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import StoreClient from "./StoreClient";
 import { StudentSelectionGate } from "@/components/access-gates";
+import { logger } from "@/lib/logger";
 import { ParentNavbarWrapper } from "@/components/parents/ParentNavbarWrapper";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ShoppingBag } from "lucide-react";
@@ -278,7 +279,7 @@ export default async function StorePage({ searchParams }: StorePageProps) {
   const { data: allItems, error } = await query;
 
   if (error) {
-    console.error("Error fetching store items:", error);
+    logger.error("Error fetching store items:", error);
   }
 
   // Filter items based on target user's access

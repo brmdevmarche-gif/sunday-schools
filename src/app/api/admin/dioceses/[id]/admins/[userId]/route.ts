@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // DELETE /api/admin/dioceses/[id]/admins/[userId] - Revoke diocese admin access
 export async function DELETE(
@@ -28,7 +29,7 @@ export async function DELETE(
       .eq("user_id", userId);
 
     if (error) {
-      console.error("Error revoking diocese admin:", error);
+      logger.error("Error revoking diocese admin:", error);
       return NextResponse.json(
         { error: "Failed to revoke diocese admin" },
         { status: 500 }
@@ -37,7 +38,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(
+    logger.error(
       "Error in DELETE /api/admin/dioceses/[id]/admins/[userId]:",
       error
     );
@@ -81,7 +82,7 @@ export async function PATCH(
       .eq("user_id", userId);
 
     if (error) {
-      console.error("Error updating diocese admin:", error);
+      logger.error("Error updating diocese admin:", error);
       return NextResponse.json(
         { error: "Failed to update diocese admin" },
         { status: 500 }
@@ -90,7 +91,7 @@ export async function PATCH(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(
+    logger.error(
       "Error in PATCH /api/admin/dioceses/[id]/admins/[userId]:",
       error
     );

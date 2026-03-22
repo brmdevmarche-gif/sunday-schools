@@ -8,6 +8,7 @@ import type {
   UpdateRoleInput,
 } from '../types/modules/permissions'
 import { FORBIDDEN_PERMISSION_CODES } from '@/lib/permissions/forbidden'
+import { logger } from '@/lib/logger'
 
 /**
  * Get all roles
@@ -62,8 +63,8 @@ export async function getRolesWithPermissions(filters?: {
     const { data: roles, error: rolesError } = await rolesQuery
 
     if (rolesError) {
-      console.error('Error fetching roles:', rolesError)
-      console.error('Error details:', JSON.stringify(rolesError, null, 2))
+      logger.error('Error fetching roles:', rolesError)
+      logger.error('Error details:', JSON.stringify(rolesError, null, 2))
       throw rolesError
     }
 
@@ -105,8 +106,8 @@ export async function getRolesWithPermissions(filters?: {
       .in('role_id', batch)
     
     if (error) {
-      console.error('Error fetching role permissions batch:', error)
-      console.error('Batch:', batch)
+      logger.error('Error fetching role permissions batch:', error)
+      logger.error('Batch:', batch)
       throw error
     }
     
@@ -139,8 +140,8 @@ export async function getRolesWithPermissions(filters?: {
         .in('id', batch)
       
       if (error) {
-        console.error('Error fetching permissions batch:', error)
-        console.error('Batch:', batch)
+        logger.error('Error fetching permissions batch:', error)
+        logger.error('Batch:', batch)
         throw error
       }
       
@@ -208,11 +209,11 @@ export async function getRolesWithPermissions(filters?: {
       }
     }) as RoleWithPermissions[]
   } catch (error: any) {
-    console.error('Error in getRolesWithPermissions:', error)
-    console.error('Error code:', error?.code)
-    console.error('Error message:', error?.message)
-    console.error('Error details:', error?.details)
-    console.error('Error hint:', error?.hint)
+    logger.error('Error in getRolesWithPermissions:', error)
+    logger.error('Error code:', error?.code)
+    logger.error('Error message:', error?.message)
+    logger.error('Error details:', error?.details)
+    logger.error('Error hint:', error?.hint)
     throw error
   }
 }
@@ -242,7 +243,7 @@ export async function getRoleById(id: string): Promise<RoleWithPermissions | nul
     .eq('role_id', id)
 
   if (rpError) {
-    console.error('Error fetching role permissions:', rpError)
+    logger.error('Error fetching role permissions:', rpError)
     throw rpError
   }
 
@@ -260,8 +261,8 @@ export async function getRoleById(id: string): Promise<RoleWithPermissions | nul
       .in('id', permissionIds)
 
     if (permsError) {
-      console.error('Error fetching permissions:', permsError)
-      console.error('Error details:', JSON.stringify(permsError, null, 2))
+      logger.error('Error fetching permissions:', permsError)
+      logger.error('Error details:', JSON.stringify(permsError, null, 2))
       throw permsError
     }
 

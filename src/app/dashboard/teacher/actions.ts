@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 import { redirect } from "next/navigation";
 
 export interface TeacherStats {
@@ -70,7 +71,7 @@ export async function getTeacherDashboardData(): Promise<TeacherDashboardData | 
     .single();
 
   if (profileError || !profile) {
-    console.error("Error fetching teacher profile:", profileError);
+    logger.error("Error fetching teacher profile:", profileError);
     return null;
   }
 
@@ -94,7 +95,7 @@ export async function getTeacherDashboardData(): Promise<TeacherDashboardData | 
     .eq("is_active", true);
 
   if (classError) {
-    console.error("Error fetching class assignments:", classError);
+    logger.error("Error fetching class assignments:", classError);
   }
 
   const classes: TeacherClass[] = [];

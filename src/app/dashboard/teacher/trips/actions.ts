@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import type {
   Trip,
@@ -395,7 +396,7 @@ export async function saveTripAttendance(
     revalidatePath(`/dashboard/teacher/trips/${tripId}`);
     return { success: true };
   } catch (error) {
-    console.error("Failed to save trip attendance:", error);
+    logger.error("Failed to save trip attendance:", error);
     return { success: false, error: "Failed to save attendance" };
   }
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { clientLogger } from "@/lib/client-logger";
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -56,7 +58,7 @@ export default function ProfileEditPage() {
           setBio(userProfile.bio || "");
         }
       } catch (error) {
-        console.error("Error loading profile:", error);
+        clientLogger.error("Error loading profile:", error);
         toast.error(t("profile.loadFailed"));
       } finally {
         setIsLoading(false);
@@ -98,7 +100,7 @@ export default function ProfileEditPage() {
         router.push("/dashboard");
       }, 1000);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      clientLogger.error("Error updating profile:", error);
       toast.error(
         error instanceof Error ? error.message : t("profile.updateFailed")
       );
@@ -199,14 +201,16 @@ export default function ProfileEditPage() {
                 </p>
                 {avatarUrl && (
                   <div className="mt-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       role="presentation"
                       src={avatarUrl}
                       alt={t("profile.avatarPreview")}
+                      width={80}
+                      height={80}
                       className="w-20 h-20 rounded-full object-cover border-2 border-border"
+                      unoptimized
                       onError={(e) => {
-                        e.currentTarget.style.display = "none";
+                        (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />
                   </div>

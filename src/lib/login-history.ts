@@ -1,4 +1,5 @@
 import { createClient } from './supabase/client'
+import { clientLogger } from '@/lib/client-logger'
 
 export interface LoginHistoryEntry {
   id: string
@@ -91,10 +92,10 @@ export async function logLoginAttempt(
       .insert(loginData)
 
     if (error) {
-      console.error('Failed to log login attempt:', error)
+      clientLogger.error('Failed to log login attempt:', error)
     }
   } catch (error) {
-    console.error('Error logging login attempt:', error)
+    clientLogger.error('Error logging login attempt:', error)
   }
 }
 
@@ -111,7 +112,7 @@ export async function getLoginHistory(limit: number = 10): Promise<LoginHistoryE
     .limit(limit)
 
   if (error) {
-    console.error('Error fetching login history:', error)
+    clientLogger.error('Error fetching login history:', error)
     return []
   }
 
@@ -132,7 +133,7 @@ export async function getLastSuccessfulLogin(): Promise<LoginHistoryEntry | null
     .limit(2) // Get 2 to skip the current login
 
   if (error) {
-    console.error('Error fetching last login:', error)
+    clientLogger.error('Error fetching last login:', error)
     return null
   }
 
@@ -156,7 +157,7 @@ export async function getRecentFailedAttempts(hours: number = 24): Promise<Login
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching failed attempts:', error)
+    clientLogger.error('Error fetching failed attempts:', error)
     return []
   }
 

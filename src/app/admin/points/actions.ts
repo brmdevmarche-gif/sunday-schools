@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from "@/lib/logger";
 import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import type {
   ChurchPointsConfig,
@@ -30,7 +31,7 @@ export async function getChurchPointsConfigAction(
     .single();
 
   if (error && error.code !== "PGRST116") {
-    console.error("Error fetching church points config:", error);
+    logger.error("Error fetching church points config:", error);
     throw new Error("Failed to fetch church points configuration");
   }
 
@@ -65,7 +66,7 @@ export async function upsertChurchPointsConfigAction(
     .single();
 
   if (error) {
-    console.error("Error upserting church points config:", error);
+    logger.error("Error upserting church points config:", error);
     throw new Error("Failed to save church points configuration");
   }
 
@@ -108,12 +109,12 @@ export async function getStudentPointsBalanceAction(
       .single();
 
     if (createError) {
-      console.error("Error creating points balance:", createError);
+      logger.error("Error creating points balance:", createError);
       return null;
     }
     data = newBalance;
   } else if (error) {
-    console.error("Error fetching points balance:", error);
+    logger.error("Error fetching points balance:", error);
     return null;
   }
 
@@ -140,7 +141,7 @@ export async function getStudentPointsSummaryAction(
     .limit(20);
 
   if (txError) {
-    console.error("Error fetching transactions:", txError);
+    logger.error("Error fetching transactions:", txError);
   }
 
   // Calculate points by type
@@ -150,7 +151,7 @@ export async function getStudentPointsSummaryAction(
     .eq("user_id", userId);
 
   if (statsError) {
-    console.error("Error fetching type stats:", statsError);
+    logger.error("Error fetching type stats:", statsError);
   }
 
   const pointsByType = {
@@ -216,7 +217,7 @@ export async function getPointsTransactionsAction(
     .limit(limit);
 
   if (error) {
-    console.error("Error fetching transactions:", error);
+    logger.error("Error fetching transactions:", error);
     throw new Error("Failed to fetch points transactions");
   }
 
@@ -267,7 +268,7 @@ export async function addPointsAction(
     .eq("user_id", userId);
 
   if (balanceError) {
-    console.error("Error updating balance:", balanceError);
+    logger.error("Error updating balance:", balanceError);
     throw new Error("Failed to update points balance");
   }
 
@@ -290,7 +291,7 @@ export async function addPointsAction(
     .single();
 
   if (txError) {
-    console.error("Error creating transaction:", txError);
+    logger.error("Error creating transaction:", txError);
     throw new Error("Failed to record points transaction");
   }
 
@@ -391,7 +392,7 @@ export async function suspendPointsForOrderAction(
     .eq("user_id", userId);
 
   if (balanceError) {
-    console.error("Error suspending points:", balanceError);
+    logger.error("Error suspending points:", balanceError);
     throw new Error("Failed to suspend points");
   }
 
@@ -411,7 +412,7 @@ export async function suspendPointsForOrderAction(
     .single();
 
   if (txError) {
-    console.error("Error creating suspend transaction:", txError);
+    logger.error("Error creating suspend transaction:", txError);
     throw new Error("Failed to record points suspension");
   }
 
@@ -445,7 +446,7 @@ export async function confirmOrderPointsDeductionAction(
     .eq("user_id", userId);
 
   if (balanceError) {
-    console.error("Error confirming deduction:", balanceError);
+    logger.error("Error confirming deduction:", balanceError);
     throw new Error("Failed to confirm points deduction");
   }
 
@@ -465,7 +466,7 @@ export async function confirmOrderPointsDeductionAction(
     .single();
 
   if (txError) {
-    console.error("Error creating confirm transaction:", txError);
+    logger.error("Error creating confirm transaction:", txError);
     throw new Error("Failed to record points confirmation");
   }
 
@@ -500,7 +501,7 @@ export async function returnSuspendedPointsAction(
     .eq("user_id", userId);
 
   if (balanceError) {
-    console.error("Error returning points:", balanceError);
+    logger.error("Error returning points:", balanceError);
     throw new Error("Failed to return suspended points");
   }
 
@@ -524,7 +525,7 @@ export async function returnSuspendedPointsAction(
     .single();
 
   if (txError) {
-    console.error("Error creating return transaction:", txError);
+    logger.error("Error creating return transaction:", txError);
     throw new Error("Failed to record points return");
   }
 
@@ -646,7 +647,7 @@ export async function getClassPointsOverviewAction(
     .eq("is_active", true);
 
   if (assignError) {
-    console.error("Error fetching class students:", assignError);
+    logger.error("Error fetching class students:", assignError);
     throw new Error("Failed to fetch class students");
   }
 
@@ -663,7 +664,7 @@ export async function getClassPointsOverviewAction(
     .in("user_id", studentIds);
 
   if (balanceError) {
-    console.error("Error fetching balances:", balanceError);
+    logger.error("Error fetching balances:", balanceError);
   }
 
   // Map balances to students

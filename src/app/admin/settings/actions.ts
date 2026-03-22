@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 
 export interface UserSettings {
   id: string
@@ -44,7 +45,7 @@ export async function getCurrentUserSettings(): Promise<UserSettings | null> {
     .single()
 
   if (error) {
-    console.error('Error fetching user settings:', {
+    logger.error('Error fetching user settings:', {
       message: error.message,
       code: error.code,
       details: error.details,
@@ -81,7 +82,7 @@ export async function updateUserSettings(
       .eq('user_id', user.id)
 
     if (error) {
-      console.error('Error updating settings:', {
+      logger.error('Error updating settings:', {
         message: error.message,
         code: error.code,
         details: error.details,
@@ -97,7 +98,7 @@ export async function updateUserSettings(
     })
 
     if (error) {
-      console.error('Error creating settings:', {
+      logger.error('Error creating settings:', {
         message: error.message,
         code: error.code,
         details: error.details,
@@ -127,7 +128,7 @@ export async function getBackupLogs(): Promise<BackupLog[]> {
     .single()
 
   if (profileError) {
-    console.error('Error fetching user profile for backup logs:', {
+    logger.error('Error fetching user profile for backup logs:', {
       message: profileError.message,
       code: profileError.code,
       details: profileError.details,
@@ -147,7 +148,7 @@ export async function getBackupLogs(): Promise<BackupLog[]> {
     .limit(50)
 
   if (error) {
-    console.error('Error fetching backup logs:', {
+    logger.error('Error fetching backup logs:', {
       message: error.message || 'Unknown error',
       code: error.code || 'UNKNOWN',
       details: error.details || null,
@@ -191,7 +192,7 @@ export async function createBackupLog(type: 'manual' | 'scheduled' | 'automatic'
     .single()
 
   if (error) {
-    console.error('Error creating backup log:', {
+    logger.error('Error creating backup log:', {
       message: error.message,
       code: error.code,
       details: error.details,

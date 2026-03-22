@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import { revalidatePath } from 'next/cache'
 import type {
   CreateTripInput,
@@ -69,7 +70,7 @@ export async function createTripAction(input: CreateTripInput) {
       .insert(destinationsToInsert)
 
     if (destError) {
-      console.error('Failed to create destinations:', destError)
+      logger.error('Failed to create destinations:', destError)
       throw new Error(`Failed to create destinations: ${destError.message}`)
     }
   }
@@ -86,7 +87,7 @@ export async function createTripAction(input: CreateTripInput) {
       .insert(churchAssociations)
 
     if (churchError) {
-      console.error('Failed to create church associations:', churchError)
+      logger.error('Failed to create church associations:', churchError)
     }
   }
 
@@ -102,7 +103,7 @@ export async function createTripAction(input: CreateTripInput) {
       .insert(dioceseAssociations)
 
     if (dioceseError) {
-      console.error('Failed to create diocese associations:', dioceseError)
+      logger.error('Failed to create diocese associations:', dioceseError)
     }
   }
 
@@ -118,7 +119,7 @@ export async function createTripAction(input: CreateTripInput) {
       .insert(classAssociations)
 
     if (classError) {
-      console.error('Failed to create class associations:', classError)
+      logger.error('Failed to create class associations:', classError)
     }
   }
 
@@ -162,7 +163,7 @@ export async function updateTripAction(input: UpdateTripInput) {
       .eq('trip_id', id)
 
     if (deleteError) {
-      console.error('Failed to delete existing destinations:', deleteError)
+      logger.error('Failed to delete existing destinations:', deleteError)
       throw new Error(`Failed to update destinations: ${deleteError.message}`)
     }
 
@@ -180,7 +181,7 @@ export async function updateTripAction(input: UpdateTripInput) {
         .insert(destinationsToInsert)
 
       if (destError) {
-        console.error('Failed to update destinations:', destError)
+        logger.error('Failed to update destinations:', destError)
         throw new Error(`Failed to update destinations: ${destError.message}`)
       }
     }
@@ -206,7 +207,7 @@ export async function updateTripAction(input: UpdateTripInput) {
         .insert(churchAssociations)
 
       if (churchError) {
-        console.error('Failed to update church associations:', churchError)
+        logger.error('Failed to update church associations:', churchError)
       }
     }
   }
@@ -231,7 +232,7 @@ export async function updateTripAction(input: UpdateTripInput) {
         .insert(dioceseAssociations)
 
       if (dioceseError) {
-        console.error('Failed to update diocese associations:', dioceseError)
+        logger.error('Failed to update diocese associations:', dioceseError)
       }
     }
   }
@@ -256,7 +257,7 @@ export async function updateTripAction(input: UpdateTripInput) {
         .insert(classAssociations)
 
       if (classError) {
-        console.error('Failed to update class associations:', classError)
+        logger.error('Failed to update class associations:', classError)
       }
     }
   }
@@ -331,7 +332,7 @@ export async function getTripByIdAction(tripId: string) {
       classes = []
     } else {
       // Other error - log it but don't fail
-      console.warn('Error fetching classes:', classesError.message)
+      logger.warn('Error fetching classes:', classesError.message)
       classes = []
     }
   }
@@ -368,7 +369,7 @@ export async function getTripByIdAction(tripId: string) {
       organizers = []
     } else {
       // Other error - log it but don't fail
-      console.warn('Error fetching organizers:', organizersError.message)
+      logger.warn('Error fetching organizers:', organizersError.message)
       organizers = []
     }
   }
@@ -718,7 +719,7 @@ export async function updateTripParticipantAction(input: UpdateTripParticipantIn
       )
     } catch (pointsError) {
       // Log error but don't fail the participant update
-      console.error('Failed to award trip points:', pointsError)
+      logger.error('Failed to award trip points:', pointsError)
     }
   }
 
@@ -804,7 +805,7 @@ export async function getTripDetailsAction(tripId: string) {
       organizers = []
     } else {
       // Other error - log it but don't fail
-      console.warn('Error fetching organizers:', organizersResult.error.message)
+      logger.warn('Error fetching organizers:', organizersResult.error.message)
       organizers = []
     }
   }
@@ -850,7 +851,7 @@ export async function getChurchesForTrips() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching churches:', error)
+    logger.error('Error fetching churches:', error)
     return []
   }
 
@@ -869,7 +870,7 @@ export async function getDiocesesForTrips() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching dioceses:', error)
+    logger.error('Error fetching dioceses:', error)
     return []
   }
 
@@ -894,7 +895,7 @@ export async function getClassesForChurches(churchIds: string[]) {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching classes:', error)
+    logger.error('Error fetching classes:', error)
     return []
   }
 
@@ -966,7 +967,7 @@ export async function getTripOrganizersAction(tripId: string) {
     if (error.message?.includes('Could not find the table') || 
         error.message?.includes('does not exist') ||
         error.code === '42P01') {
-      console.warn('trip_organizers table does not exist. Please run migration 24_add_trip_organizers.sql')
+      logger.warn('trip_organizers table does not exist. Please run migration 24_add_trip_organizers.sql')
       return { success: true, data: [] }
     }
     throw new Error(`Failed to fetch organizers: ${error.message}`)
@@ -1492,7 +1493,7 @@ export async function bulkMarkTripAttendanceAction(
       .eq('trip_id', tripId)
 
     if (error) {
-      console.error(`Failed to mark attendance for participant ${record.participant_id}:`, error)
+      logger.error(`Failed to mark attendance for participant ${record.participant_id}:`, error)
     }
   })
 

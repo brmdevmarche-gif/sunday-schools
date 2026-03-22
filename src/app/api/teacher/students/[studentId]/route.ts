@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: NextRequest,
@@ -114,7 +115,7 @@ export async function GET(
       activitiesCount: activitiesCount || 0,
     });
   } catch (error) {
-    console.error("Error fetching student details:", error);
+    logger.error("Error fetching student details:", error);
     return NextResponse.json(
       { error: "Failed to fetch student" },
       { status: 500 }

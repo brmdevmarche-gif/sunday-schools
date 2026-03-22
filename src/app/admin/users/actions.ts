@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import { createClient as createBrowserClient } from '@supabase/supabase-js'
 import type { UserRole } from '@/lib/types/sunday-school'
 
@@ -19,7 +20,7 @@ export async function getUsersData(filters?: {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    console.error('User not authenticated')
+    logger.error('User not authenticated')
     return []
   }
 
@@ -32,7 +33,7 @@ export async function getUsersData(filters?: {
 
   // Verify user has admin permissions
   if (!profile || !['super_admin', 'diocese_admin', 'church_admin'].includes(profile.role)) {
-    console.error('User does not have admin permissions')
+    logger.error('User does not have admin permissions')
     return []
   }
 
@@ -54,7 +55,7 @@ export async function getUsersData(filters?: {
   const { data, error } = await query
 
   if (error) {
-    console.error('Error fetching users:', error)
+    logger.error('Error fetching users:', error)
     return []
   }
 
@@ -70,7 +71,7 @@ export async function getChurchesData() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching churches:', error)
+    logger.error('Error fetching churches:', error)
     return []
   }
 
@@ -86,7 +87,7 @@ export async function getDiocesesData() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching dioceses:', error)
+    logger.error('Error fetching dioceses:', error)
     return []
   }
 
@@ -143,7 +144,7 @@ export async function updateUserRoleAction(
     .eq('id', userId)
 
   if (error) {
-    console.error('Error updating user role:', error)
+    logger.error('Error updating user role:', error)
     throw new Error('Failed to update user role')
   }
 
@@ -167,7 +168,7 @@ export async function updateUserRoleAction(
       })
 
     if (roleError) {
-      console.error('Error assigning custom role:', roleError)
+      logger.error('Error assigning custom role:', roleError)
       // Don't throw - user update succeeded, role assignment is optional
     }
   }
@@ -186,7 +187,7 @@ export async function activateUserAction(userId: string) {
     .eq('id', userId)
 
   if (error) {
-    console.error('Error activating user:', error)
+    logger.error('Error activating user:', error)
     throw new Error('Failed to activate user')
   }
 
@@ -203,7 +204,7 @@ export async function deactivateUserAction(userId: string) {
     .eq('id', userId)
 
   if (error) {
-    console.error('Error deactivating user:', error)
+    logger.error('Error deactivating user:', error)
     throw new Error('Failed to deactivate user')
   }
 
@@ -249,7 +250,7 @@ export async function linkParentToStudentAction(
     })
 
   if (error) {
-    console.error('Error linking parent to student:', error)
+    logger.error('Error linking parent to student:', error)
     throw new Error('Failed to link parent to student')
   }
 
@@ -314,7 +315,7 @@ export async function createUserAction(input: {
   })
 
   if (authError) {
-    console.error('Auth error:', authError)
+    logger.error('Auth error:', authError)
     throw new Error(authError.message)
   }
 
@@ -335,7 +336,7 @@ export async function createUserAction(input: {
     .eq('id', authData.user.id)
 
   if (updateError) {
-    console.error('Update error:', updateError)
+    logger.error('Update error:', updateError)
     // User was created but profile update failed
   }
 
@@ -350,7 +351,7 @@ export async function createUserAction(input: {
       })
 
     if (roleError) {
-      console.error('Error assigning custom role:', roleError)
+      logger.error('Error assigning custom role:', roleError)
       // Don't throw - user creation succeeded, role assignment is optional
     }
   }
@@ -363,7 +364,7 @@ export async function createUserAction(input: {
     .single()
 
   if (fetchError) {
-    console.error('Fetch error:', fetchError)
+    logger.error('Fetch error:', fetchError)
   }
 
   revalidatePath('/admin/users')
@@ -493,7 +494,7 @@ export async function changeUserPasswordAction(
   })
 
   if (updateError) {
-    console.error('Error changing password:', updateError)
+    logger.error('Error changing password:', updateError)
     return { success: false, error: 'Failed to change password' }
   }
 

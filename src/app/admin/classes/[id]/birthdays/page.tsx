@@ -5,6 +5,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import BirthdaysClient from "./BirthdaysClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = {
   title: "Birthdays",
@@ -70,7 +71,7 @@ export default async function BirthdaysPage({ params }: PageProps) {
     .order("assignment_type", { ascending: false });
 
   if (rosterError) {
-    console.error("Error fetching roster:", rosterError);
+    logger.error("Error fetching roster:", rosterError);
   }
 
   return (

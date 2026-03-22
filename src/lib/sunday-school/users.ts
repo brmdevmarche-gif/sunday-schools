@@ -1,5 +1,6 @@
 import { createClient } from "../supabase/client";
 import type { ExtendedUser, UserRole } from "../types/sunday-school";
+import { clientLogger } from "@/lib/client-logger";
 
 /**
  * Get all users with optional filters
@@ -119,7 +120,7 @@ export async function getCurrentUserProfileClient(): Promise<ExtendedUser | null
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    clientLogger.error('Error fetching user profile:', error);
     return null;
   }
 }
@@ -246,7 +247,7 @@ export async function createUser(input: {
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
-    console.error("Failed to parse response:", text);
+    clientLogger.error("Failed to parse response:", text);
     throw new Error("Invalid response from server");
   }
 

@@ -8,6 +8,7 @@ import { createClient } from '../supabase/server'
 import { cache } from 'react'
 import type { Permission } from '../types/modules/permissions'
 import { hasForbiddenPermission } from '@/lib/permissions/forbidden'
+import { logger } from '@/lib/logger'
 
 // Cache user permissions per request to avoid multiple database calls
 const getCachedUserPermissions = cache(async (userId: string): Promise<string[]> => {
@@ -18,7 +19,7 @@ const getCachedUserPermissions = cache(async (userId: string): Promise<string[]>
   })
 
   if (error) {
-    console.error('Error fetching user permissions:', error)
+    logger.error('Error fetching user permissions:', error)
     return []
   }
 
@@ -127,7 +128,7 @@ export async function getUserPermissions(
   })
 
   if (error) {
-    console.error('Error fetching user permissions:', error)
+    logger.error('Error fetching user permissions:', error)
     return []
   }
 

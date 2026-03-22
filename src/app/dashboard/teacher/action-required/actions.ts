@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -180,7 +181,7 @@ export async function approveTripRequest(
     .eq("id", participantId);
 
   if (error) {
-    console.error("Error approving trip request:", error);
+    logger.error("Error approving trip request:", error);
     return { success: false, error: "Failed to approve request" };
   }
 
@@ -242,7 +243,7 @@ export async function rejectTripRequest(
     .eq("id", participantId);
 
   if (error) {
-    console.error("Error rejecting trip request:", error);
+    logger.error("Error rejecting trip request:", error);
     return { success: false, error: "Failed to reject request" };
   }
 

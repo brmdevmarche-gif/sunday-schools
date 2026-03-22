@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { clientLogger } from '@/lib/client-logger'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle } from 'lucide-react'
@@ -16,7 +17,7 @@ export default function Error({
   const t = useTranslations('errors')
 
   useEffect(() => {
-    console.error('Application error:', error)
+    clientLogger.error('Application error:', error)
   }, [error])
 
   return (

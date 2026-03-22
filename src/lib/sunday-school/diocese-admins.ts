@@ -4,6 +4,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { DioceseAdmin, CreateDioceseAdminInput } from "@/lib/types";
+import { logger } from "@/lib/logger";
 
 /**
  * Assign a user as an administrator of a diocese
@@ -28,7 +29,7 @@ export async function assignDioceseAdmin(
 
     return { data, error: null };
   } catch (error) {
-    console.error("Error assigning diocese admin:", error);
+    logger.error("Error assigning diocese admin:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -53,7 +54,7 @@ export async function getDioceseAdmins(
 
     return { data, error: null };
   } catch (error) {
-    console.error("Error fetching diocese admins:", error);
+    logger.error("Error fetching diocese admins:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -78,7 +79,7 @@ export async function getUserDioceseAdminRoles(
 
     return { data, error: null };
   } catch (error) {
-    console.error("Error fetching user diocese admin roles:", error);
+    logger.error("Error fetching user diocese admin roles:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -103,7 +104,7 @@ export async function isDioceseAdmin(
 
     return !!data && !error;
   } catch (error) {
-    console.error("Error checking diocese admin status:", error);
+    logger.error("Error checking diocese admin status:", error);
     return false;
   }
 }
@@ -128,7 +129,7 @@ export async function revokeDioceseAdmin(
 
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error revoking diocese admin:", error);
+    logger.error("Error revoking diocese admin:", error);
     return { success: false, error: error as Error };
   }
 }
@@ -153,7 +154,7 @@ export async function reactivateDioceseAdmin(
 
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error reactivating diocese admin:", error);
+    logger.error("Error reactivating diocese admin:", error);
     return { success: false, error: error as Error };
   }
 }
@@ -178,7 +179,7 @@ export async function deleteDioceseAdmin(
 
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error deleting diocese admin:", error);
+    logger.error("Error deleting diocese admin:", error);
     return { success: false, error: error as Error };
   }
 }
@@ -222,7 +223,7 @@ export async function getDioceseAdminsWithUsers(dioceseId: string): Promise<{
       error: null,
     };
   } catch (error) {
-    console.error("Error fetching diocese admins with users:", error);
+    logger.error("Error fetching diocese admins with users:", error);
     return { data: null, error: error as Error };
   }
 }

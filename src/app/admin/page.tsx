@@ -5,6 +5,7 @@ import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import AdminLayout from "@/components/admin/AdminLayout";
 import DashboardClient from "./dashboard/DashboardClient";
 import { PageWithPermissions } from "@/components/admin/PageWithPermissions";
+import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -116,7 +117,7 @@ export default async function AdminDashboard() {
       };
     }
   } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
+    logger.error("Error fetching dashboard stats:", error);
   }
 
   return (

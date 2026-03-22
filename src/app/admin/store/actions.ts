@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import { revalidatePath } from 'next/cache'
 import type { CreateStoreItemInput, UpdateStoreItemInput } from '@/lib/types/sunday-school'
 
@@ -60,7 +61,7 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
       .insert(offersToInsert)
 
     if (offersError) {
-      console.error('Failed to create special offers:', offersError)
+      logger.error('Failed to create special offers:', offersError)
       // Don't throw, item is already created - user can add offers later
     }
   }
@@ -77,7 +78,7 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
       .insert(churchAssociations)
 
     if (churchError) {
-      console.error('Failed to create church associations:', churchError)
+      logger.error('Failed to create church associations:', churchError)
       // Don't throw, item is already created
     }
   }
@@ -94,7 +95,7 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
       .insert(dioceseAssociations)
 
     if (dioceseError) {
-      console.error('Failed to create diocese associations:', dioceseError)
+      logger.error('Failed to create diocese associations:', dioceseError)
       // Don't throw, item is already created
     }
   }
@@ -111,7 +112,7 @@ export async function createStoreItemAction(input: CreateStoreItemInput) {
       .insert(classAssociations)
 
     if (classError) {
-      console.error('Failed to create class associations:', classError)
+      logger.error('Failed to create class associations:', classError)
       // Don't throw, item is already created
     }
   }
@@ -177,7 +178,7 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
           .insert(offersToInsert)
 
         if (offersError) {
-          console.error('Failed to update special offers:', offersError)
+          logger.error('Failed to update special offers:', offersError)
           throw new Error(`Failed to update special offers: ${offersError.message}`)
         }
       }
@@ -204,7 +205,7 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
         .insert(churchAssociations)
 
       if (churchError) {
-        console.error('Failed to update church associations:', churchError)
+        logger.error('Failed to update church associations:', churchError)
       }
     }
   }
@@ -229,7 +230,7 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
         .insert(dioceseAssociations)
 
       if (dioceseError) {
-        console.error('Failed to update diocese associations:', dioceseError)
+        logger.error('Failed to update diocese associations:', dioceseError)
       }
     }
   }
@@ -254,7 +255,7 @@ export async function updateStoreItemAction(itemId: string, input: UpdateStoreIt
         .insert(classAssociations)
 
       if (classError) {
-        console.error('Failed to update class associations:', classError)
+        logger.error('Failed to update class associations:', classError)
       }
     }
   }

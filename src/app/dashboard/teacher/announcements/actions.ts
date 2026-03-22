@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { AnnouncementType } from "@/components/teacher";
@@ -75,7 +76,7 @@ export async function getTeacherAnnouncements(
   });
 
   if (error) {
-    console.error("Error fetching announcements:", error);
+    logger.error("Error fetching announcements:", error);
     return [];
   }
 
@@ -183,7 +184,7 @@ export async function markAnnouncementRead(
   });
 
   if (error) {
-    console.error("Error marking announcement read:", error);
+    logger.error("Error marking announcement read:", error);
     return { success: false };
   }
 

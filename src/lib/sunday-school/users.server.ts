@@ -1,4 +1,5 @@
 import { createClient } from "../supabase/server";
+import { logger } from "@/lib/logger";
 import type { ExtendedUser } from "../types/sunday-school";
 
 /**
@@ -21,7 +22,7 @@ export async function getCurrentUserProfile(): Promise<ExtendedUser | null> {
     .single();
 
   if (error) {
-    console.error('Error fetching user profile:', error);
+    logger.error('Error fetching user profile:', error);
     return null;
   }
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from "@/lib/logger";
 
 export interface StudentDetails {
   id: string;
@@ -425,7 +426,7 @@ export async function getStudentOrdersAction(
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching student orders:", error);
+    logger.error("Error fetching student orders:", error);
     return [];
   }
 

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { CreateChurchInput } from '@/lib/types/sunday-school'
 
 export async function getChurchesData(dioceseId?: string) {
@@ -19,7 +20,7 @@ export async function getChurchesData(dioceseId?: string) {
   const { data, error } = await query
 
   if (error) {
-    console.error('Error fetching churches:', error)
+    logger.error('Error fetching churches:', error)
     return []
   }
 
@@ -35,7 +36,7 @@ export async function getDiocesesData() {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('Error fetching dioceses:', error)
+    logger.error('Error fetching dioceses:', error)
     return []
   }
 
@@ -51,7 +52,7 @@ export async function getChurchClassesCountData(churchId: string) {
     .eq('church_id', churchId)
 
   if (error) {
-    console.error('Error fetching class count:', error)
+    logger.error('Error fetching class count:', error)
     return 0
   }
 
@@ -85,7 +86,7 @@ export async function createChurchAction(input: CreateChurchInput) {
   })
 
   if (error) {
-    console.error('Error creating church:', error)
+    logger.error('Error creating church:', error)
     throw new Error('Failed to create church')
   }
 
@@ -105,7 +106,7 @@ export async function updateChurchAction(
     .eq('id', id)
 
   if (error) {
-    console.error('Error updating church:', error)
+    logger.error('Error updating church:', error)
     throw new Error('Failed to update church')
   }
 
@@ -119,7 +120,7 @@ export async function deleteChurchAction(id: string) {
   const { error } = await supabase.from('churches').delete().eq('id', id)
 
   if (error) {
-    console.error('Error deleting church:', error)
+    logger.error('Error deleting church:', error)
     throw new Error('Failed to delete church')
   }
 

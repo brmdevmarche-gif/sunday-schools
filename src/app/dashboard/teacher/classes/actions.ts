@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 import { redirect } from "next/navigation";
 
 export interface TeacherClassDetails {
@@ -62,7 +63,7 @@ export async function getTeacherClassesWithDetails(): Promise<TeacherClassDetail
     .eq("is_active", true);
 
   if (assignmentError) {
-    console.error("Error fetching class assignments:", assignmentError);
+    logger.error("Error fetching class assignments:", assignmentError);
     return [];
   }
 
@@ -170,7 +171,7 @@ export async function getClassStudents(classId: string): Promise<ClassStudent[]>
     .eq("status", "active");
 
   if (studentsError || !classStudents) {
-    console.error("Error fetching class students:", studentsError);
+    logger.error("Error fetching class students:", studentsError);
     return [];
   }
 

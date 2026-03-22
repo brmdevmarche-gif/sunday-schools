@@ -447,7 +447,7 @@ export default function OrdersManagementClient({
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label={t("common.back")}>
                 <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />

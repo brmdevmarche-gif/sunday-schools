@@ -7,7 +7,7 @@ export default function DioceseDetailsLoading() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto py-8 px-2 lg:px-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" disabled aria-label="Back">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />

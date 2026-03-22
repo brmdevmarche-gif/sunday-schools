@@ -548,6 +548,7 @@ export default function StudentDetailsClient({
                               alt={activity.name}
                               fill
                               className="object-cover rounded-md"
+                              unoptimized
                             />
                           </div>
                         )}

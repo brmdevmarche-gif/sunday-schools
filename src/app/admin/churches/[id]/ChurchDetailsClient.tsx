@@ -113,7 +113,7 @@ export function ChurchDetailsClient({
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" asChild>
             <Link href="/admin/churches">
@@ -121,8 +121,8 @@ export function ChurchDetailsClient({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{church.name}</h1>
-            <p className="text-muted-foreground">{t("churches.subtitle")}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">{church.name}</h1>
+            <p className="text-sm text-muted-foreground">{t("churches.subtitle")}</p>
           </div>
         </div>
         {canEdit && !isEditing && (
@@ -162,6 +162,7 @@ export function ChurchDetailsClient({
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               priority
+              unoptimized
             />
           )}
           {isEditing && (

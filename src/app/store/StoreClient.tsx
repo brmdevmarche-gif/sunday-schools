@@ -356,7 +356,7 @@ export default function StoreClient({
       {/* Header */}
       <div className="border-b bg-card sticky z-10 top-0">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"

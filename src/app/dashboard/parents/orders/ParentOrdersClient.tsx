@@ -212,6 +212,7 @@ export function ParentOrdersClient({ orders }: ParentOrdersClientProps) {
                           width={40}
                           height={40}
                           className="rounded-md object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">

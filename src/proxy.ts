@@ -51,12 +51,14 @@ export async function proxy(request: NextRequest) {
   finalResponse.headers.set('x-nonce', nonce);
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const isDev = process.env.NODE_ENV === 'development';
   const csp = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    // React requires eval() in dev mode for debugging features (callstack reconstruction)
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
     `style-src 'self' 'unsafe-inline'`, // Tailwind injects styles; nonce for styles requires build changes
     `img-src 'self' data: blob: https:`,
-    `connect-src 'self' ${supabaseUrl} wss://*.supabase.co`,
+    `connect-src 'self' ${supabaseUrl} wss://*.supabase.co${isDev ? ' ws://localhost:*' : ''}`,
     `font-src 'self'`,
     `frame-ancestors 'none'`,
     `base-uri 'self'`,

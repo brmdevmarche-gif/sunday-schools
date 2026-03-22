@@ -306,7 +306,7 @@ export default function CreateTripClient({
           <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Create Trip</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Create Trip</h1>
           <p className="text-muted-foreground mt-1">
             Create a new trip for your church
           </p>

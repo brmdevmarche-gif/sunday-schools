@@ -36,6 +36,7 @@ import {
   Save,
   Calendar,
   LogOut,
+  ArrowLeft,
   Home,
   Menu,
   ChevronsUpDown,
@@ -259,6 +260,14 @@ export default function TeacherAttendanceClient({
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push("/dashboard/teacher")}
+              aria-label={t("common.back")}
+            >
+              <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
+            </Button>
             <h1 className="text-xl font-bold">
               {t("attendance.quickAttendance")}
             </h1>

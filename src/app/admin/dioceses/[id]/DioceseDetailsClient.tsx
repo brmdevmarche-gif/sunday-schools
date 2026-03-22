@@ -119,7 +119,7 @@ export function DioceseDetailsClient({
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" asChild aria-label={t("common.back")}>
             <Link href="/admin/dioceses">
@@ -127,7 +127,7 @@ export function DioceseDetailsClient({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{diocese.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">{diocese.name}</h1>
             <p className="text-muted-foreground">{t("dioceses.subtitle")}</p>
           </div>
         </div>
@@ -168,6 +168,7 @@ export function DioceseDetailsClient({
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               priority
+              unoptimized
             />
           )}
           {isEditing && (

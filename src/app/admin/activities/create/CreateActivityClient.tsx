@@ -101,7 +101,7 @@ export default function CreateActivityClient(_props: CreateActivityClientProps) 
           <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-bold">
             {t("activities.createActivity")}
           </h1>
           <p className="text-muted-foreground mt-1">

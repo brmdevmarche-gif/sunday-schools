@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -222,13 +223,16 @@ export default function TripImageUpload({
         <Card>
           <CardContent className="p-4">
             <div className="relative">
-              <img
+              <Image
                 role="presentation"
                 src={imageUrl}
                 alt="Trip preview"
+                width={400}
+                height={192}
                 className="w-full h-48 object-cover rounded-lg"
+                unoptimized
                 onError={(e) => {
-                  e.currentTarget.src =
+                  (e.target as HTMLImageElement).src =
                     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%23999'%3EImage failed to load%3C/text%3E%3C/svg%3E";
                 }}
               />

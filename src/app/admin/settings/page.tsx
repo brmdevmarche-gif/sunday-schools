@@ -6,7 +6,6 @@ import {
   getDatabaseStats,
 } from './actions'
 import { createClient } from '@/lib/supabase/server'
-import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
@@ -49,17 +48,15 @@ export default async function SettingsPage() {
 
   return (
     <AdminLayout>
-      <PageWithPermissions permission="settings.view">
-        <SettingsClient
-          initialSettings={settings}
-          backupLogs={backupLogs}
-          databaseStats={databaseStats}
-          isSuperAdmin={isSuperAdmin}
-          isChurchAdmin={!!isChurchAdmin}
-          churchId={churchId || undefined}
-          churchName={churchName || undefined}
-        />
-      </PageWithPermissions>
+      <SettingsClient
+        initialSettings={settings}
+        backupLogs={backupLogs}
+        databaseStats={databaseStats}
+        isSuperAdmin={isSuperAdmin}
+        isChurchAdmin={!!isChurchAdmin}
+        churchId={churchId || undefined}
+        churchName={churchName || undefined}
+      />
     </AdminLayout>
   )
 }

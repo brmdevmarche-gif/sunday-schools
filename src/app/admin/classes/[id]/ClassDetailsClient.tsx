@@ -448,7 +448,7 @@ export default function ClassDetailsClient({
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold">{classData.name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">{classData.name}</h1>
               <Badge variant={classData.is_active ? "default" : "secondary"}>
                 {classData.is_active
                   ? t("common.active")

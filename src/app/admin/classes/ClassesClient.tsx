@@ -68,7 +68,7 @@ import {
   getAvailableTeachersData,
   getAvailableStudentsData,
 } from "./actions";
-import { clientLogger } from '@/lib/client-logger'
+import { clientLogger } from "@/lib/client-logger";
 
 interface ClassWithCount extends Class {
   studentCount: number;
@@ -108,12 +108,12 @@ export default function ClassesClient({
   const router = useRouter();
   const t = useTranslations();
   const [, startTransition] = useTransition();
-  
+
   // Check permissions for assigning users
-  const hasAssignUsers = useHasPermission('classes.assign_users');
-  const hasAssignTeachers = useHasPermission('classes.assign_teachers');
-  const hasAssignStudents = useHasPermission('classes.assign_students');
-  
+  const hasAssignUsers = useHasPermission("classes.assign_users");
+  const hasAssignTeachers = useHasPermission("classes.assign_teachers");
+  const hasAssignStudents = useHasPermission("classes.assign_students");
+
   // Helper to check if user can assign students (either general or specific)
   const canAssignStudents = hasAssignUsers || hasAssignStudents;
   // Helper to check if user can assign teachers (either general or specific)
@@ -131,7 +131,7 @@ export default function ClassesClient({
   const [classRoster, setClassRoster] = useState<Assignment[]>([]);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [assignmentType, setAssignmentType] = useState<"teacher" | "student">(
-    "teacher"
+    "teacher",
   );
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -186,7 +186,7 @@ export default function ClassesClient({
 
   async function handleOpenAssignDialog(
     cls: Class,
-    type: "teacher" | "student"
+    type: "teacher" | "student",
   ) {
     setSelectedClass(cls);
     setAssignmentType(type);
@@ -210,7 +210,7 @@ export default function ClassesClient({
     setSelectedUserIds((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
+        : [...prev, userId],
     );
   }
 
@@ -258,7 +258,7 @@ export default function ClassesClient({
     } catch (error) {
       clientLogger.error("Error saving class", error);
       toast.error(
-        editingClass ? t("classes.updateFailed") : t("classes.createFailed")
+        editingClass ? t("classes.updateFailed") : t("classes.createFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -272,7 +272,7 @@ export default function ClassesClient({
     try {
       // Assign all selected users
       const promises = selectedUserIds.map((userId) =>
-        assignUserToClassAction(selectedClass.id, userId, assignmentType)
+        assignUserToClassAction(selectedClass.id, userId, assignmentType),
       );
 
       await Promise.all(promises);
@@ -287,7 +287,7 @@ export default function ClassesClient({
               assignmentType === "teacher"
                 ? t("classes.teachersAssigned")
                 : t("classes.studentsAssigned")
-            }`
+            }`,
       );
       setIsAssignDialogOpen(false);
       startTransition(() => {
@@ -311,7 +311,7 @@ export default function ClassesClient({
     try {
       await removeUserFromClassAction(
         removeUserConfirm.assignmentId,
-        selectedClass?.id
+        selectedClass?.id,
       );
       toast.success(t("classes.userRemoved"));
       if (selectedClass) {
@@ -439,7 +439,7 @@ export default function ClassesClient({
         comparison = a.name.localeCompare(b.name);
       } else if (sortColumn === "church") {
         comparison = getChurchName(a.church_id).localeCompare(
-          getChurchName(b.church_id)
+          getChurchName(b.church_id),
         );
       } else if (sortColumn === "gradeLevel") {
         comparison = (a.grade_level || "").localeCompare(b.grade_level || "");
@@ -468,10 +468,18 @@ export default function ClassesClient({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">{t("classes.title")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("classes.subtitle")}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {t("classes.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t("classes.subtitle")}
+          </p>
         </div>
-        <PermissionButton permission="classes.create" onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+        <PermissionButton
+          permission="classes.create"
+          onClick={() => handleOpenDialog()}
+          className="w-full sm:w-auto"
+        >
           <Plus className="me-2 h-4 w-4" />
           {t("classes.addClass")}
         </PermissionButton>
@@ -485,7 +493,7 @@ export default function ClassesClient({
         clearText={t("common.clearAll")}
         className="mb-0"
       >
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 min-w-[200px] space-y-1">
             <Label>{t("classes.diocese")}</Label>
             <SearchableSelect
@@ -644,7 +652,11 @@ export default function ClassesClient({
                 </PermissionButton>
                 {canAssignStudents && (
                   <PermissionButton
-                    permission={hasAssignUsers ? "classes.assign_users" : "classes.assign_students"}
+                    permission={
+                      hasAssignUsers
+                        ? "classes.assign_users"
+                        : "classes.assign_students"
+                    }
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
@@ -660,7 +672,11 @@ export default function ClassesClient({
                 )}
                 {canAssignTeachers && (
                   <PermissionButton
-                    permission={hasAssignUsers ? "classes.assign_users" : "classes.assign_teachers"}
+                    permission={
+                      hasAssignUsers
+                        ? "classes.assign_users"
+                        : "classes.assign_teachers"
+                    }
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
@@ -863,10 +879,13 @@ export default function ClassesClient({
                     type="number"
                     value={formData.capacity}
                     onFocus={(e) => {
-                      if (e.currentTarget.value === "0") e.currentTarget.select();
+                      if (e.currentTarget.value === "0")
+                        e.currentTarget.select();
                     }}
                     onChange={(e) => {
-                      const normalized = normalizeNonNegativeIntInput(e.target.value);
+                      const normalized = normalizeNonNegativeIntInput(
+                        e.target.value,
+                      );
                       setFormData({
                         ...formData,
                         capacity: toNonNegativeInt(normalized, 30),
@@ -893,8 +912,8 @@ export default function ClassesClient({
                 {isSubmitting
                   ? t("common.saving")
                   : editingClass
-                  ? t("common.update")
-                  : t("common.create")}
+                    ? t("common.update")
+                    : t("common.create")}
               </Button>
             </DialogFooter>
           </form>
@@ -924,7 +943,9 @@ export default function ClassesClient({
           <div className="space-y-4 py-4">
             {/* Search Input */}
             <div className="relative">
-              <label htmlFor="search-class-users" className="sr-only">{t("common.search")}</label>
+              <label htmlFor="search-class-users" className="sr-only">
+                {t("common.search")}
+              </label>
               <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search-class-users"
@@ -1032,20 +1053,24 @@ export default function ClassesClient({
                 {isSubmitting
                   ? t("classes.assigning")
                   : selectedUserIds.length > 0
-                  ? `${t("classes.assign")} (${selectedUserIds.length})`
-                  : t("classes.assign")}
+                    ? `${t("classes.assign")} (${selectedUserIds.length})`
+                    : t("classes.assign")}
               </PermissionButton>
             ) : (
               <PermissionButton
-                permission={assignmentType === "teacher" ? "classes.assign_teachers" : "classes.assign_students"}
+                permission={
+                  assignmentType === "teacher"
+                    ? "classes.assign_teachers"
+                    : "classes.assign_students"
+                }
                 onClick={handleAssignUser}
                 disabled={isSubmitting || selectedUserIds.length === 0}
               >
                 {isSubmitting
                   ? t("classes.assigning")
                   : selectedUserIds.length > 0
-                  ? `${t("classes.assign")} (${selectedUserIds.length})`
-                  : t("classes.assign")}
+                    ? `${t("classes.assign")} (${selectedUserIds.length})`
+                    : t("classes.assign")}
               </PermissionButton>
             )}
           </DialogFooter>

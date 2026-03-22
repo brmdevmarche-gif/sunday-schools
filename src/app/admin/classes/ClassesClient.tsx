@@ -468,8 +468,8 @@ export default function ClassesClient({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{t("classes.title")}</h1>
-          <p className="text-muted-foreground mt-2">{t("classes.subtitle")}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">{t("classes.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("classes.subtitle")}</p>
         </div>
         <PermissionButton permission="classes.create" onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
           <Plus className="me-2 h-4 w-4" />
@@ -628,7 +628,7 @@ export default function ClassesClient({
             getRowKey={(cls) => cls.id}
             onRowClick={(cls) => router.push(`/admin/classes/${cls.id}`)}
             renderActions={(cls) => (
-              <div className="flex justify-end gap-1 flex-wrap">
+              <div className="flex justify-end gap-1.5 flex-wrap">
                 <PermissionButton
                   permission="classes.view_detail"
                   variant="ghost"

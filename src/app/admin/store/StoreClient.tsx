@@ -568,7 +568,7 @@ export default function StoreClient({
                 {t("common.clear")}
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => {
                   const now = new Date();
                   const start = new Date(now);
@@ -581,7 +581,7 @@ export default function StoreClient({
                 {t("store.lastWeek")}
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => {
                   const now = new Date();
                   const start = new Date(now);
@@ -594,7 +594,7 @@ export default function StoreClient({
                 {t("store.lastMonth")}
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => {
                   const now = new Date();
                   const start = new Date(
@@ -841,7 +841,7 @@ export default function StoreClient({
                 {t("common.clear")}
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 onClick={() => {
                   const now = new Date();
@@ -857,7 +857,7 @@ export default function StoreClient({
                 {t("store.lastWeek")}
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 onClick={() => {
                   const now = new Date();
@@ -873,7 +873,7 @@ export default function StoreClient({
                 {t("store.lastMonth")}
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 onClick={() => {
                   const now = new Date();

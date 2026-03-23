@@ -104,7 +104,7 @@ export async function getTeacherTrips(): Promise<TeacherTrip[]> {
   // Get trip details
   const { data: trips, error: tripError } = await adminClient
     .from("trips")
-    .select("*")
+    .select("id, title, destination, start_datetime, end_datetime, trip_type, status, max_participants, image_url")
     .in("id", tripIds)
     .order("start_datetime", { ascending: true });
 
@@ -193,7 +193,7 @@ export async function getTripDetails(
   // Get trip details
   const { data: trip, error: tripError } = await adminClient
     .from("trips")
-    .select("*")
+    .select("id, title, destination, start_datetime, end_datetime, trip_type, status, max_participants, image_url")
     .eq("id", tripId)
     .single();
 

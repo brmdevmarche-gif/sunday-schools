@@ -40,7 +40,7 @@ export async function getCurrentUserSettings(): Promise<UserSettings | null> {
 
   const { data, error } = await supabase
     .from('user_settings')
-    .select('*')
+    .select('id, user_id, language, theme, date_format, time_format, timezone, notifications_enabled, email_notifications, created_at, updated_at')
     .eq('user_id', user.id)
     .single()
 
@@ -143,7 +143,7 @@ export async function getBackupLogs(): Promise<BackupLog[]> {
 
   const { data, error } = await supabase
     .from('backup_logs')
-    .select('*')
+    .select('id, backup_type, backup_status, file_size_bytes, file_path, created_by, error_message, metadata, created_at')
     .order('created_at', { ascending: false })
     .limit(50)
 
@@ -188,7 +188,7 @@ export async function createBackupLog(type: 'manual' | 'scheduled' | 'automatic'
       backup_status: 'started',
       created_by: user.id,
     })
-    .select()
+    .select('id, backup_type, backup_status, file_size_bytes, file_path, created_by, error_message, metadata, created_at')
     .single()
 
   if (error) {
@@ -257,10 +257,10 @@ export async function getDatabaseStats() {
     { count: churchesCount },
     { count: classesCount },
   ] = await Promise.all([
-    supabase.from('users').select('*', { count: 'exact', head: true }),
-    supabase.from('dioceses').select('*', { count: 'exact', head: true }),
-    supabase.from('churches').select('*', { count: 'exact', head: true }),
-    supabase.from('classes').select('*', { count: 'exact', head: true }),
+    supabase.from('users').select('id', { count: 'exact', head: true }),
+    supabase.from('dioceses').select('id', { count: 'exact', head: true }),
+    supabase.from('churches').select('id', { count: 'exact', head: true }),
+    supabase.from('classes').select('id', { count: 'exact', head: true }),
   ])
 
   return {

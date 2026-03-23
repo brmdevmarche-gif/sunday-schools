@@ -107,7 +107,7 @@ export async function getLoginHistory(limit: number = 10): Promise<LoginHistoryE
 
   const { data, error } = await supabase
     .from('login_history')
-    .select('*')
+    .select('id, user_id, success, ip_address, user_agent, device_info, location, failure_reason, created_at')
     .order('created_at', { ascending: false })
     .limit(limit)
 
@@ -127,7 +127,7 @@ export async function getLastSuccessfulLogin(): Promise<LoginHistoryEntry | null
 
   const { data, error } = await supabase
     .from('login_history')
-    .select('*')
+    .select('id, user_id, success, ip_address, user_agent, device_info, location, failure_reason, created_at')
     .eq('success', true)
     .order('created_at', { ascending: false })
     .limit(2) // Get 2 to skip the current login
@@ -151,7 +151,7 @@ export async function getRecentFailedAttempts(hours: number = 24): Promise<Login
 
   const { data, error } = await supabase
     .from('login_history')
-    .select('*')
+    .select('id, user_id, success, ip_address, user_agent, device_info, location, failure_reason, created_at')
     .eq('success', false)
     .gte('created_at', since.toISOString())
     .order('created_at', { ascending: false })

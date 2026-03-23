@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth-guard";
 import { logger } from "@/lib/logger";
 
 export interface StudentDetails {
@@ -95,6 +96,7 @@ export interface StudentOrder {
 export async function getStudentDetailsAction(
   studentId: string
 ): Promise<StudentDetails> {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   // Get student info
@@ -175,6 +177,7 @@ export async function getStudentActivitiesAction(studentId: string): Promise<{
   participated: ActivityParticipation[];
   available: AvailableActivity[];
 }> {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   // Get student's diocese, church, and classes
@@ -264,7 +267,7 @@ export async function getStudentActivitiesAction(studentId: string): Promise<{
   scopeFilters.push(
     supabase
       .from("activities")
-      .select("*")
+      .select("id, name, description, image_url, points, requires_participation_approval, requires_completion_approval, is_time_sensitive, deadline, max_participants, status, diocese_id, church_id, class_id")
       .eq("status", "active")
       .is("diocese_id", null)
       .is("church_id", null)
@@ -276,7 +279,7 @@ export async function getStudentActivitiesAction(studentId: string): Promise<{
     scopeFilters.push(
       supabase
         .from("activities")
-        .select("*")
+        .select("id, name, description, image_url, points, requires_participation_approval, requires_completion_approval, is_time_sensitive, deadline, max_participants, status, diocese_id, church_id, class_id")
         .eq("status", "active")
         .eq("diocese_id", student.diocese_id)
         .is("church_id", null)
@@ -289,7 +292,7 @@ export async function getStudentActivitiesAction(studentId: string): Promise<{
     scopeFilters.push(
       supabase
         .from("activities")
-        .select("*")
+        .select("id, name, description, image_url, points, requires_participation_approval, requires_completion_approval, is_time_sensitive, deadline, max_participants, status, diocese_id, church_id, class_id")
         .eq("status", "active")
         .eq("church_id", student.church_id)
         .is("class_id", null)
@@ -301,7 +304,7 @@ export async function getStudentActivitiesAction(studentId: string): Promise<{
     scopeFilters.push(
       supabase
         .from("activities")
-        .select("*")
+        .select("id, name, description, image_url, points, requires_participation_approval, requires_completion_approval, is_time_sensitive, deadline, max_participants, status, diocese_id, church_id, class_id")
         .eq("status", "active")
         .in("class_id", studentClassIds)
     );
@@ -345,6 +348,7 @@ export async function getStudentActivitiesAction(studentId: string): Promise<{
 export async function getStudentPointsAction(
   studentId: string
 ): Promise<PointsSummary> {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   // Get points balance from student_points_balance table
@@ -395,6 +399,7 @@ export async function getStudentPointsAction(
 export async function getStudentOrdersAction(
   studentId: string
 ): Promise<StudentOrder[]> {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   const { data: orders, error } = await supabase

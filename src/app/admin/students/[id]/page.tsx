@@ -52,7 +52,7 @@ export default async function StudentDetailsPage({
   // Check if user has permission to view this student
   const { data: student } = await supabase
     .from("users")
-    .select("*")
+    .select("diocese_id, church_id")
     .eq("id", id)
     .eq("role", "student")
     .single();

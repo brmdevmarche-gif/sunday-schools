@@ -39,7 +39,7 @@ export async function getClassStudentsCountData(classId: string) {
 
     const { count, error } = await supabase
       .from('class_assignments')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('class_id', classId)
       .eq('assignment_type', 'student')
       .eq('is_active', true)

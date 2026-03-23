@@ -9,7 +9,7 @@ export async function getDioceses(): Promise<Diocese[]> {
 
   const { data, error } = await supabase
     .from('dioceses')
-    .select('*')
+    .select('id, name, created_by, created_at, updated_at')
     .order('name', { ascending: true })
 
   if (error) throw error
@@ -24,7 +24,7 @@ export async function getDioceseById(id: string): Promise<Diocese | null> {
 
   const { data, error } = await supabase
     .from('dioceses')
-    .select('*')
+    .select('id, name, created_by, created_at, updated_at')
     .eq('id', id)
     .single()
 

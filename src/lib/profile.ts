@@ -33,7 +33,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   // Query the users table for profile data
   const { data, error } = await supabase
     .from('users')
-    .select('*')
+    .select('id, email, username, full_name, avatar_url, bio, created_at, updated_at')
     .eq('id', user.id)
     .single()
 
@@ -80,7 +80,7 @@ export async function getProfileById(userId: string): Promise<UserProfile | null
 
   const { data, error } = await supabase
     .from('users')
-    .select('*')
+    .select('id, email, username, full_name, avatar_url, bio, created_at, updated_at')
     .eq('id', userId)
     .single()
 

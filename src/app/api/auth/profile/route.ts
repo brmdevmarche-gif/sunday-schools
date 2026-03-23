@@ -17,7 +17,7 @@ export async function GET() {
     // Fetch user profile from the database
     const { data: profile, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, email, username, full_name, avatar_url, bio, created_at, updated_at')
       .eq('id', user.id)
       .single();
 

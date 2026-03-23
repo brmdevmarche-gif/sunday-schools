@@ -74,7 +74,15 @@
     "registeredByParent": "سجله ولي الأمر",
     "orderedByParent": "طلبه ولي الأمر",
     "self": "ذاتي",
-    "menu": "القائمة"
+    "menu": "القائمة",
+    "accessDenied": "تم رفض الوصول",
+    "permissionRequired": "تحتاج إلى الأذونات التالية للوصول إلى هذه الصفحة:",
+    "noPermission": "ليس لديك إذن للوصول إلى هذه الصفحة.",
+    "goToAdmin": "الذهاب إلى الإدارة",
+    "goBack": "العودة",
+    "church": "كنيسة",
+    "diocese": "أبرشية",
+    "processing": "جاري المعالجة..."
   },
   "status": {
     "pending": "قيد الانتظار",
@@ -429,12 +437,14 @@
     "backupCreated": "تم إنشاء النسخة الاحتياطية بنجاح",
     "backupFailed": "فشل إنشاء النسخة الاحتياطية",
     "languageDescription": "اختر لغتك المفضلة",
-    "themeDescription": "تخصيص مظهر التطبيق",
-    "notificationsDescription": "إدارة تفضيلات الإشعارات",
+    "themeDescription": "تخصيص المظهر والسمة البصرية للتطبيق",
+    "notificationsDescription": "إعداد كيفية ووقت تلقي الإشعارات",
     "enableNotificationsDescription": "تلقي إشعارات عن الرحلات والأنشطة والمزيد",
     "accountDescription": "إدارة إعدادات حسابك",
     "needHelp": "تحتاج مساعدة؟",
-    "contactSupport": "تواصل مع الدعم"
+    "contactSupport": "تواصل مع الدعم",
+    "preferencesDescription": "إعداد اللغة والمنطقة الزمنية والتفضيلات الإقليمية",
+    "dateFormatDescription": "ضبط تنسيق عرض التاريخ والوقت المفضل لديك"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -808,7 +818,9 @@
     "customer": "العميل",
     "quantity": "الكمية",
     "priceTier": "فئة السعر",
-    "noDescription": "لا يوجد وصف"
+    "noDescription": "لا يوجد وصف",
+    "selectChildDescription": "اختر الطفل الذي تريد الشراء له من المتجر.",
+    "selectStudentDescription": "اختر طالباً من فصولك لطلب عناصر له."
   },
   "activities": {
     "title": "الأنشطة",
@@ -1597,7 +1609,8 @@
     "payment": "الدفع",
     "notSubscribed": "أنت غير مشترك في هذه الرحلة بعد.",
     "tripNotAvailable": "هذه الرحلة غير متاحة للاشتراك.",
-    "unavailable": "غير متاح"
+    "unavailable": "غير متاح",
+    "additionalInfo": "معلومات إضافية"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -1917,7 +1930,8 @@
       "viewDetailedStats": "عرض الإحصائيات التفصيلية",
       "creating": "جارِ الإنشاء...",
       "updating": "جارِ التحديث...",
-      "saving": "جارِ الحفظ..."
+      "saving": "جارِ الحفظ...",
+      "pay": "الدفع"
     },
     "stats": {
       "total": "الإجمالي",
@@ -1953,7 +1967,17 @@
       "participantUpdateError": "فشل تحديث المشارك",
       "participantsUpdated": "تم تحديث {count} مشاركين بنجاح",
       "participantsUpdateError": "فشل تحديث المشاركين",
-      "selected": "{count} محدد"
+      "selected": "{count} محدد",
+      "amountPaid": "المبلغ المدفوع",
+      "amountRemaining": "المبلغ المتبقي",
+      "complete": "مكتمل",
+      "invalidPaymentStatus": "حالة دفع غير صحيحة. يرجى استخدام: قيد الانتظار أو مدفوع أو مدفوع جزئياً أو تم استرجاعه",
+      "maxPaymentAmount": "الحد الأقصى لمبلغ الدفع: {max}",
+      "paymentExceedsPrice": "لا يمكن أن يتجاوز مبلغ الدفع سعر الرحلة ({max})",
+      "paymentExceedsRemaining": "لا يمكن أن يتجاوز مبلغ الدفع المبلغ المتبقي ({max})",
+      "paymentStatus": "حالة الدفع",
+      "remaining": "المتبقي",
+      "totalPrice": "السعر الإجمالي"
     },
     "tripAttendance": {
       "title": "الحضور",
@@ -2037,7 +2061,15 @@
       "subscriptionStatus": "حالة الاشتراك",
       "csvExportedSuccess": "تم تصدير CSV بنجاح",
       "payNow": "ادفع الآن"
-    }
+    },
+    "endDate": "تاريخ الانتهاء",
+    "fulfillAllAmount": "تلبية المبلغ الكامل لهذه الرحلة",
+    "oneDayTripEndDateNote": "بالنسبة للرحلات ليوم واحد، يتم تعيين تاريخ الانتهاء تلقائياً لتاريخ البداية.",
+    "paymentAmount": "مبلغ الدفع",
+    "paymentError": "فشل معالجة الدفع",
+    "paymentFor": "الدفع لقاء",
+    "selectDateTime": "اختر التاريخ والوقت",
+    "startDate": "تاريخ البداية"
   },
   "gamification": {
     "title": "الإنجازات",
@@ -2405,7 +2437,14 @@
       "recentRecords": "السجلات الأخيرة",
       "noRecords": "لا توجد سجلات حضور",
       "last30Days": "آخر 30 يوم",
-      "days": "أيام"
+      "days": "أيام",
+      "activities": "الأنشطة",
+      "available": "متاح",
+      "noAttendanceRecords": "لا توجد سجلات حضور حتى الآن",
+      "noProfileInfo": "لا توجد معلومات ملف شخصي متاحة",
+      "suspended": "موقوف",
+      "totalDays": "إجمالي الأيام",
+      "userCode": "كود المستخدم"
     },
     "attendance": {
       "takeAttendance": "تسجيل الحضور",
@@ -2446,7 +2485,14 @@
       "tryDifferentFilter": "جرب فلتر آخر لرؤية الإعلانات.",
       "publishedAt": "نُشر في {date}",
       "expiresAt": "ينتهي في {date}",
-      "from": "من"
+      "from": "من",
+      "author": "الكاتب",
+      "backToList": "العودة إلى الإعلانات",
+      "daysAgo": "منذ {days} يوم",
+      "expiresOn": "ينتهي في {date}",
+      "hoursAgo": "منذ {hours} ساعة",
+      "justNow": "للتو",
+      "notFound": "لم يتم العثور على الإعلان"
     },
     "myTrips": {
       "title": "رحلاتي",

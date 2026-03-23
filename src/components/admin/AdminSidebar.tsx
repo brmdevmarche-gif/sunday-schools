@@ -119,12 +119,12 @@ export default function AdminSidebar({
       >
         <Image
           src="/Logo.png"
-          alt="Knesty Logo"
+          alt="Knasty Logo"
           width={40}
           height={40}
           className="object-contain"
         />
-        {!isCollapsed && <h2 className="text-2xl font-bold">Knesty</h2>}
+        {!isCollapsed && <h2 className="text-2xl font-bold">Knasty</h2>}
 
         {/* Close button for mobile */}
         {isMobile && onClose && (

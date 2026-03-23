@@ -1,12 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { validateCsrf } from "@/lib/api/csrf";
 
 // DELETE /api/admin/dioceses/[id]/admins/[userId] - Revoke diocese admin access
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> }
 ) {
+  const csrfError = validateCsrf(request);
+  if (csrfError) return csrfError;
+
   try {
     const { id, userId } = await params;
     const supabase = await createClient();
@@ -54,6 +58,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> }
 ) {
+  const csrfError = validateCsrf(request);
+  if (csrfError) return csrfError;
+
   try {
     const { id, userId } = await params;
     const supabase = await createClient();

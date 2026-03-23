@@ -77,7 +77,12 @@
     "orderedByParent": "Ordered by Parent",
     "self": "Self",
     "menu": "Menu",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "accessDenied": "Access Denied",
+    "permissionRequired": "You need the following permission(s) to access this page:",
+    "noPermission": "You do not have permission to access this page.",
+    "goToAdmin": "Go to Admin",
+    "goBack": "Go Back"
   },
   "status": {
     "pending": "Pending",
@@ -432,12 +437,14 @@
     "backupCreated": "Backup created successfully",
     "backupFailed": "Failed to create backup",
     "languageDescription": "Choose your preferred language",
-    "themeDescription": "Customize how the app looks",
-    "notificationsDescription": "Manage your notification preferences",
+    "themeDescription": "Customize the appearance and visual theme of the application",
+    "notificationsDescription": "Configure how and when you receive notifications",
     "enableNotificationsDescription": "Receive notifications about trips, activities, and more",
     "accountDescription": "Manage your account settings",
     "needHelp": "Need help?",
-    "contactSupport": "Contact support"
+    "contactSupport": "Contact support",
+    "preferencesDescription": "Configure language, timezone, and regional preferences",
+    "dateFormatDescription": "Set your preferred date and time display format"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -2425,7 +2432,19 @@
       "late": "Late",
       "excused": "Excused",
       "recentRecords": "Recent Records",
-      "noAttendanceRecords": "No attendance records yet"
+      "noAttendanceRecords": "No attendance records yet",
+      "availablePoints": "Available Points",
+      "days": "days",
+      "email": "Email",
+      "loading": "Loading...",
+      "noNotes": "No notes",
+      "noParentInfo": "No parent information",
+      "noRecords": "No records",
+      "phone": "Phone",
+      "pointsBalance": "Points Balance",
+      "studentCode": "Student Code",
+      "studentProfile": "Student Profile",
+      "totalSpent": "Total Spent"
     },
     "attendance": {
       "takeAttendance": "Take Attendance",
@@ -2469,7 +2488,11 @@
       "notFound": "Announcement not found",
       "backToList": "Back to announcements",
       "author": "Author",
-      "expiresOn": "Expires on {date}"
+      "expiresOn": "Expires on {date}",
+      "expiresAt": "Expires at {date}",
+      "from": "From",
+      "markAsRead": "Mark as Read",
+      "publishedAt": "Published at {date}"
     },
     "myTrips": {
       "title": "My Trips",

@@ -42,7 +42,7 @@ export default async function StudentsPage() {
   // Build query based on permissions
   let studentsQuery = supabase
     .from("users")
-    .select("*")
+    .select("id, full_name, church_id, diocese_id")
     .eq("role", "student")
     .order("full_name", { ascending: true });
 
@@ -58,13 +58,13 @@ export default async function StudentsPage() {
   // Fetch dioceses
   const { data: dioceses } = await supabase
     .from("dioceses")
-    .select("*")
+    .select("id, name")
     .order("name", { ascending: true });
 
   // Fetch churches based on permissions
   let churchesQuery = supabase
     .from("churches")
-    .select("*")
+    .select("id, name, diocese_id")
     .order("name", { ascending: true });
 
   if (isDioceseAdmin && profile.diocese_id) {
@@ -78,7 +78,7 @@ export default async function StudentsPage() {
   // Fetch classes based on permissions
   let classesQuery = supabase
     .from("classes")
-    .select("*")
+    .select("id, name, church_id")
     .order("name", { ascending: true });
 
   if (isChurchAdmin && profile.church_id) {

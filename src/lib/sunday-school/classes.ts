@@ -9,7 +9,7 @@ export async function getClasses(churchId?: string): Promise<Class[]> {
 
   let query = supabase
     .from('classes')
-    .select('*')
+    .select('id, name, grade_level, church_id, created_by, created_at, updated_at')
     .order('name', { ascending: true })
 
   if (churchId) {
@@ -30,7 +30,7 @@ export async function getClassById(id: string): Promise<Class | null> {
 
   const { data, error } = await supabase
     .from('classes')
-    .select('*')
+    .select('id, name, grade_level, church_id, created_by, created_at, updated_at')
     .eq('id', id)
     .single()
 
@@ -107,10 +107,10 @@ export async function getClassWithDetails(id: string) {
   const { data, error } = await supabase
     .from('classes')
     .select(`
-      *,
+      id, name, grade_level, church_id, created_by, created_at, updated_at,
       church:churches(
-        *,
-        diocese:dioceses(*)
+        id, name, diocese_id, created_by, created_at, updated_at,
+        diocese:dioceses(id, name, created_by, created_at, updated_at)
       )
     `)
     .eq('id', id)

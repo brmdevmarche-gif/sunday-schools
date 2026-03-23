@@ -40,7 +40,7 @@ export default async function DioceseDetailsPage({
   // Fetch diocese details
   const { data: diocese, error } = await supabase
     .from('dioceses')
-    .select('*')
+    .select('id, name, created_at, updated_at')
     .eq('id', id)
     .single()
 
@@ -68,17 +68,16 @@ export default async function DioceseDetailsPage({
   // Fetch all teachers and students in this diocese's churches
   const churchIds = churches?.map(c => c.id) || []
 
-  let users = []
-  if (churchIds.length > 0) {
-    const { data: dioceseUsers } = await supabase
-      .from('users')
-      .select('*')
-      .in('church_id', churchIds)
-      .in('role', ['teacher', 'student'])
-      .order('full_name')
+  const { data: dioceseUsers } = churchIds.length > 0
+    ? await supabase
+        .from('users')
+        .select('*')
+        .in('church_id', churchIds)
+        .in('role', ['teacher', 'student'])
+        .order('full_name')
+    : { data: null }
 
-    users = dioceseUsers || []
-  }
+  const users = dioceseUsers || []
 
   return (
     <AdminLayout>

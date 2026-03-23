@@ -26,7 +26,7 @@ export async function getDioceseChurchesCountData(dioceseId: string) {
 
   const { count, error } = await supabase
     .from('churches')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('diocese_id', dioceseId)
 
   if (error) {

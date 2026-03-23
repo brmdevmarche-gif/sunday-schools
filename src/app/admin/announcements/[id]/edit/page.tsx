@@ -51,13 +51,13 @@ export default async function AdminEditAnnouncementPage(props: { params: Promise
   // Dioceses
   const { data: dioceses } = await supabase
     .from('dioceses')
-    .select('*')
+    .select('id, name')
     .order('name', { ascending: true })
 
   // Churches (scoped)
   let churchesQuery = supabase
     .from('churches')
-    .select('*')
+    .select('id, name, diocese_id')
     .order('name', { ascending: true })
 
   if (isDioceseAdmin && profile.diocese_id) {
@@ -71,7 +71,7 @@ export default async function AdminEditAnnouncementPage(props: { params: Promise
   // Classes (scoped)
   let classesQuery = supabase
     .from('classes')
-    .select('*')
+    .select('id, name, church_id')
     .order('name', { ascending: true })
 
   if (isChurchAdmin && profile.church_id) {

@@ -53,14 +53,14 @@ export default async function AdminOrdersPage({
   });
 
   // Scope filter options based on admin role so dropdowns don't show everything
-  let diocesesQuery = supabase.from("dioceses").select("id, name").order("name");
+  let diocesesQuery = supabase.from("dioceses").select("*").order("name");
   let churchesQuery = supabase
     .from("churches")
-    .select("id, name, diocese_id")
+    .select("*")
     .order("name");
   let classesQuery = supabase
     .from("classes")
-    .select("id, name, church_id")
+    .select("*")
     .order("name");
 
   if (profile.role === "diocese_admin" && profile.diocese_id) {

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/auth-guard'
 
 export interface CreateStudentInput {
   email: string
@@ -33,6 +34,7 @@ export interface AssignToClassInput {
 }
 
 export async function createStudentAction(input: CreateStudentInput) {
+  await requireAdmin()
   // Validate required fields
   if (!input.email || !input.password || !input.full_name || !input.diocese_id || !input.church_id) {
     throw new Error('Missing required fields: email, password, full_name, diocese_id, and church_id are required')
@@ -111,6 +113,7 @@ export async function createStudentAction(input: CreateStudentInput) {
 }
 
 export async function updateStudentAction(studentId: string, input: UpdateStudentInput) {
+  await requireAdmin()
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -127,6 +130,7 @@ export async function updateStudentAction(studentId: string, input: UpdateStuden
 }
 
 export async function deleteStudentAction(studentId: string) {
+  await requireAdmin()
   // Use admin client for admin operations
   const supabase = createAdminClient()
 
@@ -141,6 +145,7 @@ export async function deleteStudentAction(studentId: string) {
 }
 
 export async function assignToClassAction(input: AssignToClassInput) {
+  await requireAdmin()
   // Use admin client to bypass RLS for class assignments
   const supabase = createAdminClient()
 
@@ -162,6 +167,7 @@ export async function assignToClassAction(input: AssignToClassInput) {
 }
 
 export async function removeFromClassAction(studentId: string, classId: string) {
+  await requireAdmin()
   // Use admin client to bypass RLS for class assignments
   const supabase = createAdminClient()
 

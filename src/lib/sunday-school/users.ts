@@ -15,7 +15,7 @@ export async function getUsers(filters?: {
 
   let query = supabase
     .from("users")
-    .select("*")
+    .select("id, email, username, full_name, avatar_url, role, diocese_id, church_id, is_active, created_at, updated_at")
     .order("full_name", { ascending: true });
 
   if (filters?.role) {
@@ -45,7 +45,7 @@ export async function getUserById(id: string): Promise<ExtendedUser | null> {
 
   const { data, error } = await supabase
     .from("users")
-    .select("*")
+    .select("id, email, username, full_name, avatar_url, role, diocese_id, church_id, is_active, created_at, updated_at")
     .eq("id", id)
     .single();
 
@@ -159,8 +159,12 @@ export async function getParentStudents(parentId: string) {
     .from("user_relationships")
     .select(
       `
-      *,
-      student:users!user_relationships_student_id_fkey(*)
+      id,
+      parent_id,
+      student_id,
+      relationship_type,
+      created_at,
+      student:users!user_relationships_student_id_fkey(id, email, username, full_name, avatar_url, role, diocese_id, church_id, is_active, created_at, updated_at)
     `
     )
     .eq("parent_id", parentId);

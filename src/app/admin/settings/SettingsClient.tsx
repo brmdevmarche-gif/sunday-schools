@@ -177,7 +177,7 @@ export default function SettingsClient({
             <CardTitle>{t('settings.preferences')}</CardTitle>
           </div>
           <CardDescription>
-            {t('settings.subtitle')}
+            {t('settings.preferencesDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -220,7 +220,7 @@ export default function SettingsClient({
             <Palette className="h-5 w-5" />
             <CardTitle>{t('settings.theme')}</CardTitle>
           </div>
-          <CardDescription>{t('settings.subtitle')}</CardDescription>
+          <CardDescription>{t('settings.themeDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -249,7 +249,7 @@ export default function SettingsClient({
             <Calendar className="h-5 w-5" />
             <CardTitle>{t('settings.dateFormat')}</CardTitle>
           </div>
-          <CardDescription>{t('settings.subtitle')}</CardDescription>
+          <CardDescription>{t('settings.dateFormatDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -300,7 +300,7 @@ export default function SettingsClient({
             <Bell className="h-5 w-5" />
             <CardTitle>{t('settings.notifications')}</CardTitle>
           </div>
-          <CardDescription>{t('settings.subtitle')}</CardDescription>
+          <CardDescription>{t('settings.notificationsDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">

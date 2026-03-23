@@ -213,11 +213,11 @@ export default function TripsClient({
                   {t("studentTrips.title")}
                 </h1>
                 {childContext && (
-                  <h3 className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {t("parents.actions.bookTripForChild", {
                       name: childContext.full_name,
                     })}
-                  </h3>
+                  </p>
                 )}
               </div>
             </div>

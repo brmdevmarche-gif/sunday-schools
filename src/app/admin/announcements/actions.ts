@@ -43,7 +43,7 @@ export async function getAnnouncementsAdminAction() {
 
   const { data: announcements, error } = await adminClient
     .from('announcements')
-    .select('*')
+    .select('id, title, description, types, target_roles, publish_from, publish_to, created_by, created_at, is_deleted')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -110,7 +110,7 @@ export async function getAnnouncementByIdAdminAction(announcementId: string) {
 
   const { data: announcement, error } = await adminClient
     .from('announcements')
-    .select('*')
+    .select('id, title, description, types, target_roles, publish_from, publish_to, created_by, created_at, is_deleted')
     .eq('id', announcementId)
     .single()
 

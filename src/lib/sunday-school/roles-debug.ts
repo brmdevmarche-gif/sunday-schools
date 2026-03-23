@@ -13,7 +13,7 @@ export async function getRolesWithPermissionsDebug(filters?: {
     logger.debug('Step 1: Fetching roles...')
     let rolesQuery = supabase
       .from('roles')
-      .select('*')
+      .select('id, title, description, is_system_role, is_active, created_by, created_at, updated_at')
       .order('is_system_role', { ascending: false })
       .order('title', { ascending: true })
 
@@ -68,7 +68,7 @@ export async function getRolesWithPermissionsDebug(filters?: {
       logger.debug('Step 3: Fetching permissions...')
       const { data: permsData, error: permsError } = await supabase
         .from('permissions')
-        .select('*')
+        .select('id, code, name, description, module, resource, action, category, is_active, created_at, updated_at')
         .in('id', permissionIds)
 
       if (permsError) {

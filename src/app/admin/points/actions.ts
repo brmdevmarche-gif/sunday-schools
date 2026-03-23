@@ -1,8 +1,8 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin, requireStaff } from "@/lib/auth-guard";
 import { logger } from "@/lib/logger";
-import { getCurrentUserProfile } from "@/lib/sunday-school/users.server";
 import type {
   ChurchPointsConfig,
   ChurchPointsConfigFormData,
@@ -19,14 +19,13 @@ import type {
 export async function getChurchPointsConfigAction(
   churchId: string
 ): Promise<ChurchPointsConfig | null> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  await requireStaff();
 
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from("church_points_config")
-    .select("*")
+    .select("id, church_id, is_attendance_points_enabled, attendance_points_present, attendance_points_late, attendance_points_excused, attendance_points_absent, is_trip_points_enabled, trip_participation_points, is_teacher_adjustment_enabled, max_teacher_adjustment, created_at, updated_at")
     .eq("church_id", churchId)
     .single();
 
@@ -42,13 +41,7 @@ export async function upsertChurchPointsConfigAction(
   churchId: string,
   config: ChurchPointsConfigFormData
 ): Promise<ChurchPointsConfig> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
-
-  // Only church admins and above can update config
-  if (!["super_admin", "diocese_admin", "church_admin"].includes(profile.role)) {
-    throw new Error("Not authorized to update church points configuration");
-  }
+  await requireAdmin();
 
   const supabase = createAdminClient();
 
@@ -62,7 +55,7 @@ export async function upsertChurchPointsConfigAction(
       },
       { onConflict: "church_id" }
     )
-    .select()
+    .select("id, church_id, is_attendance_points_enabled, attendance_points_present, attendance_points_late, attendance_points_excused, attendance_points_absent, is_trip_points_enabled, trip_participation_points, is_teacher_adjustment_enabled, max_teacher_adjustment, created_at, updated_at")
     .single();
 
   if (error) {
@@ -80,8 +73,7 @@ export async function upsertChurchPointsConfigAction(
 export async function getStudentPointsBalanceAction(
   userId: string
 ): Promise<StudentPointsBalance | null> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  await requireStaff();
 
   const supabase = createAdminClient();
 
@@ -89,7 +81,7 @@ export async function getStudentPointsBalanceAction(
   // eslint-disable-next-line prefer-const -- data is reassigned below
   let { data, error } = await supabase
     .from("student_points_balance")
-    .select("*")
+    .select("id, user_id, available_points, suspended_points, used_points, total_earned, total_deducted, created_at, updated_at")
     .eq("user_id", userId)
     .single();
 
@@ -105,7 +97,7 @@ export async function getStudentPointsBalanceAction(
         total_earned: 0,
         total_deducted: 0,
       })
-      .select()
+      .select("id, user_id, available_points, suspended_points, used_points, total_earned, total_deducted, created_at, updated_at")
       .single();
 
     if (createError) {
@@ -124,8 +116,7 @@ export async function getStudentPointsBalanceAction(
 export async function getStudentPointsSummaryAction(
   userId: string
 ): Promise<StudentPointsSummary> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  await requireStaff();
 
   const supabase = createAdminClient();
 
@@ -135,7 +126,7 @@ export async function getStudentPointsSummaryAction(
   // Get recent transactions
   const { data: transactions, error: txError } = await supabase
     .from("points_transactions")
-    .select("*")
+    .select("id, user_id, transaction_type, points, balance_after, notes, activity_id, attendance_id, trip_id, order_id, created_by, created_at, updated_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -199,15 +190,14 @@ export async function getPointsTransactionsAction(
   userId: string,
   limit = 50
 ): Promise<PointsTransaction[]> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  await requireStaff();
 
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from("points_transactions")
     .select(`
-      *,
+      id, user_id, transaction_type, points, balance_after, notes, activity_id, attendance_id, trip_id, order_id, created_by, created_at, updated_at,
       activity:activities(id, name),
       order:orders(id, total_points),
       created_by_user:users!points_transactions_created_by_fkey(id, full_name)
@@ -240,8 +230,7 @@ export async function addPointsAction(
     order_id?: string;
   }
 ): Promise<string> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  const authUser = await requireStaff();
 
   const supabase = createAdminClient();
 
@@ -285,9 +274,9 @@ export async function addPointsAction(
       attendance_id: relatedIds?.attendance_id,
       trip_id: relatedIds?.trip_id,
       order_id: relatedIds?.order_id,
-      created_by: profile.id,
+      created_by: authUser.userId,
     })
-    .select()
+    .select("id, user_id, transaction_type, points, balance_after, notes, activity_id, attendance_id, trip_id, order_id, created_by, created_at, updated_at")
     .single();
 
   if (txError) {
@@ -307,13 +296,7 @@ export async function teacherAdjustPointsAction(
   points: number,
   notes: string
 ): Promise<string> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
-
-  // Only teachers and above can adjust
-  if (!["super_admin", "diocese_admin", "church_admin", "teacher"].includes(profile.role)) {
-    throw new Error("Not authorized to adjust points");
-  }
+  const authUser = await requireStaff();
 
   // Notes are required for teacher adjustments
   if (!notes || notes.trim().length < 3) {
@@ -338,12 +321,12 @@ export async function teacherAdjustPointsAction(
   const maxAdjustment = config?.max_teacher_adjustment || 50;
 
   // Check if adjustment is within limits (for non-super admins)
-  if (profile.role !== "super_admin" && Math.abs(points) > maxAdjustment) {
+  if (authUser.role !== "super_admin" && Math.abs(points) > maxAdjustment) {
     throw new Error(`Adjustment exceeds maximum limit of ${maxAdjustment} points`);
   }
 
   // Check if teacher adjustment is enabled
-  if (config && !config.is_teacher_adjustment_enabled && profile.role === "teacher") {
+  if (config && !config.is_teacher_adjustment_enabled && authUser.role === "teacher") {
     throw new Error("Teacher point adjustments are disabled for this church");
   }
 
@@ -365,8 +348,7 @@ export async function suspendPointsForOrderAction(
   points: number,
   orderId: string
 ): Promise<string> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  const authUser = await requireStaff();
 
   const supabase = createAdminClient();
 
@@ -406,9 +388,9 @@ export async function suspendPointsForOrderAction(
       balance_after: balance.available_points - points,
       notes: `Points suspended for order`,
       order_id: orderId,
-      created_by: profile.id,
+      created_by: authUser.userId,
     })
-    .select()
+    .select("id, user_id, transaction_type, points, balance_after, notes, activity_id, attendance_id, trip_id, order_id, created_by, created_at, updated_at")
     .single();
 
   if (txError) {
@@ -424,8 +406,7 @@ export async function confirmOrderPointsDeductionAction(
   points: number,
   orderId: string
 ): Promise<string> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  const authUser = await requireStaff();
 
   const supabase = createAdminClient();
 
@@ -460,9 +441,9 @@ export async function confirmOrderPointsDeductionAction(
       balance_after: balance.available_points,
       notes: `Order approved - ${points} points deducted`,
       order_id: orderId,
-      created_by: profile.id,
+      created_by: authUser.userId,
     })
-    .select()
+    .select("id, user_id, transaction_type, points, balance_after, notes, activity_id, attendance_id, trip_id, order_id, created_by, created_at, updated_at")
     .single();
 
   if (txError) {
@@ -479,8 +460,7 @@ export async function returnSuspendedPointsAction(
   orderId: string,
   reason: "cancelled" | "rejected"
 ): Promise<string> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  const authUser = await requireStaff();
 
   const supabase = createAdminClient();
 
@@ -519,9 +499,9 @@ export async function returnSuspendedPointsAction(
       balance_after: balance.available_points + points,
       notes: `Order ${reason} - ${points} points returned`,
       order_id: orderId,
-      created_by: profile.id,
+      created_by: authUser.userId,
     })
-    .select()
+    .select("id, user_id, transaction_type, points, balance_after, notes, activity_id, attendance_id, trip_id, order_id, created_by, created_at, updated_at")
     .single();
 
   if (txError) {
@@ -542,8 +522,7 @@ export async function awardAttendancePointsAction(
   attendanceStatus: "present" | "late" | "excused" | "absent",
   attendanceId?: string
 ): Promise<number> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  await requireStaff();
 
   // Get church config
   const config = await getChurchPointsConfigAction(churchId);
@@ -594,8 +573,7 @@ export async function awardTripPointsAction(
   tripId: string,
   tripName?: string
 ): Promise<number> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  await requireStaff();
 
   // Get church config
   const config = await getChurchPointsConfigAction(churchId);
@@ -627,8 +605,7 @@ export async function awardTripPointsAction(
 export async function getClassPointsOverviewAction(
   classId: string
 ): Promise<{ userId: string; fullName: string; availablePoints: number; totalEarned: number }[]> {
-  const profile = await getCurrentUserProfile();
-  if (!profile) throw new Error("Not authenticated");
+  await requireStaff();
 
   const supabase = createAdminClient();
 

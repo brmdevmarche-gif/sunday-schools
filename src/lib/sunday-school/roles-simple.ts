@@ -10,7 +10,7 @@ export async function getRolesSimple(filters?: {
 
     let query = supabase
       .from('roles')
-      .select('*')
+      .select('id, title, description, is_system_role, is_active, created_by, created_at, updated_at')
       .order('is_system_role', { ascending: false })
       .order('title', { ascending: true })
 

@@ -344,7 +344,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         >
           <Menu className="h-6 w-6" aria-hidden="true" />
         </Button>
-        <span className="ms-3 text-lg font-semibold">Knesty</span>
+        <span className="ms-3 text-lg font-semibold">Knasty</span>
       </div>
 
       {/* Mobile Sidebar Overlay */}

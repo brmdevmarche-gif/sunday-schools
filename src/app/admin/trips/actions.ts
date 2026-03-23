@@ -48,7 +48,7 @@ export async function createTripAction(input: CreateTripInput) {
       ...tripData,
       created_by: user.id,
     })
-    .select()
+    .select('id, church_id, title, description, destination, image_url, start_datetime, end_datetime, trip_type, status, available, price_normal, price_mastor, price_botl, max_participants, requires_parent_approval, transportation_details, what_to_bring, created_by, created_at, updated_at')
     .single()
 
   if (tripError) {
@@ -147,7 +147,7 @@ export async function updateTripAction(input: UpdateTripInput) {
     .from('trips')
     .update(updateData)
     .eq('id', id)
-    .select()
+    .select('id, church_id, title, description, destination, image_url, start_datetime, end_datetime, trip_type, status, available, price_normal, price_mastor, price_botl, max_participants, requires_parent_approval, transportation_details, what_to_bring, created_by, created_at, updated_at')
     .single()
 
   if (tripError) {
@@ -694,7 +694,7 @@ export async function updateTripParticipantAction(input: UpdateTripParticipantIn
     .from('trip_participants')
     .update(updateData)
     .eq('id', input.participant_id)
-    .select()
+    .select('id, trip_id, user_id, parent_approval, approval_status, payment_status, amount_paid, approved_at, approved_by, emergency_contact, medical_info, registered_at, registered_by, attendance_status, attendance_marked_at, attendance_marked_by, attendance_notes')
     .single()
 
   if (error) {

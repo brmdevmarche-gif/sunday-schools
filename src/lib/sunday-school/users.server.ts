@@ -17,7 +17,7 @@ export async function getCurrentUserProfile(): Promise<ExtendedUser | null> {
   // Fetch user profile from the database
   const { data, error } = await supabase
     .from("users")
-    .select("*")
+    .select("id, email, username, full_name, avatar_url, role, diocese_id, church_id, is_active, created_at, updated_at")
     .eq("id", user.id)
     .single();
 

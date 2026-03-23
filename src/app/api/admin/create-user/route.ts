@@ -1,55 +1,69 @@
-import { createClient } from "@supabase/supabase-js";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { logger } from "@/lib/logger";
+import { requireAdminApiUser, isAuthError } from "@/lib/api/auth";
+import { validateCsrf } from "@/lib/api/csrf";
+import { apiSuccess, apiError } from "@/lib/api/response";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { USER_ROLES } from "@/lib/constants/roles";
 
-// Mark this route as dynamic to prevent evaluation during build
 export const dynamic = "force-dynamic";
 
+const ROLE_HIERARCHY: Record<string, number> = Object.fromEntries(
+  USER_ROLES.map((role, index) => [role, index])
+);
+
+const createUserSchema = z.object({
+  email: z.email(),
+  password: z.string().min(8).max(128),
+  role: z.enum(USER_ROLES),
+  username: z.string().min(1).max(100).optional(),
+  full_name: z.string().min(1).max(200).optional(),
+  church_id: z.string().uuid().optional().nullable(),
+  diocese_id: z.string().uuid().optional().nullable(),
+});
+
 export async function POST(request: NextRequest) {
-  // Validate environment variables
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY
-  ) {
-    logger.error("Missing required environment variables");
-    return NextResponse.json(
-      { error: "Server configuration error" },
-      { status: 500 }
+  const csrfError = validateCsrf(request);
+  if (csrfError) return csrfError;
+
+  const auth = await requireAdminApiUser();
+  if (isAuthError(auth)) return auth.error;
+  const { profile } = auth;
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return apiError("Invalid JSON body", 400);
+  }
+
+  const parsed = createUserSchema.safeParse(body);
+  if (!parsed.success) {
+    const details: Record<string, string[]> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      details[key] = details[key] || [];
+      details[key].push(issue.message);
+    }
+    return apiError("Validation failed", 400, details);
+  }
+
+  const { email, password, role, username, full_name, church_id, diocese_id } =
+    parsed.data;
+
+  const creatorLevel = ROLE_HIERARCHY[profile.role] ?? Infinity;
+  const targetLevel = ROLE_HIERARCHY[role] ?? -1;
+  if (targetLevel <= creatorLevel) {
+    return apiError(
+      "You cannot create a user with a role equal to or above your own",
+      403
     );
   }
 
-  // Create admin client with service role key
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
+  const supabaseAdmin = createAdminClient();
+
   try {
-    const body = await request.json();
-    const {
-      email,
-      password,
-      role,
-      username,
-      full_name,
-      church_id,
-      diocese_id,
-    } = body;
-
-    // Validate required fields
-    if (!email || !password || !role) {
-      return NextResponse.json(
-        { error: "Email, password, and role are required" },
-        { status: 400 }
-      );
-    }
-
-    // Create user in auth.users
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
@@ -62,20 +76,18 @@ export async function POST(request: NextRequest) {
       });
 
     if (authError) {
-      logger.error("Auth error:", authError);
-      return NextResponse.json({ error: authError.message }, { status: 400 });
+      logger.error("Auth error creating user", { error: authError.message });
+      return apiError(authError.message, 400);
     }
 
-    // Wait a moment for the trigger to create the profile
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Update the user profile with role and organizational links
     const { error: updateError } = await supabaseAdmin
       .from("users")
       .update({
         role,
-        username,
-        full_name,
+        username: username || null,
+        full_name: full_name || null,
         church_id: church_id || null,
         diocese_id: diocese_id || null,
         is_active: true,
@@ -83,31 +95,31 @@ export async function POST(request: NextRequest) {
       .eq("id", authData.user.id);
 
     if (updateError) {
-      logger.error("Update error:", updateError);
-      // User was created but profile update failed - still return success
-      // The admin can update the role manually if needed
+      logger.error("Profile update error after user creation", {
+        userId: authData.user.id,
+        error: updateError.message,
+      });
     }
 
-    // Fetch the complete user profile
     const { data: userData, error: fetchError } = await supabaseAdmin
       .from("users")
-      .select("*")
+      .select("id, email, role, username, full_name, church_id, diocese_id, is_active, created_at")
       .eq("id", authData.user.id)
       .single();
 
     if (fetchError) {
-      logger.error("Fetch error:", fetchError);
+      logger.error("Failed to fetch created user profile", {
+        userId: authData.user.id,
+        error: fetchError.message,
+      });
     }
 
-    return NextResponse.json({
-      success: true,
-      user: userData || { id: authData.user.id, email, role },
-    });
-  } catch (error) {
-    logger.error("Create user error:", error);
-    return NextResponse.json(
-      { error: "Failed to create user" },
-      { status: 500 }
+    return apiSuccess(
+      userData || { id: authData.user.id, email, role },
+      201
     );
+  } catch (error) {
+    logger.error("Create user error", { error });
+    return apiError("Failed to create user", 500);
   }
 }

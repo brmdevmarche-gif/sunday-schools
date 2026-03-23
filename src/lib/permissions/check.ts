@@ -8,12 +8,33 @@ import { createClient } from '../supabase/server'
 import { cache } from 'react'
 import type { Permission } from '../types/modules/permissions'
 import { hasForbiddenPermission } from '@/lib/permissions/forbidden'
+import { PERMISSION_REGISTRY } from '@/lib/permissions/registry'
 import { logger } from '@/lib/logger'
+
+// All known permission codes — used for super_admin bypass
+const ALL_PERMISSION_CODES = Object.entries(PERMISSION_REGISTRY).flatMap(
+  ([module, actions]) => Object.keys(actions).map((action) => `${module}.${action}`)
+)
+
+// Cache user role per request
+const getCachedUserRole = cache(async (userId: string): Promise<string | null> => {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single()
+  return data?.role ?? null
+})
 
 // Cache user permissions per request to avoid multiple database calls
 const getCachedUserPermissions = cache(async (userId: string): Promise<string[]> => {
+  // super_admin bypasses all permission checks
+  const role = await getCachedUserRole(userId)
+  if (role === 'super_admin') return ALL_PERMISSION_CODES
+
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase.rpc('get_user_permissions', {
     user_id_param: userId,
   })

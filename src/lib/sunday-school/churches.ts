@@ -9,7 +9,7 @@ export async function getChurches(dioceseId?: string): Promise<Church[]> {
 
   let query = supabase
     .from('churches')
-    .select('*')
+    .select('id, name, diocese_id, created_by, created_at, updated_at')
     .order('name', { ascending: true })
 
   if (dioceseId) {
@@ -30,7 +30,7 @@ export async function getChurchById(id: string): Promise<Church | null> {
 
   const { data, error } = await supabase
     .from('churches')
-    .select('*')
+    .select('id, name, diocese_id, created_by, created_at, updated_at')
     .eq('id', id)
     .single()
 
@@ -122,8 +122,8 @@ export async function getChurchWithDiocese(id: string) {
   const { data, error } = await supabase
     .from('churches')
     .select(`
-      *,
-      diocese:dioceses(*)
+      id, name, diocese_id, created_by, created_at, updated_at,
+      diocese:dioceses(id, name, created_by, created_at, updated_at)
     `)
     .eq('id', id)
     .single()

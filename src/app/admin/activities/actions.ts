@@ -44,7 +44,7 @@ export async function createActivityAction(input: CreateActivityInput) {
       ...input,
       created_by: user.id,
     })
-    .select()
+    .select('id, name, description, image_url, parent_activity_id, diocese_id, church_id, class_id, points, reduced_points_percentage, requires_participation_approval, requires_completion_approval, is_time_sensitive, start_time, end_time, deadline, full_points_window_start, full_points_window_end, max_participants, status, created_by, created_at, updated_at')
     .single()
 
   if (error) {
@@ -74,7 +74,7 @@ export async function updateActivityAction(input: UpdateActivityInput) {
     .from('activities')
     .update(updateData)
     .eq('id', id)
-    .select()
+    .select('id, name, description, image_url, parent_activity_id, diocese_id, church_id, class_id, points, reduced_points_percentage, requires_participation_approval, requires_completion_approval, is_time_sensitive, start_time, end_time, deadline, full_points_window_start, full_points_window_end, max_participants, status, created_by, created_at, updated_at')
     .single()
 
   if (error) {
@@ -100,7 +100,7 @@ export async function getActivityByIdAction(activityId: string) {
 
   const { data, error } = await adminClient
     .from('activities')
-    .select('*')
+    .select('id, name, description, image_url, parent_activity_id, diocese_id, church_id, class_id, points, reduced_points_percentage, requires_participation_approval, requires_completion_approval, is_time_sensitive, start_time, end_time, deadline, full_points_window_start, full_points_window_end, max_participants, status, created_by, created_at, updated_at')
     .eq('id', activityId)
     .single()
 
@@ -158,7 +158,7 @@ export async function getActivitiesAction(filters?: {
 
   let query = adminClient
     .from('activities')
-    .select('*')
+    .select('id, name, description, image_url, parent_activity_id, diocese_id, church_id, class_id, points, reduced_points_percentage, requires_participation_approval, requires_completion_approval, is_time_sensitive, start_time, end_time, deadline, full_points_window_start, full_points_window_end, max_participants, status, created_by, created_at, updated_at')
     .order('created_at', { ascending: false })
 
   // Apply filters
@@ -200,7 +200,7 @@ export async function getActivityParticipantsAction(activityId: string) {
   const { data, error } = await adminClient
     .from('activity_participants')
     .select(`
-      *,
+      id, activity_id, user_id, status, requested_at, approved_at, approved_by, rejection_reason, created_at,
       users!user_id(
         id,
         full_name,
@@ -227,7 +227,7 @@ export async function getActivityCompletionsAction(activityId: string) {
   const { data, error } = await adminClient
     .from('activity_completions')
     .select(`
-      *,
+      id, activity_id, user_id, status, points_awarded, is_full_points, completed_at, approved_at, approved_by, is_revoked, revoked_at, revoked_by, revoke_reason, notes, admin_notes, created_at,
       users!user_id(
         id,
         full_name,
@@ -272,7 +272,7 @@ export async function approveParticipationAction(input: ApproveParticipationInpu
     .from('activity_participants')
     .update(updateData)
     .eq('id', input.participation_id)
-    .select()
+    .select('id, activity_id, user_id, status, requested_at, approved_at, approved_by, rejection_reason, created_at')
     .single()
 
   if (error) {
@@ -310,7 +310,7 @@ export async function approveCompletionAction(input: ApproveCompletionInput) {
     .from('activity_completions')
     .update(updateData)
     .eq('id', input.completion_id)
-    .select()
+    .select('id, activity_id, user_id, status, points_awarded, is_full_points, completed_at, approved_at, approved_by, is_revoked, revoked_at, revoked_by, revoke_reason, notes, admin_notes, created_at')
     .single()
 
   if (error) {
@@ -344,7 +344,7 @@ export async function revokePointsAction(input: RevokePointsInput) {
       points_awarded: 0,
     })
     .eq('id', input.completion_id)
-    .select()
+    .select('id, activity_id, user_id, status, points_awarded, is_full_points, completed_at, approved_at, approved_by, is_revoked, revoked_at, revoked_by, revoke_reason, notes, admin_notes, created_at')
     .single()
 
   if (error) {

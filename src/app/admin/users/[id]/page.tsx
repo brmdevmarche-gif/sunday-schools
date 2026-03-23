@@ -33,7 +33,13 @@ async function getUserDetails(userId: string) {
   const { data: classAssignments } = await supabase
     .from('class_assignments')
     .select(`
-      *,
+      id,
+      user_id,
+      class_id,
+      assignment_type,
+      is_active,
+      assigned_by,
+      assigned_at,
       class:classes(
         id,
         name,
@@ -51,7 +57,11 @@ async function getUserDetails(userId: string) {
   const { data: attendanceRecords } = await supabase
     .from('attendance')
     .select(`
-      *,
+      id,
+      user_id,
+      class_id,
+      attendance_date,
+      attendance_status,
       class:classes(name)
     `)
     .eq('user_id', userId)
@@ -62,7 +72,11 @@ async function getUserDetails(userId: string) {
   const { data: parentRelationships } = await supabase
     .from('user_relationships')
     .select(`
-      *,
+      id,
+      parent_id,
+      student_id,
+      relationship_type,
+      created_at,
       parent:users!user_relationships_parent_id_fkey(id, full_name, email),
       student:users!user_relationships_student_id_fkey(id, full_name, email)
     `)
@@ -71,7 +85,7 @@ async function getUserDetails(userId: string) {
   // Get login history (last 10 logins)
   const { data: loginHistory } = await supabase
     .from('login_history')
-    .select('*')
+    .select('id, user_id, success, ip_address, user_agent, device_info, location, failure_reason, created_at')
     .eq('user_id', userId)
     .order('login_at', { ascending: false })
     .limit(10)
@@ -138,7 +152,7 @@ export default async function UserDetailsPage({
     <AdminLayout>
       <PageWithPermissions permission="users.view_detail">
         <UserDetailsClient
-          {...userDetails}
+          {...(userDetails as any)}
           currentUserRole={profile?.role ?? 'guest'}
           churches={churches}
           dioceses={dioceses}

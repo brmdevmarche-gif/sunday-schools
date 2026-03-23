@@ -54,7 +54,7 @@ export default async function ChurchDetailsPage({
   // Fetch church details
   const { data: church, error: churchError } = await supabase
     .from("churches")
-    .select("*")
+    .select("id, name, diocese_id")
     .eq("id", id)
     .single();
 
@@ -76,14 +76,14 @@ export default async function ChurchDetailsPage({
   // Fetch classes for this church
   const { data: classes } = await supabase
     .from("classes")
-    .select("*")
+    .select("id, name, church_id")
     .eq("church_id", id)
     .order("name", { ascending: true });
 
   // Fetch users (teachers and students) associated with this church
   const { data: users } = await supabase
     .from("users")
-    .select("*")
+    .select("id, full_name, email, role, avatar_url")
     .eq("church_id", id)
     .in("role", ["teacher", "student"])
     .order("full_name", { ascending: true });

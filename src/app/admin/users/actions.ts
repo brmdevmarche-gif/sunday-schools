@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import { createClient as createBrowserClient } from '@supabase/supabase-js'
-import type { UserRole } from '@/lib/types/sunday-school'
+import type { UserRole, Church, Diocese } from '@/lib/types/sunday-school'
 
 export async function getUsersData(filters?: {
   role?: string
@@ -62,7 +62,7 @@ export async function getUsersData(filters?: {
   return data || []
 }
 
-export async function getChurchesData() {
+export async function getChurchesData(): Promise<Church[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -78,7 +78,7 @@ export async function getChurchesData() {
   return data
 }
 
-export async function getDiocesesData() {
+export async function getDiocesesData(): Promise<Diocese[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -359,7 +359,7 @@ export async function createUserAction(input: {
   // Fetch the complete user profile
   const { data: userData, error: fetchError } = await adminClient
     .from('users')
-    .select('*')
+    .select('id, email, full_name, role, is_active, diocese_id, church_id, avatar_url, created_at, updated_at')
     .eq('id', authData.user.id)
     .single()
 

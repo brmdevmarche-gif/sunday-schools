@@ -21,7 +21,7 @@ export async function getRoles(filters?: {
 
   let query = supabase
     .from('roles')
-    .select('*')
+    .select('id, title, description, is_system_role, is_active, created_by, created_at, updated_at')
     .order('is_system_role', { ascending: false })
     .order('title', { ascending: true })
 
@@ -52,7 +52,7 @@ export async function getRolesWithPermissions(filters?: {
     // First, fetch roles
     let rolesQuery = supabase
       .from('roles')
-      .select('*')
+      .select('id, title, description, is_system_role, is_active, created_by, created_at, updated_at')
       .order('is_system_role', { ascending: false })
       .order('title', { ascending: true })
 
@@ -136,7 +136,7 @@ export async function getRolesWithPermissions(filters?: {
       const batch = permissionIds.slice(i, i + batchSize)
       const { data: permsData, error } = await supabase
         .from('permissions')
-        .select('*')
+        .select('id, code, name, description, module, resource, action, category, is_active, created_at, updated_at')
         .in('id', batch)
       
       if (error) {
@@ -446,7 +446,7 @@ export async function getPermissions(filters?: {
 
   let query = supabase
     .from('permissions')
-    .select('*')
+    .select('id, code, name, description, module, resource, action, category, is_active, created_at, updated_at')
     .order('module', { ascending: true })
     .order('resource', { ascending: true })
     .order('action', { ascending: true })

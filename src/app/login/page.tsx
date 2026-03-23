@@ -120,7 +120,7 @@ export default function LoginPage() {
           </Select>
 
           {/* Theme Selector */}
-          {mounted && (
+          {mounted ? (
             <Select value={theme} onValueChange={setTheme}>
               <SelectTrigger className="w-auto gap-2">
                 {theme === "light" ? (
@@ -153,6 +153,8 @@ export default function LoginPage() {
                 </SelectItem>
               </SelectContent>
             </Select>
+          ) : (
+            <div className="h-9 w-9 rounded-md border border-input" />
           )}
         </div>
       </div>

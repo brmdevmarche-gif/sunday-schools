@@ -57,7 +57,7 @@ export async function getAvailableActivitiesAction() {
   // Get activities available to the user
   const { data: activities, error } = await adminClient
     .from('activities')
-    .select('*')
+    .select('id, name, description, image_url, parent_activity_id, diocese_id, church_id, class_id, points, reduced_points_percentage, requires_participation_approval, requires_completion_approval, is_time_sensitive, start_time, end_time, deadline, full_points_window_start, full_points_window_end, max_participants, status, created_by, created_at, updated_at')
     .eq('status', 'active')
     .or(filterConditions.join(','))
     .order('created_at', { ascending: false })
@@ -69,13 +69,13 @@ export async function getAvailableActivitiesAction() {
   // Get user's participations
   const { data: participations } = await adminClient
     .from('activity_participants')
-    .select('*')
+    .select('id, activity_id, user_id, status, requested_at, approved_at, approved_by, rejection_reason, created_at')
     .eq('user_id', user.id)
 
   // Get user's completions
   const { data: completions } = await adminClient
     .from('activity_completions')
-    .select('*')
+    .select('id, activity_id, user_id, status, points_awarded, is_full_points, completed_at, approved_at, approved_by, is_revoked, revoked_at, revoked_by, revoke_reason, notes, admin_notes, created_at')
     .eq('user_id', user.id)
 
   // Combine data

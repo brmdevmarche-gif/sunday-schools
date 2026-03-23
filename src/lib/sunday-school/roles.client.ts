@@ -55,7 +55,7 @@ export async function getCurrentUserPermissions(): Promise<Permission[]> {
   // Fetch full permission details
   const { data, error } = await supabase
     .from('permissions')
-    .select('*')
+    .select('id, code, name, description, module, resource, action, category, is_active, created_at, updated_at')
     .in('code', permissionCodes)
     .eq('is_active', true)
 

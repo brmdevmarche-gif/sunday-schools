@@ -44,7 +44,7 @@ function getEffectiveUnitPrice(
       const start = new Date(offer.start_at)
       const end = new Date(offer.end_at)
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue
-      
+
       if (now >= start && now <= end) {
         // Use tier-specific special price if available
         switch (tier) {
@@ -132,7 +132,7 @@ export async function createOrderAction(input: CreateOrderInput) {
   const storeItemIds = input.items.map(item => item.store_item_id)
   const { data: storeItems, error: itemsError } = await adminClient
     .from('store_items')
-    .select('*')
+    .select('id, name, description, image_url, price_normal, price_mastor, price_botl, special_offers')
     .in('id', storeItemIds)
 
   if (itemsError || !storeItems || storeItems.length !== input.items.length) {
@@ -182,7 +182,7 @@ export async function createOrderAction(input: CreateOrderInput) {
         : (input.notes || null),
       ordered_by_parent_id: orderedByParentId,
     })
-    .select()
+    .select('id, user_id, class_id, status, total_points, notes, admin_notes, ordered_by_parent_id, processed_by, created_at, processed_at')
     .single()
 
   if (orderError) {
@@ -238,14 +238,7 @@ export async function getMyOrdersAction() {
     .from('orders')
     .select(`
       *,
-      order_items (
-        *,
-        store_items (
-          id,
-          name,
-          image_url
-        )
-      )
+      order_items(*)
     `)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
@@ -308,14 +301,7 @@ export async function getAllOrdersAction(filters?: {
         full_name,
         email
       ),
-      order_items (
-        *,
-        store_items (
-          id,
-          name,
-          image_url
-        )
-      )
+      order_items (*)
     `, { count: 'exact' })
 
   // Apply filters based on user role
@@ -412,7 +398,7 @@ export async function updateOrderStatusAction(input: UpdateOrderStatusInput) {
   // Get the order to verify permissions
   const { data: order } = await adminClient
     .from('orders')
-    .select('*, users!user_id(church_id, diocese_id)')
+    .select('id, user_id, class_id, status, total_points, notes, admin_notes, ordered_by_parent_id, processed_by, created_at, processed_at, users!user_id(church_id, diocese_id)')
     .eq('id', input.order_id)
     .single()
 
@@ -529,7 +515,7 @@ export async function cancelOrderAction(order_id: string) {
   // Get the order to verify ownership and status
   const { data: order } = await adminClient
     .from('orders')
-    .select('*')
+    .select('id, user_id, class_id, status, total_points, notes, admin_notes, ordered_by_parent_id, processed_by, created_at, processed_at')
     .eq('id', order_id)
     .single()
 
@@ -662,7 +648,7 @@ export async function createOrderForStudentAction(input: CreateOrderForStudentIn
   const storeItemIds = input.items.map(item => item.store_item_id)
   const { data: storeItems, error: itemsError } = await adminClient
     .from('store_items')
-    .select('*')
+    .select('id, name, description, image_url, price_normal, price_mastor, price_botl, special_offers')
     .in('id', storeItemIds)
 
   if (itemsError || !storeItems || storeItems.length !== input.items.length) {

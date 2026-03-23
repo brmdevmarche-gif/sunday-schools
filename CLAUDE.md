@@ -12,6 +12,15 @@ Sunday School Management System built with **Next.js 16** (App Router, Turbopack
 - `npx tsc --noEmit` — Type check (exclude `.next/` errors — those are stale cache)
 - `npm run db:push` — Push migrations to Supabase
 - `npm run db:seed` — Seed database
+- `npm run test` — Run all Vitest tests (unit + integration)
+- `npm run test:unit` — Unit tests only (sanitize, CSRF, roles)
+- `npm run test:integration` — Integration tests (auth guard audit, SELECT * check)
+- `npm run test:e2e` — Playwright E2E tests
+- `npm run test:security` — Playwright security tests (auth bypass, CSRF)
+- `npm run test:a11y` — Playwright accessibility tests (WCAG 2.2 AA)
+- `npm run check:auth` — Static check: all server actions & API routes have auth guards
+- `npm run check:i18n` — Check en.json / ar.json translation key parity
+- `npm run check:all` — Full pre-merge check (lint + types + unit tests + auth + i18n)
 
 ## Architecture
 
@@ -318,3 +327,66 @@ The app targets WCAG 2.2 AA conformance. Every new feature or UI change MUST fol
 13. **RTL** — Using logical CSS properties (not `pl-`/`pr-`/`ml-`/`mr-`/`text-left`)?
 14. **Touch targets** — Interactive elements at least 44px on mobile?
 15. **Color contrast** — New colors meet 4.5:1 ratio for text, 3:1 for UI components?
+
+## CI/CD & Automation
+
+### GitHub Actions (`.github/workflows/ci.yml`)
+
+Runs on push/PR to `main` and `develop`. Jobs:
+
+| Job | What it checks |
+|-----|---------------|
+| `lint-and-typecheck` | ESLint (0 errors) + TypeScript (`tsc --noEmit`) |
+| `unit-tests` | Vitest unit tests (36 tests) + integration audit |
+| `build` | Next.js production build (needs Supabase env secrets) |
+| `security-audit` | `npm audit` + auth guard coverage (`check-auth-guards.mjs`) + raw console.log scan |
+| `i18n-check` | EN/AR translation key parity (`check-i18n-parity.mjs`) |
+
+### Pre-commit Hooks (Husky + lint-staged)
+
+Automatically runs on `git commit`:
+- **`.ts`/`.tsx` files**: ESLint with `--max-warnings 0`
+- **`messages/*.json`**: i18n parity check
+
+### Automation Scripts
+
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `scripts/check-auth-guards.mjs` | `npm run check:auth` | Static analysis: every server action + API route has auth guard |
+| `scripts/check-i18n-parity.mjs` | `npm run check:i18n` | Ensures en.json and ar.json have identical key sets |
+| Full check | `npm run check:all` | lint + types + unit tests + auth + i18n (pre-merge gate) |
+
+### Required GitHub Secrets
+
+For the `build` job to succeed, set these in repo Settings > Secrets:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+## QA Testing Pipeline
+
+Four-phase pipeline documented in `qa-pipeline-prompts-corrected.md`:
+
+| Phase | Tool | Purpose | Status |
+|-------|------|---------|--------|
+| 0 | Vitest | Unit + integration tests | COMPLETE — 36/36 pass |
+| 1 | Claude Cowork | Manual UX/visual testing | COMPLETE — reports in `ux-audit-report.md` |
+| 2 | Playwright | E2E + security + a11y tests | COMPLETE — reports in `reports/bug-report.json` |
+| 3 | Claude Code | Human-reviewed bug fixing | COMPLETE — 11/17 fixed, 6 deferred (false positives/out-of-scope) |
+
+### Completed Remediations
+
+- **Security**: 226 server actions guarded, 7 API routes secured, CSRF on mutations, rate limiting, RLS on 57/57 tables, nonce-based CSP
+- **Accessibility**: Skip-to-main link, icon `aria-label`s, focus indicators, WCAG 2.2 AA audit
+- **UX**: Brand consistency, settings descriptions, mobile scroll, error page navigation
+- **i18n**: 2,336 keys with full EN/AR parity
+
+### Known Backlog
+
+| Item | Priority | Notes |
+|------|----------|-------|
+| 43 SELECT * violations in Supabase queries | MEDIUM | Integration tests flag these; migrate to explicit columns |
+| Switch CSP from Report-Only to enforcing | MEDIUM | Monitor violations first |
+| Client-side structured logger | LOW | ~100 client console calls remaining |
+| Seed data date fixes | LOW | scripts/seed-database.ts uses random dates |
+| 284 physical CSS properties (RTL) | MEDIUM | Tracked in `rtl-fix-inventory.md` |

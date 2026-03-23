@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/auth-guard'
 import {
   createRole,
   updateRole,
@@ -9,6 +10,7 @@ import {
 import type { CreateRoleInput, UpdateRoleInput } from '@/lib/types/modules/permissions'
 
 export async function createRoleAction(input: CreateRoleInput) {
+  await requireAdmin()
   try {
     const role = await createRole(input)
     revalidatePath('/admin/roles')
@@ -22,6 +24,7 @@ export async function updateRoleAction(
   id: string,
   input: UpdateRoleInput
 ) {
+  await requireAdmin()
   try {
     const role = await updateRole(id, input)
     revalidatePath('/admin/roles')
@@ -33,6 +36,7 @@ export async function updateRoleAction(
 }
 
 export async function deleteRoleAction(id: string) {
+  await requireAdmin()
   try {
     await deleteRole(id)
     revalidatePath('/admin/roles')

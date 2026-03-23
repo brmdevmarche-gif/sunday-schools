@@ -65,8 +65,11 @@ export async function proxy(request: NextRequest) {
     `form-action 'self'`,
   ].join('; ');
 
-  // Enforce CSP — switch back to 'Content-Security-Policy-Report-Only' if violations occur
-  finalResponse.headers.set('Content-Security-Policy', csp);
+  // In test mode, use Report-Only so Playwright/axe-core can inject scripts
+  const cspHeader = process.env.PLAYWRIGHT_TESTING === 'true'
+    ? 'Content-Security-Policy-Report-Only'
+    : 'Content-Security-Policy';
+  finalResponse.headers.set(cspHeader, csp);
 
   return finalResponse;
 }

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { validateCsrf } from "@/lib/api/csrf";
 
 // GET /api/admin/dioceses/[id]/admins - Get all admins for a diocese
 export async function GET(
@@ -66,6 +67,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const csrfError = validateCsrf(request);
+  if (csrfError) return csrfError;
+
   try {
     const { id } = await params;
     const supabase = await createClient();

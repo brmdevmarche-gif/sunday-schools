@@ -365,7 +365,7 @@ export async function getUserStreaksAction(
 
   const { data, error } = await supabase
     .from("user_streaks")
-    .select("*")
+    .select("user_id, streak_type, current_streak, longest_streak, last_activity_date")
     .eq("user_id", targetUserId);
 
   if (error) return { success: false, error: error.message };
@@ -386,7 +386,7 @@ export async function updateStreakAction(
   // Get current streak record
   const { data: existing } = await adminClient
     .from("user_streaks")
-    .select("*")
+    .select("current_streak, longest_streak, last_activity_date")
     .eq("user_id", userId)
     .eq("streak_type", streakType)
     .single();
@@ -692,7 +692,7 @@ export async function getGamificationProfileAction(
   const [balanceResult, badgesResult, streaksResult] = await Promise.all([
     adminClient
       .from("student_points_balance")
-      .select("*")
+      .select("total_earned, available_points")
       .eq("user_id", targetUserId)
       .single(),
     adminClient
@@ -700,7 +700,7 @@ export async function getGamificationProfileAction(
       .select("*, badge:badge_definitions(*)")
       .eq("user_id", targetUserId)
       .order("earned_at", { ascending: false }),
-    adminClient.from("user_streaks").select("*").eq("user_id", targetUserId),
+    adminClient.from("user_streaks").select("streak_type, current_streak, longest_streak").eq("user_id", targetUserId),
   ]);
 
   const streaksMap = (streaksResult.data || []).reduce(

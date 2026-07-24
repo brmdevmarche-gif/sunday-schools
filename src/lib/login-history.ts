@@ -73,7 +73,7 @@ export async function logLoginAttempt(
 ): Promise<void> {
   try {
     const supabase = createClient()
-    const userAgent = navigator.userAgent
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : ''
     const deviceInfo = parseUserAgent(userAgent)
     const ipAddress = await getClientIP()
 
@@ -92,10 +92,13 @@ export async function logLoginAttempt(
       .insert(loginData)
 
     if (error) {
-      clientLogger.error('Failed to log login attempt:', error)
+      console.error(
+        'Failed to log login attempt:',
+        error.message || error.details || error.hint || JSON.stringify(error)
+      )
     }
   } catch (error) {
-    clientLogger.error('Error logging login attempt:', error)
+    console.error('Error logging login attempt:', error)
   }
 }
 

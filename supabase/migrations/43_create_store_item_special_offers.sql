@@ -3,9 +3,15 @@
 -- This replaces the single special_price columns in store_items with a flexible array-based system
 
 -- Drop existing triggers and functions if they exist (to allow re-running migration)
-DROP TRIGGER IF EXISTS prevent_overlapping_offers ON public.store_item_special_offers;
-DROP TRIGGER IF EXISTS prevent_duplicate_prices ON public.store_item_special_offers;
-DROP TRIGGER IF EXISTS update_store_item_special_offers_updated_at ON public.store_item_special_offers;
+-- (guarded: the table does not exist yet on a fresh database)
+DO $$
+BEGIN
+  IF to_regclass('public.store_item_special_offers') IS NOT NULL THEN
+    DROP TRIGGER IF EXISTS prevent_overlapping_offers ON public.store_item_special_offers;
+    DROP TRIGGER IF EXISTS prevent_duplicate_prices ON public.store_item_special_offers;
+    DROP TRIGGER IF EXISTS update_store_item_special_offers_updated_at ON public.store_item_special_offers;
+  END IF;
+END $$;
 DROP FUNCTION IF EXISTS check_no_overlapping_offers();
 DROP FUNCTION IF EXISTS check_no_duplicate_prices();
 DROP FUNCTION IF EXISTS update_store_item_special_offers_updated_at();

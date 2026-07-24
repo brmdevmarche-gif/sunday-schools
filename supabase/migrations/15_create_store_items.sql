@@ -4,6 +4,10 @@
 -- This table stores items available in the church store
 -- Each item has different prices for different student cases
 
+-- Drop the legacy store_items table from 00_FRESH_DATABASE_SETUP (old schema
+-- without is_active/points pricing) so this migration defines the real one
+DROP TABLE IF EXISTS public.store_items CASCADE;
+
 -- Create store_items table
 CREATE TABLE IF NOT EXISTS public.store_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

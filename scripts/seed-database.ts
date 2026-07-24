@@ -27,6 +27,15 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
+  global: {
+    // New-format sb_secret_ keys are rejected by GoTrue when sent as a Bearer
+    // token; authenticate via the apikey header only.
+    fetch: (input: RequestInfo | URL, init: RequestInit = {}) => {
+      const headers = new Headers(init.headers)
+      if (SERVICE_KEY.startsWith('sb_secret_')) headers.delete('Authorization')
+      return fetch(input, { ...init, headers })
+    },
+  },
 })
 
 const CLEAR = process.argv.includes('--clear')
@@ -195,29 +204,35 @@ function randomCode(): string {
 }
 
 async function createAuthUser(email: string, password: string, fullName: string) {
-  const { data, error } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name: fullName },
-  })
-  if (error) {
-    if (error.message?.includes('already been registered')) {
-      // Fetch existing user
-      const { data: list } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+  // The hosted auth API intermittently rejects valid requests, so retry
+  // transient failures (including flaky listUsers in the recovery path).
+  let lastError: unknown
+  for (let attempt = 1; attempt <= 7; attempt++) {
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    })
+    if (!error) {
+      if (data?.user) return data.user.id
+      lastError = new Error('no user returned')
+    } else if (error.message?.includes('already been registered')) {
+      // Fetch existing user and reset its password
+      const { data: list, error: listError } = await supabase.auth.admin.listUsers({ perPage: 1000 })
       const existing = list?.users?.find((u) => u.email === email)
       if (existing) {
-        // Reset password
         await supabase.auth.admin.updateUserById(existing.id, { password, email_confirm: true })
         return existing.id
       }
+      lastError = listError ?? error
+    } else {
+      lastError = error
     }
-    throw new Error(`Failed to create user ${email}: ${error.message || JSON.stringify(error)}`)
+    await new Promise((r) => setTimeout(r, Math.min(1000 * 2 ** (attempt - 1), 30000)))
   }
-  if (!data?.user) {
-    throw new Error(`Failed to create user ${email}: no user returned`)
-  }
-  return data.user.id
+  const msg = lastError instanceof Error ? lastError.message : JSON.stringify(lastError)
+  throw new Error(`Failed to create user ${email}: ${msg}`)
 }
 
 async function waitForProfile(userId: string, retries = 5): Promise<void> {
@@ -301,6 +316,48 @@ async function seedPermissionsAndRoles() {
 // Seed dioceses, churches, classes
 // ---------------------------------------------------------------------------
 
+async function getOrCreateChurch(dioceseId: string, name: string, city: string) {
+  const { data: existing } = await supabase
+    .from('churches')
+    .select('id, name')
+    .eq('diocese_id', dioceseId)
+    .eq('name', name)
+    .limit(1)
+    .maybeSingle()
+  if (existing) return existing
+  const { data: ch, error } = await supabase
+    .from('churches')
+    .insert({ diocese_id: dioceseId, name, city })
+    .select('id, name')
+    .single()
+  if (error) console.error(`  Church "${name}" failed: ${error.message}`)
+  return ch
+}
+
+async function getOrCreateClass(churchId: string, name: string, description: string) {
+  const { data: existing } = await supabase
+    .from('classes')
+    .select('id, name')
+    .eq('church_id', churchId)
+    .eq('name', name)
+    .limit(1)
+    .maybeSingle()
+  if (existing) return existing
+  const { data: cls, error } = await supabase
+    .from('classes')
+    .insert({
+      church_id: churchId,
+      name,
+      description,
+      academic_year: '2025-2026',
+      is_active: true,
+    })
+    .select('id, name')
+    .single()
+  if (error) console.error(`  Class "${name}" failed: ${error.message}`)
+  return cls
+}
+
 async function seedDiocesesAndChurches() {
   console.log('Seeding dioceses, churches, and classes...')
 
@@ -309,58 +366,32 @@ async function seedDiocesesAndChurches() {
   const createdClasses: { id: string; name: string; churchId: string }[] = []
 
   for (const d of EGYPT_DIOCESES) {
-    // Upsert diocese
-    const { data: diocese, error: dErr } = await supabase
+    // Get-or-create diocese (name has no unique constraint, so select first)
+    let diocese: { id: string; name: string } | null = null
+    const { data: existing } = await supabase
       .from('dioceses')
-      .upsert({ name: d.name, location: d.location, description: `${d.name} - مصر` }, { onConflict: 'name' })
       .select('id, name')
-      .single()
-
-    if (dErr) {
-      // name might not have unique constraint — insert or select
-      const { data: existing } = await supabase.from('dioceses').select('id, name').eq('name', d.name).single()
-      if (existing) {
-        createdDioceses.push(existing)
-        // Seed churches for existing diocese
-        for (const c of d.churches) {
-          const { data: ch } = await supabase
-            .from('churches')
-            .insert({ diocese_id: existing.id, name: c.name, city: c.city })
-            .select('id, name')
-            .single()
-          if (ch) createdChurches.push({ ...ch, dioceseId: existing.id })
-        }
-        continue
-      }
-      // Truly new insert
-      const { data: newD } = await supabase
+      .eq('name', d.name)
+      .limit(1)
+      .maybeSingle()
+    if (existing) {
+      diocese = existing
+    } else {
+      const { data: newD, error: dErr } = await supabase
         .from('dioceses')
         .insert({ name: d.name, location: d.location, description: `${d.name} - مصر` })
         .select('id, name')
         .single()
-      if (newD) {
-        createdDioceses.push(newD)
-        for (const c of d.churches) {
-          const { data: ch } = await supabase
-            .from('churches')
-            .insert({ diocese_id: newD.id, name: c.name, city: c.city })
-            .select('id, name')
-            .single()
-          if (ch) createdChurches.push({ ...ch, dioceseId: newD.id })
-        }
-      }
-      continue
+      if (dErr) console.error(`  Diocese "${d.name}" failed: ${dErr.message}`)
+      diocese = newD
     }
+    if (!diocese) continue
 
-    createdDioceses.push(diocese!)
+    createdDioceses.push(diocese)
 
     for (const c of d.churches) {
-      const { data: ch } = await supabase
-        .from('churches')
-        .insert({ diocese_id: diocese!.id, name: c.name, city: c.city })
-        .select('id, name')
-        .single()
-      if (ch) createdChurches.push({ ...ch, dioceseId: diocese!.id })
+      const ch = await getOrCreateChurch(diocese.id, c.name, c.city)
+      if (ch) createdChurches.push({ ...ch, dioceseId: diocese.id })
     }
   }
 
@@ -369,17 +400,7 @@ async function seedDiocesesAndChurches() {
   // Create 5 classes per church
   for (const church of createdChurches) {
     for (const className of CLASS_NAMES) {
-      const { data: cls } = await supabase
-        .from('classes')
-        .insert({
-          church_id: church.id,
-          name: className,
-          description: `${className} - ${church.name}`,
-          academic_year: '2025-2026',
-          is_active: true,
-        })
-        .select('id, name')
-        .single()
+      const cls = await getOrCreateClass(church.id, className, `${className} - ${church.name}`)
       if (cls) createdClasses.push({ ...cls, churchId: church.id })
     }
   }
@@ -512,17 +533,28 @@ async function seedUsers(
     .select('id, user_code, role')
   if (allUsers) {
     let updated = 0
+    let failed = 0
     for (const u of allUsers) {
       // Skip super_admins — they keep Admin@123456
       if (u.role === 'super_admin') continue
       if (u.user_code) {
-        await supabase.auth.admin.updateUserById(u.id, {
-          password: `${u.user_code}@knasty.temp`,
-        })
-        updated++
+        // Retry: the hosted auth API has short intermittent failure windows
+        let ok = false
+        for (let attempt = 1; attempt <= 5 && !ok; attempt++) {
+          const { error } = await supabase.auth.admin.updateUserById(u.id, {
+            password: `${u.user_code}@knasty.temp`,
+          })
+          if (!error) ok = true
+          else await new Promise((r) => setTimeout(r, 1000 * 2 ** (attempt - 1)))
+        }
+        if (ok) updated++
+        else {
+          failed++
+          console.error(`  Password update failed for user ${u.id}`)
+        }
       }
     }
-    console.log(`  Updated ${updated} passwords (super_admins keep Admin@123456)`)
+    console.log(`  Updated ${updated} passwords, ${failed} failed (super_admins keep Admin@123456)`)
   }
 }
 
@@ -626,18 +658,22 @@ async function seedAnnouncements(
     },
   ]
 
+  // No scope rows = globally visible (targeting is via announcement_dioceses/
+  // announcement_churches/announcement_classes junction tables, migration 28)
+  let created = 0
   for (const a of announcements) {
-    await supabase.from('announcements').insert({
+    const { error } = await supabase.from('announcements').insert({
       ...a,
-      diocese_ids: dioceses.slice(0, 3).map((d) => d.id),
-      church_ids: [],
-      class_ids: [],
-      is_active: true,
       is_deleted: false,
       created_by: createdBy,
     })
+    if (error) {
+      console.error(`  Announcement "${a.title}" failed: ${error.message}`)
+    } else {
+      created++
+    }
   }
-  console.log(`  Created ${announcements.length} announcements`)
+  console.log(`  Created ${created}/${announcements.length} announcements`)
 }
 
 // ---------------------------------------------------------------------------
@@ -663,7 +699,7 @@ async function seedTrips(
       title: 'رحلة دير الأنبا بولا',
       description: 'رحلة روحية إلى دير الأنبا بولا بالبحر الأحمر',
       destination: 'دير الأنبا بولا - البحر الأحمر',
-      trip_type: 'learning',
+      trip_type: 'spiritual',
       start_datetime: new Date(now.getTime() + 14 * 86400000).toISOString(),
       end_datetime: new Date(now.getTime() + 15 * 86400000).toISOString(),
       price_normal: 150, price_mastor: 100, price_botl: 50,
@@ -675,7 +711,7 @@ async function seedTrips(
       title: 'رحلة ترفيهية - أكوا بارك',
       description: 'رحلة ترفيهية لطلاب مدارس الأحد',
       destination: 'أكوا بارك - ٦ أكتوبر',
-      trip_type: 'funny',
+      trip_type: 'fun',
       start_datetime: new Date(now.getTime() + 21 * 86400000).toISOString(),
       end_datetime: new Date(now.getTime() + 21 * 86400000 + 10 * 3600000).toISOString(),
       price_normal: 200, price_mastor: 150, price_botl: 80,
@@ -687,7 +723,7 @@ async function seedTrips(
       title: 'معسكر روحي - الأقصر',
       description: 'معسكر روحي لمدة ٣ أيام في الأقصر',
       destination: 'الأقصر',
-      trip_type: 'event',
+      trip_type: 'retreat',
       start_datetime: new Date(now.getTime() + 30 * 86400000).toISOString(),
       end_datetime: new Date(now.getTime() + 33 * 86400000).toISOString(),
       price_normal: 500, price_mastor: 350, price_botl: 200,
@@ -699,7 +735,7 @@ async function seedTrips(
       title: 'زيارة دير وادي النطرون',
       description: 'زيارة يوم واحد لأديرة وادي النطرون',
       destination: 'وادي النطرون - البحيرة',
-      trip_type: 'learning',
+      trip_type: 'one_day',
       start_datetime: new Date(now.getTime() + 7 * 86400000).toISOString(),
       end_datetime: new Date(now.getTime() + 7 * 86400000 + 12 * 3600000).toISOString(),
       price_normal: 120, price_mastor: 80, price_botl: 40,

@@ -1,5 +1,7 @@
 {
   "common": {
+    "language": "Language",
+    "theme": "Theme",
     "save": "Save",
     "saving": "Saving...",
     "cancel": "Cancel",

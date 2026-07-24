@@ -7,8 +7,14 @@
 -- =====================================================
 
 -- Drop old RLS policies that depend on columns we're about to drop
-DROP POLICY IF EXISTS "Users can view destinations for published trips in their church" ON public.trip_destinations;
-DROP POLICY IF EXISTS "Church admins can manage destinations for their trips" ON public.trip_destinations;
+-- (guarded: trip_destinations does not exist yet on a fresh database)
+DO $$
+BEGIN
+  IF to_regclass('public.trip_destinations') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "Users can view destinations for published trips in their church" ON public.trip_destinations;
+    DROP POLICY IF EXISTS "Church admins can manage destinations for their trips" ON public.trip_destinations;
+  END IF;
+END $$;
 
 -- Drop old columns if they exist (one at a time)
 ALTER TABLE public.trips DROP COLUMN IF EXISTS trip_date;

@@ -10,6 +10,7 @@ import NavigationLoader from "@/components/NavigationLoader";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { OfflineDetector } from "@/components/OfflineDetector";
 import { SkipLink } from "@/components/ui/skip-link";
+import { DioceseThemeProvider } from "@/contexts/DioceseThemeContext";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -77,7 +78,9 @@ export default async function RootLayout({
               <NextIntlClientProvider messages={messages}>
                 <SkipLink />
                 <PermissionsProvider>
-                  {children}
+                  <DioceseThemeProvider>
+                    {children}
+                  </DioceseThemeProvider>
                   <Toaster />
                   <OfflineDetector />
                 </PermissionsProvider>

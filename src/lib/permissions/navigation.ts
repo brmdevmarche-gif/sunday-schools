@@ -93,6 +93,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: 'settings',
     // No permission required — accessible to all admin users
   },
+  {
+    name: 'Documentation',
+    href: '/docs',
+    icon: 'book',
+    // No permission required — always visible
+  },
 ]
 
 /**

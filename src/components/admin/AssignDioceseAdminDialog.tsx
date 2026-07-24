@@ -13,13 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Search, Loader2 } from "lucide-react";
 import { clientLogger } from '@/lib/client-logger'
@@ -168,91 +161,57 @@ export function AssignDioceseAdminDialog({
               </div>
             </div>
 
-            {/* Select User */}
+            {/* User List */}
             <div className="grid gap-2">
-              <Label htmlFor="user">User *</Label>
-              <Select
-                value={selectedUserId}
-                onValueChange={setSelectedUserId}
-                required
-              >
-                <SelectTrigger id="user">
-                  <SelectValue placeholder="Select a user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.length === 0 ? (
-                    <div className="p-2 text-sm text-muted-foreground text-center">
-                      {searching ? "Searching..." : "No users found"}
-                    </div>
-                  ) : (
-                    users.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        <div className="flex items-center gap-2">
-                          {user.avatar_url ? (
-                            <Image
-                              src={user.avatar_url}
-                              alt={user.full_name || ""}
-                              width={24}
-                              height={24}
-                              className="h-6 w-6 rounded-full"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-xs font-medium">
-                                {(user.full_name ||
-                                  user.email)[0].toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {user.full_name || "Unknown"}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {user.email}
+              <Label>Select User *</Label>
+              <div className="h-60 overflow-y-auto rounded-md border">
+                {users.length === 0 ? (
+                  <div className="flex items-center justify-center h-full p-4 text-sm text-muted-foreground">
+                    {searching ? "Searching..." : "No users found"}
+                  </div>
+                ) : (
+                  <div className="p-1">
+                    {users.map((user) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => setSelectedUserId(user.id)}
+                        className={`w-full flex items-center gap-3 p-2.5 rounded-md text-start transition-colors ${
+                          selectedUserId === user.id
+                            ? "bg-primary/10 ring-1 ring-primary"
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        {user.avatar_url ? (
+                          <Image
+                            src={user.avatar_url}
+                            alt={user.full_name || ""}
+                            width={32}
+                            height={32}
+                            className="h-8 w-8 rounded-full shrink-0"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <span className="text-sm font-medium">
+                              {(user.full_name || user.email)[0].toUpperCase()}
                             </span>
                           </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate text-sm">
+                            {user.full_name || "Unknown"}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {user.email}
+                          </p>
                         </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Selected User Preview */}
-            {selectedUser && (
-              <div className="rounded-lg border p-3 bg-muted/50">
-                <div className="flex items-center gap-3">
-                  {selectedUser.avatar_url ? (
-                    <Image
-                      src={selectedUser.avatar_url}
-                      alt={selectedUser.full_name || ""}
-                      width={40}
-                      height={40}
-                      className="h-10 w-10 rounded-full"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-medium">
-                        {(selectedUser.full_name ||
-                          selectedUser.email)[0].toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <p className="font-medium">
-                      {selectedUser.full_name || "Unknown"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedUser.email}
-                    </p>
+                      </button>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Notes */}
             <div className="grid gap-2">

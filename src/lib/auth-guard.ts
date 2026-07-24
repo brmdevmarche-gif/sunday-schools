@@ -25,11 +25,14 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, role')
+    .select('id, role, is_active')
     .eq('id', user.id)
     .single()
 
   if (!profile) return null
+
+  // Inactive users are treated as unauthenticated
+  if (!profile.is_active) return null
 
   return { userId: profile.id, role: profile.role as UserRole }
 })

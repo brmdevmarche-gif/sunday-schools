@@ -449,6 +449,14 @@ export function getAllPermissionCodes(): string[] {
 }
 
 /**
+ * All known permission codes derived from the registry.
+ * Used for super_admin bypass — super_admin implicitly has every permission.
+ */
+export const ALL_PERMISSION_CODES: string[] = Object.entries(PERMISSION_REGISTRY).flatMap(
+  ([module, actions]) => Object.keys(actions).map((action) => `${module}.${action}`)
+)
+
+/**
  * Get permission definition by code
  */
 export function getPermissionByCode(code: string): {

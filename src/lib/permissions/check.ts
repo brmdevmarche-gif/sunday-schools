@@ -8,13 +8,8 @@ import { createClient } from '../supabase/server'
 import { cache } from 'react'
 import type { Permission } from '../types/modules/permissions'
 import { hasForbiddenPermission } from '@/lib/permissions/forbidden'
-import { PERMISSION_REGISTRY } from '@/lib/permissions/registry'
+import { ALL_PERMISSION_CODES } from '@/lib/permissions/registry'
 import { logger } from '@/lib/logger'
-
-// All known permission codes — used for super_admin bypass
-const ALL_PERMISSION_CODES = Object.entries(PERMISSION_REGISTRY).flatMap(
-  ([module, actions]) => Object.keys(actions).map((action) => `${module}.${action}`)
-)
 
 // Cache user role per request
 const getCachedUserRole = cache(async (userId: string): Promise<string | null> => {

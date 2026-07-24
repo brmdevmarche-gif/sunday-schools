@@ -5,6 +5,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { DioceseDetailsClient } from './DioceseDetailsClient'
 import { PageWithPermissions } from '@/components/admin/PageWithPermissions'
 import type { Diocese } from '@/lib/types/sunday-school'
+import type { DioceseAdmin } from '@/lib/types/modules/organizational'
 
 export const metadata: Metadata = {
   title: 'Diocese Details',
@@ -56,14 +57,20 @@ export default async function DioceseDetailsPage({
     .order('name')
 
   // Fetch diocese admins
-  const { data: dioceseAdmins } = await supabase
-    .from('diocese_admin_assignments')
+  const { data: rawDioceseAdmins } = await supabase
+    .from('diocese_admins')
     .select(`
-      *,
+      id, diocese_id, user_id, assigned_at, assigned_by, is_active, notes, created_at, updated_at,
       user:users(id, full_name, email, avatar_url)
     `)
     .eq('diocese_id', id)
     .eq('is_active', true)
+
+  // Normalize: Supabase may return user as array for FK joins, flatten to single object
+  const dioceseAdmins = (rawDioceseAdmins || []).map((a) => ({
+    ...a,
+    user: Array.isArray(a.user) ? a.user[0] : a.user,
+  })) as unknown as (DioceseAdmin & { user: { id: string; full_name: string; email: string; avatar_url: string | null } })[]
 
   // Fetch all teachers and students in this diocese's churches
   const churchIds = churches?.map(c => c.id) || []

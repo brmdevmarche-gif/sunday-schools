@@ -54,7 +54,12 @@ export async function POST(request: NextRequest) {
 
   const creatorLevel = ROLE_HIERARCHY[profile.role] ?? Infinity;
   const targetLevel = ROLE_HIERARCHY[role] ?? -1;
-  if (targetLevel <= creatorLevel) {
+
+  // super_admin can create any role including other super_admins
+  // all other admins can only create roles strictly below their own
+  if (profile.role === 'super_admin') {
+    // super_admin has no restrictions
+  } else if (targetLevel <= creatorLevel) {
     return apiError(
       "You cannot create a user with a role equal to or above your own",
       403

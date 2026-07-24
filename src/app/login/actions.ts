@@ -82,9 +82,15 @@ export async function loginAction(
     let redirectPath = "/dashboard";
     const { data: profile } = await supabase
       .from("users")
-      .select("role")
+      .select("role, is_active")
       .eq("id", user.id)
       .single();
+
+    // Block inactive users — sign them out immediately
+    if (profile && !profile.is_active) {
+      await supabase.auth.signOut();
+      return { success: false, error: "account_inactive" };
+    }
 
     if (profile?.role) {
       switch (profile.role) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import type { Permission } from '@/lib/types/modules/permissions'
+import { ALL_PERMISSION_CODES } from '@/lib/permissions/registry'
 
 /**
  * Single API endpoint for roles and permissions.
@@ -17,6 +18,24 @@ export async function GET() {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // super_admin bypasses all permission checks
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role === 'super_admin') {
+      const { data: perms } = await supabase
+        .from('permissions')
+        .select('id, code, name, description, module, resource, action, category, is_active, created_at, updated_at')
+        .eq('is_active', true)
+      return NextResponse.json({
+        permissionCodes: ALL_PERMISSION_CODES,
+        permissions: (perms || []) as Permission[],
+      })
     }
 
     const { data: codes, error: codesError } = await supabase.rpc(

@@ -19,10 +19,7 @@ import {
 import { getClassStats, getClassInfo } from "../../actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  TeacherBottomNav,
-  TeacherBottomNavSpacer,
-} from "@/components/teacher";
+import { TeacherBottomNav, TeacherBottomNavSpacer } from "@/components/teacher";
 import { getTeacherDashboardData } from "../../../actions";
 
 export const dynamic = "force-dynamic";
@@ -83,7 +80,7 @@ export default async function ClassStatsPage({ params }: PageProps) {
         </div>
       </header>
 
-      <main id="main-content" className="container px-4 py-6 space-y-6">
+      <main id="main-content" className="container mx-auto px-4 py-6 space-y-6">
         {/* Summary Stats */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -117,7 +114,9 @@ export default async function ClassStatsPage({ params }: PageProps) {
                   <BarChart3 className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.averageAttendance}%</p>
+                  <p className="text-2xl font-bold">
+                    {stats.averageAttendance}%
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {t("avgAttendance")}
                   </p>
@@ -133,7 +132,9 @@ export default async function ClassStatsPage({ params }: PageProps) {
                   <Star className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.totalPointsAwarded}</p>
+                  <p className="text-2xl font-bold">
+                    {stats.totalPointsAwarded}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {t("pointsAwarded")}
                   </p>
@@ -166,7 +167,7 @@ export default async function ClassStatsPage({ params }: PageProps) {
                   </div>
                   <span
                     className={`w-12 text-end text-sm font-medium ${getAttendanceTextColor(
-                      day.rate
+                      day.rate,
                     )}`}
                   >
                     {day.rate}%
@@ -183,7 +184,10 @@ export default async function ClassStatsPage({ params }: PageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <TrendingUp className="h-5 w-5 text-green-600" aria-hidden="true" />
+                <TrendingUp
+                  className="h-5 w-5 text-green-600"
+                  aria-hidden="true"
+                />
                 {t("topAttendees")}
               </CardTitle>
             </CardHeader>
@@ -210,7 +214,7 @@ export default async function ClassStatsPage({ params }: PageProps) {
                       </div>
                       <span
                         className={`text-sm font-medium ${getAttendanceTextColor(
-                          student.rate
+                          student.rate,
                         )}`}
                       >
                         {student.rate}%
@@ -226,7 +230,10 @@ export default async function ClassStatsPage({ params }: PageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <TrendingDown className="h-5 w-5 text-red-600" aria-hidden="true" />
+                <TrendingDown
+                  className="h-5 w-5 text-red-600"
+                  aria-hidden="true"
+                />
                 {t("bottomAttendees")}
               </CardTitle>
             </CardHeader>
@@ -245,7 +252,7 @@ export default async function ClassStatsPage({ params }: PageProps) {
                       </span>
                       <span
                         className={`text-sm font-medium ${getAttendanceTextColor(
-                          student.rate
+                          student.rate,
                         )}`}
                       >
                         {student.rate}%

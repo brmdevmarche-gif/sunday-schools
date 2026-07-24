@@ -17,13 +17,17 @@ export async function GET() {
     // Fetch user profile from the database
     const { data: profile, error } = await supabase
       .from('users')
-      .select('id, email, username, full_name, avatar_url, bio, created_at, updated_at')
+      .select('id, email, username, full_name, avatar_url, bio, role, diocese_id, church_id, is_active, created_at, updated_at')
       .eq('id', user.id)
       .single();
 
     if (error) {
       logger.error('Error fetching user profile:', error);
       return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
+    }
+
+    if (profile && !profile.is_active) {
+      return NextResponse.json({ error: 'Account is inactive' }, { status: 403 });
     }
 
     return NextResponse.json(profile);

@@ -20,7 +20,7 @@ export default function ActionRequiredLoading() {
         </div>
       </header>
 
-      <main className="container px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Filter chips skeleton */}
         <div className="flex gap-2">
           <Skeleton className="h-9 w-16" />

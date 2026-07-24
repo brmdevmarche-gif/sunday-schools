@@ -1,43 +1,30 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { logger } from "@/lib/logger";
+import { requireAdminApiUser, isAuthError } from "@/lib/api/auth";
 import { validateCsrf } from "@/lib/api/csrf";
+import { apiSuccess, apiError } from "@/lib/api/response";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // GET /api/admin/dioceses/[id]/admins - Get all admins for a diocese
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
+    const auth = await requireAdminApiUser();
+    if (isAuthError(auth)) return auth.error;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    // Use admin client to bypass RLS for diocese_admins reads
+    const adminClient = createAdminClient();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get diocese admins with user details
-    const { data, error } = await supabase
+    // Note: assigned_by references auth.users, not public.users — can't join via PostgREST
+    const { data, error } = await adminClient
       .from("diocese_admins")
       .select(
         `
-        *,
-        user:users!diocese_admins_user_id_fkey (
-          id,
-          email,
-          full_name,
-          avatar_url
-        ),
-        assigned_by_user:users!diocese_admins_assigned_by_fkey (
-          id,
-          full_name
-        )
+        id, diocese_id, user_id, assigned_at, assigned_by, is_active, notes, created_at, updated_at,
+        user:users(id, email, full_name, avatar_url)
       `
       )
       .eq("diocese_id", id)
@@ -46,19 +33,13 @@ export async function GET(
 
     if (error) {
       logger.error("Error fetching diocese admins:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch diocese admins" },
-        { status: 500 }
-      );
+      return apiError("Failed to fetch diocese admins", 500);
     }
 
-    return NextResponse.json({ data });
+    return apiSuccess(data);
   } catch (error) {
     logger.error("Error in GET /api/admin/dioceses/[id]/admins:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError("Internal server error", 500);
   }
 }
 
@@ -72,30 +53,20 @@ export async function POST(
 
   try {
     const { id } = await params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireAdminApiUser();
+    if (isAuthError(auth)) return auth.error;
+    const { user } = auth;
 
     const body = await request.json();
     const { user_id, notes } = body;
 
     if (!user_id) {
-      return NextResponse.json(
-        { error: "user_id is required" },
-        { status: 400 }
-      );
+      return apiError("user_id is required", 400);
     }
 
-    // Insert diocese admin assignment
-    const { data, error } = await supabase
+    // Use admin client to bypass RLS for diocese_admins insert
+    const adminClient = createAdminClient();
+    const { data, error } = await adminClient
       .from("diocese_admins")
       .insert({
         diocese_id: id,
@@ -105,40 +76,23 @@ export async function POST(
       })
       .select(
         `
-        *,
-        user:users!diocese_admins_user_id_fkey (
-          id,
-          email,
-          full_name,
-          avatar_url
-        )
+        id, diocese_id, user_id, assigned_at, assigned_by, is_active, notes, created_at, updated_at,
+        user:users(id, email, full_name, avatar_url)
       `
       )
       .single();
 
     if (error) {
       logger.error("Error assigning diocese admin:", error);
-
-      // Handle unique constraint violation
       if (error.code === "23505") {
-        return NextResponse.json(
-          { error: "User is already an admin of this diocese" },
-          { status: 409 }
-        );
+        return apiError("User is already an admin of this diocese", 409);
       }
-
-      return NextResponse.json(
-        { error: "Failed to assign diocese admin" },
-        { status: 500 }
-      );
+      return apiError("Failed to assign diocese admin", 500);
     }
 
-    return NextResponse.json({ data }, { status: 201 });
+    return apiSuccess({ data }, 201);
   } catch (error) {
     logger.error("Error in POST /api/admin/dioceses/[id]/admins:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError("Internal server error", 500);
   }
 }

@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Sun, Moon, Monitor, Globe } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Monitor, Globe, BookOpen } from "lucide-react";
 
 const languages = [
   { code: "en", name: "English", nativeName: "English" },
@@ -75,6 +75,8 @@ export default function LoginPage() {
       let errorMessage = t("auth.loginFailed");
       if (result.error === "invalid_user_code") {
         errorMessage = t("auth.invalidUserCode");
+      } else if (result.error === "account_inactive") {
+        errorMessage = t("auth.accountInactive");
       } else if (result.error === "connection_error") {
         errorMessage = t("auth.connectionError");
       } else if (result.error && !result.error.includes("fetch")) {
@@ -123,13 +125,6 @@ export default function LoginPage() {
           {mounted ? (
             <Select value={theme} onValueChange={setTheme}>
               <SelectTrigger className="w-auto gap-2">
-                {theme === "light" ? (
-                  <Sun className="h-4 w-4" />
-                ) : theme === "dark" ? (
-                  <Moon className="h-4 w-4" />
-                ) : (
-                  <Monitor className="h-4 w-4" />
-                )}
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -173,9 +168,7 @@ export default function LoginPage() {
               />
             </div>
             <CardTitle className="text-2xl">{t("auth.login")}</CardTitle>
-            <CardDescription>
-              {t("auth.loginDescription")}
-            </CardDescription>
+            <CardDescription>{t("auth.loginDescription")}</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -206,9 +199,15 @@ export default function LoginPage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="mt-6">
+            <CardFooter className="mt-6 flex flex-col gap-3">
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? t("auth.loggingIn") : t("auth.logIn")}
+              </Button>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/docs">
+                  <BookOpen className="me-2 h-4 w-4" aria-hidden="true" />
+                  {t("docs.viewDocs")}
+                </Link>
               </Button>
             </CardFooter>
           </form>

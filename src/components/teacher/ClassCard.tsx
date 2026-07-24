@@ -105,7 +105,7 @@ function ClassCard({
   };
 
   const handleAttendance = () => {
-    router.push(`/dashboard/teacher/attendance/${id}`);
+    router.push(`/dashboard/teacher/attendance?classId=${id}`);
   };
 
   const handleStats = () => {

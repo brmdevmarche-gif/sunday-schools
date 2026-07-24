@@ -15,7 +15,7 @@ export default function TeacherDashboardLoading() {
         </div>
       </header>
 
-      <main className="container px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Welcome Banner Skeleton */}
         <div className="rounded-xl bg-muted/50 p-6 space-y-2">
           <Skeleton className="h-8 w-64" />

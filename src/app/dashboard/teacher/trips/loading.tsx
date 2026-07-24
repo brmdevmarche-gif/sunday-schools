@@ -20,7 +20,7 @@ export default function Loading() {
         </div>
       </header>
 
-      <main className="container px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Section Header Skeleton */}
         <Skeleton className="h-4 w-32" />
 

@@ -241,6 +241,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     if (!userProfile) return;
     if (permissionsLoading || permissionsError) return;
     if (isForbiddenAdmin) return;
+    // Don't enforce until permissions have actually loaded
+    if (permissionCodes.length === 0) return;
+    // super_admin always has access to everything
+    if (userProfile.role === "super_admin") return;
 
     const path = pathname || "";
 

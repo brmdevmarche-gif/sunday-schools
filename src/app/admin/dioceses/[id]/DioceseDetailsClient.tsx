@@ -39,11 +39,15 @@ import {
   Loader2,
 } from "lucide-react";
 import type { Diocese, Church, DioceseAdmin, ExtendedUser } from "@/lib/types";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import ImageUpload from "@/components/ImageUpload";
 import ColorPicker from "@/components/ColorPicker";
 import { updateDiocese } from "../actions";
 import { toast } from "sonner";
 import { clientLogger } from '@/lib/client-logger'
+import { DioceseAdminList } from "@/components/admin/DioceseAdminList";
+import { AssignDioceseAdminDialog } from "@/components/admin/AssignDioceseAdminDialog";
 
 interface DioceseDetailsClientProps {
   diocese: Diocese;
@@ -74,6 +78,8 @@ export function DioceseDetailsClient({
   const [isEditing, setIsEditing] = useState(false);
   const [diocese, setDiocese] = useState(initialDiocese);
   const [isSaving, setIsSaving] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [adminListKey, setAdminListKey] = useState(0);
 
   const canEdit = isSuperAdmin || isDioceseAdmin;
 
@@ -92,6 +98,7 @@ export function DioceseDetailsClient({
         theme_secondary_color: diocese.theme_secondary_color ?? undefined,
         theme_accent_color: diocese.theme_accent_color ?? undefined,
         theme_settings: diocese.theme_settings ?? undefined,
+        theme_enabled: diocese.theme_enabled ?? false,
       });
       toast.success(t("dioceses.dioceseUpdated"));
       setIsEditing(false);
@@ -331,30 +338,52 @@ export function DioceseDetailsClient({
           {isSuperAdmin && (
             <Card>
               <CardHeader>
-                <CardTitle>Theme Customization</CardTitle>
+                <CardTitle>{t("dioceses.themeCustomization")}</CardTitle>
                 <CardDescription>
-                  Customize the color scheme for this diocese
+                  {t("dioceses.themeCustomizationDescription")}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
+                {/* Follow Diocese Theme Toggle */}
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="theme-enabled" className="text-base font-medium">
+                      {t("dioceses.followDioceseTheme")}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      {t("dioceses.followDioceseThemeDescription")}
+                    </p>
+                  </div>
+                  <Switch
+                    id="theme-enabled"
+                    checked={diocese.theme_enabled ?? false}
+                    onCheckedChange={(checked) =>
+                      setDiocese({ ...diocese, theme_enabled: checked })
+                    }
+                    disabled={!isEditing}
+                    aria-label={t("dioceses.followDioceseTheme")}
+                  />
+                </div>
+
+                {/* Color Pickers */}
                 {isEditing ? (
                   <div className="grid gap-4 md:grid-cols-3">
                     <ColorPicker
-                      label="Primary Color"
+                      label={t("dioceses.primaryColor")}
                       value={diocese.theme_primary_color || "#3b82f6"}
                       onChange={(color) =>
                         setDiocese({ ...diocese, theme_primary_color: color })
                       }
                     />
                     <ColorPicker
-                      label="Secondary Color"
+                      label={t("dioceses.secondaryColor")}
                       value={diocese.theme_secondary_color || "#8b5cf6"}
                       onChange={(color) =>
                         setDiocese({ ...diocese, theme_secondary_color: color })
                       }
                     />
                     <ColorPicker
-                      label="Accent Color"
+                      label={t("dioceses.accentColor")}
                       value={diocese.theme_accent_color || "#ec4899"}
                       onChange={(color) =>
                         setDiocese({ ...diocese, theme_accent_color: color })
@@ -364,7 +393,7 @@ export function DioceseDetailsClient({
                 ) : (
                   <div className="flex gap-4">
                     <div>
-                      <p className="text-sm font-medium mb-2">Primary</p>
+                      <p className="text-sm font-medium mb-2">{t("dioceses.primaryColor")}</p>
                       <div
                         className="w-16 h-16 rounded border-2"
                         style={{
@@ -374,7 +403,7 @@ export function DioceseDetailsClient({
                       />
                     </div>
                     <div>
-                      <p className="text-sm font-medium mb-2">Secondary</p>
+                      <p className="text-sm font-medium mb-2">{t("dioceses.secondaryColor")}</p>
                       <div
                         className="w-16 h-16 rounded border-2"
                         style={{
@@ -384,7 +413,7 @@ export function DioceseDetailsClient({
                       />
                     </div>
                     <div>
-                      <p className="text-sm font-medium mb-2">Accent</p>
+                      <p className="text-sm font-medium mb-2">{t("dioceses.accentColor")}</p>
                       <div
                         className="w-16 h-16 rounded border-2"
                         style={{
@@ -467,54 +496,59 @@ export function DioceseDetailsClient({
         </TabsContent>
 
         <TabsContent value="admins">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("dioceses.manageAdmins")}</CardTitle>
-              <CardDescription>
-                {t("dioceses.adminAccessDescription") || "Users with admin access to this diocese"}
-              </CardDescription>
-            </CardHeader>
-          <CardContent>
-            {dioceseAdmins.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                No diocese admins assigned
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("users.fullName")}</TableHead>
-                    <TableHead>{t("common.email")}</TableHead>
-                    <TableHead>Assigned Date</TableHead>
-                    <TableHead>{t("common.status")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dioceseAdmins.map((admin) => (
-                    <TableRow key={admin.id}>
-                      <TableCell className="font-medium">
-                        {admin.user.full_name}
-                      </TableCell>
-                      <TableCell>{admin.user.email}</TableCell>
-                      <TableCell>
-                        {new Date(admin.assigned_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={admin.is_active ? "default" : "secondary"}
-                        >
-                          {admin.is_active
-                            ? t("common.active")
-                            : t("common.inactive")}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-          </Card>
+          {canEdit ? (
+            <>
+              <DioceseAdminList
+                key={adminListKey}
+                dioceseId={diocese.id}
+                onAssignClick={() => setAssignDialogOpen(true)}
+              />
+              <AssignDioceseAdminDialog
+                dioceseId={diocese.id}
+                open={assignDialogOpen}
+                onOpenChange={setAssignDialogOpen}
+                onSuccess={() => setAdminListKey((k) => k + 1)}
+              />
+            </>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("dioceses.manageAdmins")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dioceseAdmins.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    {t("common.noResults")}
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("users.fullName")}</TableHead>
+                        <TableHead>{t("common.email")}</TableHead>
+                        <TableHead>{t("common.status")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dioceseAdmins.map((admin) => (
+                        <TableRow key={admin.id}>
+                          <TableCell className="font-medium">
+                            {admin.user.full_name}
+                          </TableCell>
+                          <TableCell>{admin.user.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={admin.is_active ? "default" : "secondary"}>
+                              {admin.is_active ? t("common.active") : t("common.inactive")}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="users">

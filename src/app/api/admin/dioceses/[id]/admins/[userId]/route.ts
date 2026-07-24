@@ -1,7 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { logger } from "@/lib/logger";
+import { requireAdminApiUser, isAuthError } from "@/lib/api/auth";
 import { validateCsrf } from "@/lib/api/csrf";
+import { apiSuccess, apiError } from "@/lib/api/response";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // DELETE /api/admin/dioceses/[id]/admins/[userId] - Revoke diocese admin access
 export async function DELETE(
@@ -13,20 +15,11 @@ export async function DELETE(
 
   try {
     const { id, userId } = await params;
-    const supabase = await createClient();
+    const auth = await requireAdminApiUser();
+    if (isAuthError(auth)) return auth.error;
+    const adminClient = createAdminClient();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Soft delete by setting is_active to false
-    const { error } = await supabase
+    const { error } = await adminClient
       .from("diocese_admins")
       .update({ is_active: false })
       .eq("diocese_id", id)
@@ -34,22 +27,13 @@ export async function DELETE(
 
     if (error) {
       logger.error("Error revoking diocese admin:", error);
-      return NextResponse.json(
-        { error: "Failed to revoke diocese admin" },
-        { status: 500 }
-      );
+      return apiError("Failed to revoke diocese admin", 500);
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    logger.error(
-      "Error in DELETE /api/admin/dioceses/[id]/admins/[userId]:",
-      error
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    logger.error("Error in DELETE /api/admin/dioceses/[id]/admins/[userId]:", error);
+    return apiError("Internal server error", 500);
   }
 }
 
@@ -63,23 +47,14 @@ export async function PATCH(
 
   try {
     const { id, userId } = await params;
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireAdminApiUser();
+    if (isAuthError(auth)) return auth.error;
+    const adminClient = createAdminClient();
 
     const body = await request.json();
     const { is_active, notes } = body;
 
-    // Update diocese admin
-    const { error } = await supabase
+    const { error } = await adminClient
       .from("diocese_admins")
       .update({
         is_active: is_active !== undefined ? is_active : true,
@@ -90,21 +65,12 @@ export async function PATCH(
 
     if (error) {
       logger.error("Error updating diocese admin:", error);
-      return NextResponse.json(
-        { error: "Failed to update diocese admin" },
-        { status: 500 }
-      );
+      return apiError("Failed to update diocese admin", 500);
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    logger.error(
-      "Error in PATCH /api/admin/dioceses/[id]/admins/[userId]:",
-      error
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    logger.error("Error in PATCH /api/admin/dioceses/[id]/admins/[userId]:", error);
+    return apiError("Internal server error", 500);
   }
 }

@@ -54,12 +54,20 @@ export default async function TeacherDashboardPage() {
     redirect("/dashboard");
   }
 
-  const { teacher, stats, classes, actionRequired, isOrganizingTrips, unreadAnnouncementsCount } =
-    dashboardData;
+  const {
+    teacher,
+    stats,
+    classes,
+    actionRequired,
+    isOrganizingTrips,
+    unreadAnnouncementsCount,
+  } = dashboardData;
 
   // Group action required items by type
   const tripActions = actionRequired.filter((a) => a.type === "trip");
-  const competitionActions = actionRequired.filter((a) => a.type === "competition");
+  const competitionActions = actionRequired.filter(
+    (a) => a.type === "competition",
+  );
   const activityActions = actionRequired.filter((a) => a.type === "activity");
 
   return (
@@ -71,7 +79,7 @@ export default async function TeacherDashboardPage() {
         teacherAvatar={teacher.avatarUrl}
       />
 
-      <main id="main-content" className="container px-4 py-6 space-y-6">
+      <main id="main-content" className="container mx-auto px-4 py-6 space-y-6">
         {/* Welcome Banner */}
         <div className="rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 p-6">
           <h1 className="text-2xl font-bold">
@@ -186,7 +194,10 @@ export default async function TeacherDashboardPage() {
                 <ActionRequiredSection
                   type="competition"
                   label={t("teacher.dashboard.competitions") || "Competitions"}
-                  count={competitionActions.reduce((sum, a) => sum + a.count, 0)}
+                  count={competitionActions.reduce(
+                    (sum, a) => sum + a.count,
+                    0,
+                  )}
                 >
                   {competitionActions.map((action) => (
                     <ActionRequiredCard

@@ -67,45 +67,18 @@ export async function updateUserSettings(
   } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // First, try to get existing settings
-  const { data: existing } = await supabase
+  const { error } = await supabase
     .from('user_settings')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
+    .upsert({ user_id: user.id, ...settings }, { onConflict: 'user_id' })
 
-  if (existing) {
-    // Update existing settings
-    const { error } = await supabase
-      .from('user_settings')
-      .update(settings)
-      .eq('user_id', user.id)
-
-    if (error) {
-      logger.error('Error updating settings:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      })
-      throw new Error('Failed to update settings')
-    }
-  } else {
-    // Create new settings
-    const { error } = await supabase.from('user_settings').insert({
-      user_id: user.id,
-      ...settings,
+  if (error) {
+    logger.error('Error saving settings:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
     })
-
-    if (error) {
-      logger.error('Error creating settings:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      })
-      throw new Error('Failed to create settings')
-    }
+    throw new Error('Failed to save settings')
   }
 
   revalidatePath('/admin/settings')

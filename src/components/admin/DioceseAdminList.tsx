@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { UserPlus, Trash2, Shield } from "lucide-react";
 import { clientLogger } from '@/lib/client-logger'
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface DioceseAdmin {
   id: string;
@@ -54,6 +55,8 @@ export function DioceseAdminList({
   const [admins, setAdmins] = useState<DioceseAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [revoking, setRevoking] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingRevoke, setPendingRevoke] = useState<{ userId: string; name: string } | null>(null);
 
   const fetchAdmins = useCallback(async () => {
     try {
@@ -79,20 +82,18 @@ export function DioceseAdminList({
     fetchAdmins();
   }, [fetchAdmins]);
 
-  const handleRevoke = async (userId: string, userName: string) => {
-    if (
-      !confirm(`Are you sure you want to revoke admin access for ${userName}?`)
-    ) {
-      return;
-    }
+  const requestRevoke = (userId: string, name: string) => {
+    setPendingRevoke({ userId, name });
+    setConfirmOpen(true);
+  };
 
+  const handleRevoke = async () => {
+    if (!pendingRevoke) return;
     try {
-      setRevoking(userId);
+      setRevoking(pendingRevoke.userId);
       const response = await fetch(
-        `/api/admin/dioceses/${dioceseId}/admins/${userId}`,
-        {
-          method: "DELETE",
-        }
+        `/api/admin/dioceses/${dioceseId}/admins/${pendingRevoke.userId}`,
+        { method: "DELETE" }
       );
 
       if (!response.ok) {
@@ -106,6 +107,7 @@ export function DioceseAdminList({
       toast.error("Failed to revoke admin access");
     } finally {
       setRevoking(null);
+      setPendingRevoke(null);
     }
   };
 
@@ -224,16 +226,17 @@ export function DioceseAdminList({
                   <TableCell className="text-end">
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
+                      aria-label="Revoke admin"
                       onClick={() =>
-                        handleRevoke(
+                        requestRevoke(
                           admin.user_id,
                           admin.user.full_name || admin.user.email
                         )
                       }
                       disabled={revoking === admin.user_id}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -242,6 +245,15 @@ export function DioceseAdminList({
           </Table>
         )}
       </CardContent>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Revoke Admin Access"
+        description={`Are you sure you want to revoke admin access for ${pendingRevoke?.name}?`}
+        confirmText="Revoke"
+        variant="destructive"
+        onConfirm={handleRevoke}
+      />
     </Card>
   );
 }

@@ -41,6 +41,7 @@ import {
   ChevronLeft,
   Plus,
   Star,
+  BookOpen,
 } from "lucide-react";
 import type { ParentChild } from "@/lib/types";
 
@@ -510,6 +511,14 @@ export function ParentSidebar({
                   label={t("nav.settings")}
                   onClose={closeSheet}
                   active={isActive("/dashboard/settings")}
+                  chevronIcon={ChevronIcon}
+                />
+                <NavLink
+                  href="/docs"
+                  icon={BookOpen}
+                  label={t("docs.title")}
+                  onClose={closeSheet}
+                  active={isActive("/docs")}
                   chevronIcon={ChevronIcon}
                 />
               </div>

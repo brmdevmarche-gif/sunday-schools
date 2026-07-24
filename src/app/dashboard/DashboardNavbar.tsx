@@ -131,6 +131,11 @@ export default function DashboardNavbar({ userName }: DashboardNavbarProps) {
       href: "/dashboard/settings",
       icon: Settings,
     },
+    {
+      title: t("docs.title"),
+      href: "/docs",
+      icon: BookOpen,
+    },
   ];
 
   return (

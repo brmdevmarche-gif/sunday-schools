@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Permission } from '@/lib/types/modules/permissions'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { ALL_PERMISSION_CODES } from '@/lib/permissions/registry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -16,6 +17,22 @@ async function fetchPermissionsForUser(
   supabase: SupabaseClient,
   userId: string
 ): Promise<PermissionsPayload> {
+  // super_admin bypasses all permission checks — return every known code
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single()
+
+  if (profile?.role === 'super_admin') {
+    // Fetch matching Permission rows for the UI, but codes are all-inclusive
+    const { data: perms } = await supabase
+      .from('permissions')
+      .select('id, code, name, description, module, resource, action, category, is_active, created_at, updated_at')
+      .eq('is_active', true)
+    return { permissionCodes: ALL_PERMISSION_CODES, permissions: (perms || []) as Permission[] }
+  }
+
   const { data: codes, error: codesError } = await supabase.rpc(
     'get_user_permission_codes',
     { user_id_param: userId }

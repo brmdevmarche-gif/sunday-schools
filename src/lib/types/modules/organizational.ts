@@ -21,6 +21,7 @@ export interface Diocese {
   theme_secondary_color: string | null;
   theme_accent_color: string | null;
   theme_settings: Record<string, unknown> | null;
+  theme_enabled: boolean | null;
   created_by: string | null;
   created_at: string;
   updated_at: string | null;
@@ -50,6 +51,7 @@ export interface CreateDioceseInput {
   theme_secondary_color?: string;
   theme_accent_color?: string;
   theme_settings?: Record<string, unknown>;
+  theme_enabled?: boolean;
 }
 
 export interface CreateDioceseAdminInput {

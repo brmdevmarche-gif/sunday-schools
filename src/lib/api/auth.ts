@@ -44,7 +44,7 @@ export async function requireApiAuth(): Promise<AuthResult> {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, role')
+    .select('id, role, is_active')
     .eq('id', user.id)
     .single()
 
@@ -52,6 +52,13 @@ export async function requireApiAuth(): Promise<AuthResult> {
     return {
       success: false,
       error: NextResponse.json({ error: 'User profile not found' }, { status: 401 }),
+    }
+  }
+
+  if (!profile.is_active) {
+    return {
+      success: false,
+      error: NextResponse.json({ error: 'Account is inactive' }, { status: 403 }),
     }
   }
 

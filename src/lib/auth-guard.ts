@@ -1,117 +1,49 @@
-import 'server-only'
 
-import { cache } from 'react'
-import { redirect } from 'next/navigation'
-import { createClient } from './supabase/server'
-import type { UserRole } from './types/modules/base'
-import { ADMIN_ROLES, STAFF_ROLES } from './constants/roles'
+import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 
-export interface AuthUser {
-  userId: string
-  role: UserRole
-}
+export async function requireAdmin() {
+  console.log('=== DEBUG: requireAdmin called ===')
 
-/**
- * Get the current authenticated user and their role (cached per request).
- * Returns null if not authenticated.
- */
-export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const supabase = createClient()
+  console.log('Supabase client created successfully')
 
-  if (!user) return null
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  console.log('Auth getUser result:', { user, authError })
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('id, role, is_active')
+  if (authError) {
+    console.error('Auth error:', authError)
+    throw new Error('Authentication failed')
+  }
+
+  if (!user) {
+    console.error('No user found in session')
+    throw new Error('Not authenticated')
+  }
+
+  console.log('User found:', user.id)
+
+  // Try to fetch profile
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
     .eq('id', user.id)
     .single()
 
-  if (!profile) return null
+  console.log('Profile query result:', { profile, profileError })
 
-  // Inactive users are treated as unauthenticated
-  if (!profile.is_active) return null
-
-  return { userId: profile.id, role: profile.role as UserRole }
-})
-
-/**
- * Require an authenticated user. Redirects to login if not authenticated.
- * Use in server actions and server components.
- */
-export async function requireAuth(): Promise<AuthUser> {
-  const authUser = await getAuthUser()
-  if (!authUser) {
-    redirect('/login')
+  if (profileError) {
+    console.error('Profile fetch error:', profileError)
+    throw new Error('Database access error')
   }
-  return authUser
-}
 
-/**
- * Require an authenticated user with an admin role.
- * Throws if not authenticated or not an admin.
- */
-export async function requireAdmin(): Promise<AuthUser> {
-  const authUser = await requireAuth()
-  if (!ADMIN_ROLES.has(authUser.role)) {
-    throw new Error('Unauthorized: admin role required')
-  }
-  return authUser
-}
+  console.log('Profile data:', profile)
 
-/**
- * Require an authenticated user with a staff role (admin or teacher).
- * Throws if not authenticated or not staff.
- */
-export async function requireStaff(): Promise<AuthUser> {
-  const authUser = await requireAuth()
-  if (!STAFF_ROLES.has(authUser.role)) {
-    throw new Error('Unauthorized: staff role required')
+  if (profile?.role !== 'super_admin') {
+    console.error('Role mismatch - expected super_admin, got:', profile?.role)
+    throw new Error('Insufficient permissions')
   }
-  return authUser
-}
 
-/**
- * Require an authenticated user with a parent role.
- * Throws if not authenticated or not a parent.
- */
-export async function requireParent(): Promise<AuthUser> {
-  const authUser = await requireAuth()
-  if (authUser.role !== 'parent') {
-    throw new Error('Unauthorized: parent role required')
-  }
-  return authUser
-}
-
-/**
- * Require auth and redirect to login if not authenticated.
- * Use in page server components.
- */
-export async function requireAuthOrRedirect(
-  redirectTo: string = '/login'
-): Promise<AuthUser> {
-  const authUser = await getAuthUser()
-  if (!authUser) {
-    redirect(redirectTo)
-  }
-  return authUser
-}
-
-/**
- * Require admin role and redirect if unauthorized.
- * Use in admin page server components.
- */
-export async function requireAdminOrRedirect(
-  redirectTo: string = '/login'
-): Promise<AuthUser> {
-  const authUser = await getAuthUser()
-  if (!authUser) {
-    redirect(redirectTo)
-  }
-  if (!ADMIN_ROLES.has(authUser.role)) {
-    redirect('/unauthorized')
-  }
-  return authUser
+  console.log('Admin access granted')
+  return { user, profile }
 }

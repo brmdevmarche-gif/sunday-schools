@@ -92,20 +92,30 @@ export async function loginAction(
       return { success: false, error: "account_inactive" };
     }
 
+    // Debug logging to help identify role issue
+    console.log("User role from database:", profile?.role);
+
     if (profile?.role) {
       switch (profile.role) {
         case "super_admin":
         case "diocese_admin":
         case "church_admin":
           redirectPath = "/admin";
+          console.log("Redirecting super_admin/diocese_admin/church_admin to /admin");
           break;
         case "teacher":
           redirectPath = "/dashboard/teacher";
+          console.log("Redirecting teacher to /dashboard/teacher");
           break;
         case "parent":
           redirectPath = "/dashboard/parents";
+          console.log("Redirecting parent to /dashboard/parents");
           break;
+        default:
+          console.log("Default redirect path set to /dashboard");
       }
+    } else {
+      console.log("No role found in profile, defaulting to /dashboard");
     }
 
     // Log successful login (server-side)
@@ -121,6 +131,14 @@ export async function loginAction(
       });
     } catch {
       // Non-critical, ignore
+    }
+
+    console.log("Final redirect path:", redirectPath);
+
+    // Make sure we're returning the correct redirect for super admins
+    if (profile?.role === "super_admin") {
+      console.log("Force redirect to /admin for super admin");
+      return { success: true, redirectPath: "/admin" };
     }
 
     return { success: true, redirectPath };
